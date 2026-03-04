@@ -72,14 +72,17 @@ export default function ProductsTable() {
                 className="hover:bg-slate-50/50 transition-colors"
               >
                 <td className="px-6 py-4">
-                  <div className="flex items-center gap-4">
+                  <div
+                    className="flex items-center gap-4 cursor-pointer"
+                    onClick={() => navigate(`/products/${p.sku}`)}
+                  >
                     <div className="size-12 rounded-lg bg-slate-100 flex-shrink-0 flex items-center justify-center">
                       <span className="material-symbols-outlined text-slate-400">
                         inventory_2
                       </span>
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-900">
+                      <p className="text-sm font-bold text-slate-900 hover:text-[#1325ec] transition-colors">
                         {p.name}
                       </p>
                       <p className="text-xs text-slate-500">SKU: {p.sku}</p>
@@ -98,12 +101,25 @@ export default function ProductsTable() {
                 <td className="px-6 py-4 text-sm text-slate-500">{p.date}</td>
                 <td className="px-6 py-4 text-right">
                   <button
+                    onClick={() => navigate(`/products/${p.sku}`)}
+                    className="p-1.5 text-slate-400 hover:text-slate-700 transition-colors"
+                    title="View"
+                  >
+                    <span className="material-symbols-outlined">
+                      visibility
+                    </span>
+                  </button>
+                  <button
                     onClick={() => navigate("/products/edit")}
-                    className="p-1.5 text-slate-400 hover:text-[#1325ec] transition-colors"
+                    className="p-1.5 text-slate-400 hover:text-[#1325ec] transition-colors ml-1"
+                    title="Edit"
                   >
                     <span className="material-symbols-outlined">edit</span>
                   </button>
-                  <button className="p-1.5 text-slate-400 hover:text-red-500 transition-colors ml-2">
+                  <button
+                    className="p-1.5 text-slate-400 hover:text-red-500 transition-colors ml-1"
+                    title="Delete"
+                  >
                     <span className="material-symbols-outlined">delete</span>
                   </button>
                 </td>

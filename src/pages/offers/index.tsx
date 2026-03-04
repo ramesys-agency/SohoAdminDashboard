@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PageWrapper from "../../components/ui/PageWrapper";
 import PageHeader from "../../components/ui/PageHeader";
 import CouponsTable from "./components/CouponsTable";
@@ -11,6 +12,7 @@ const filterTabs = [
 ];
 
 export default function Offers() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
 
   return (
@@ -19,7 +21,10 @@ export default function Offers() {
         title="Offers & Coupons"
         description="Manage and monitor your promotional campaigns."
         actions={
-          <button className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#1325ec] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#1325ec]/90 transition-all shadow-lg shadow-[#1325ec]/20">
+          <button
+            onClick={() => navigate("/offers/create")}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#1325ec] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#1325ec]/90 transition-all shadow-lg shadow-[#1325ec]/20"
+          >
             <span className="material-symbols-outlined">add_circle</span>
             Create Discount
           </button>

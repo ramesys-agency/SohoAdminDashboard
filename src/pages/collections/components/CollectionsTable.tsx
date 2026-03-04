@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import Pagination from "../../../components/ui/Pagination";
 
@@ -34,6 +35,7 @@ const data = [
 ];
 
 export default function CollectionsTable() {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
 
   return (
@@ -90,7 +92,10 @@ export default function CollectionsTable() {
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-2 text-slate-400 hover:text-[#1325ec] transition-colors">
+                    <button
+                      onClick={() => navigate("/collections/create")}
+                      className="p-2 text-slate-400 hover:text-[#1325ec] transition-colors"
+                    >
                       <span className="material-symbols-outlined text-lg">
                         edit
                       </span>

@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import StatusBadge from "../../../components/ui/StatusBadge";
 
 const orders = [
@@ -28,11 +29,15 @@ const orders = [
 ];
 
 export default function RecentOrdersTable() {
+  const navigate = useNavigate();
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
       <div className="p-6 border-b border-slate-200 flex justify-between items-center">
         <h3 className="text-lg font-bold text-slate-900">Recent Orders</h3>
-        <button className="text-[#1325ec] text-sm font-bold hover:underline">
+        <button
+          onClick={() => navigate("/orders")}
+          className="text-[#1325ec] text-sm font-bold hover:underline"
+        >
           View All
         </button>
       </div>
@@ -51,9 +56,10 @@ export default function RecentOrdersTable() {
             {orders.map((order) => (
               <tr
                 key={order.id}
-                className="hover:bg-slate-50 transition-colors"
+                onClick={() => navigate("/orders/ORD-9421")}
+                className="hover:bg-slate-50 transition-colors cursor-pointer"
               >
-                <td className="px-6 py-4 font-bold text-[#1325ec]">
+                <td className="px-6 py-4 font-bold text-[#1325ec] hover:underline">
                   {order.id}
                 </td>
                 <td className="px-6 py-4">

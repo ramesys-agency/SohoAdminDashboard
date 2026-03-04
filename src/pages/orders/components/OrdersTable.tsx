@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import Pagination from "../../../components/ui/Pagination";
 
@@ -66,6 +67,7 @@ const headers = [
 ];
 
 export default function OrdersTable() {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
 
   return (
@@ -88,10 +90,11 @@ export default function OrdersTable() {
             {orders.map((order) => (
               <tr
                 key={order.id}
-                className="hover:bg-slate-50 transition-colors"
+                onClick={() => navigate(`/orders/${order.id.replace("#", "")}`)}
+                className="hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="text-sm font-bold text-[#1325ec]">
+                  <span className="text-sm font-bold text-[#1325ec] hover:underline">
                     {order.id}
                   </span>
                 </td>
@@ -121,9 +124,15 @@ export default function OrdersTable() {
                   <StatusBadge status={order.fulfillment} />
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right">
-                  <button className="p-2 hover:bg-slate-200 rounded-lg transition-colors">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/orders/${order.id.replace("#", "")}`);
+                    }}
+                    className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+                  >
                     <span className="material-symbols-outlined text-slate-500">
-                      more_horiz
+                      open_in_new
                     </span>
                   </button>
                 </td>

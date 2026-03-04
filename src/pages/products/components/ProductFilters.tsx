@@ -1,8 +1,4 @@
-import { useNavigate } from "react-router-dom";
-
 export default function ProductFilters() {
-  const navigate = useNavigate();
-
   return (
     <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap items-center gap-4">
       <div className="flex-1 min-w-[200px]">
@@ -37,13 +33,6 @@ export default function ProductFilters() {
           <span className="text-sm font-medium">Advanced</span>
         </button>
       </div>
-      <button
-        onClick={() => navigate("/products/edit")}
-        className="flex items-center gap-2 px-6 py-2.5 bg-[#1325ec] text-white font-bold rounded-lg hover:shadow-lg hover:shadow-[#1325ec]/25 transition-all"
-      >
-        <span className="material-symbols-outlined">add</span>
-        Add Product
-      </button>
     </div>
   );
 }
