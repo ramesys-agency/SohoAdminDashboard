@@ -1,35 +1,77 @@
 import { useState } from "react";
 
-const images = [
-  { bg: "bg-slate-200", label: "White T-Shirt Front" },
-  { bg: "bg-slate-800", label: "Black T-Shirt" },
-  { bg: "bg-blue-900", label: "Navy T-Shirt Stack" },
-];
+export interface ProductVariantImageData {
+  id: string;
+  imageUrl: string;
+  isPrimary: boolean;
+  colorRef: string | null;
+}
 
-export default function ProductGallery() {
+interface ProductGalleryProps {
+  images: ProductVariantImageData[];
+}
+
+export default function ProductGallery({ images }: ProductGalleryProps) {
   const [active, setActive] = useState(0);
+
+  const displayImages =
+    images.length > 0
+      ? images
+      : [{ id: "1", imageUrl: "", isPrimary: true, colorRef: "#f1f5f9" }];
+
   return (
     <div className="space-y-3">
       {/* Main image */}
       <div
-        className={`aspect-square rounded-xl ${images[active].bg} flex items-center justify-center relative overflow-hidden`}
+        className={`aspect-square rounded-xl flex items-center justify-center relative overflow-hidden`}
+        style={{
+          backgroundColor: displayImages[active].imageUrl
+            ? "transparent"
+            : displayImages[active].colorRef || "#f1f5f9",
+        }}
       >
-        <span className="material-symbols-outlined text-white/30 text-[80px]">
-          checkroom
-        </span>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
+        {displayImages[active].imageUrl ? (
+          <img
+            src={displayImages[active].imageUrl}
+            alt="Product"
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <span className="material-symbols-outlined text-slate-300 text-[80px]">
+            checkroom
+          </span>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent pointer-events-none"></div>
       </div>
+
       {/* Thumbnails */}
-      <div className="grid grid-cols-3 gap-3">
-        {images.map((img, i) => (
+      <div className="grid grid-cols-4 gap-3">
+        {displayImages.map((img, i) => (
           <button
-            key={i}
+            key={img.id || i}
             onClick={() => setActive(i)}
-            className={`aspect-square rounded-lg ${img.bg} flex items-center justify-center transition-all ${active === i ? "ring-2 ring-[#1325ec] ring-offset-2" : "opacity-60 hover:opacity-100"}`}
+            className={`aspect-square rounded-lg flex items-center justify-center transition-all overflow-hidden ${
+              active === i
+                ? "ring-2 ring-[#1325ec] ring-offset-2"
+                : "opacity-60 hover:opacity-100"
+            }`}
+            style={{
+              backgroundColor: img.imageUrl
+                ? "transparent"
+                : img.colorRef || "#f1f5f9",
+            }}
           >
-            <span className="material-symbols-outlined text-white/40 text-2xl">
-              checkroom
-            </span>
+            {img.imageUrl ? (
+              <img
+                src={img.imageUrl}
+                alt="Thumbnail"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="material-symbols-outlined text-slate-300 text-2xl">
+                checkroom
+              </span>
+            )}
           </button>
         ))}
       </div>

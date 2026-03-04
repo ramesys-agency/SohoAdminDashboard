@@ -1,27 +1,99 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import PageWrapper from "../../../components/ui/PageWrapper";
 import PageHeader from "../../../components/ui/PageHeader";
 import BasicInfoForm from "./components/BasicInfoForm";
-import MediaUpload from "./components/MediaUpload";
-import VariantsTable from "./components/VariantsTable";
-import SeoSection from "./components/SeoSection";
+import VariantsTable, {
+  type ProductVariantData,
+} from "./components/VariantsTable";
+// import SeoSection from "./components/SeoSection";
 import StatusCard from "./components/StatusCard";
-import PricingCard from "./components/PricingCard";
 import OrganizationCard from "./components/OrganizationCard";
 
 export default function ProductEditor() {
   const navigate = useNavigate();
-  const [title, setTitle] = useState("Classic Cotton T-Shirt");
-  const [status, setStatus] = useState("active");
-  const [visible, setVisible] = useState(true);
-  const [basePrice, setBasePrice] = useState("25.00");
-  const [comparePrice, setComparePrice] = useState("35.00");
+  const { id } = useParams();
+  const isEditMode = Boolean(id);
+
+  // State mapping to Prisma schema
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [gender, setGender] = useState<string[]>(["UNISEX"]);
+  const [attributes, setAttributes] = useState("{}");
+  const [isPublished, setIsPublished] = useState(false);
+  const [categoryId, setCategoryId] = useState("");
+  const [collections, setCollections] = useState<string[]>([]);
+  const [variants, setVariants] = useState<ProductVariantData[]>([]);
+  /*
+  const [seo, setSeo] = useState({
+    metaTitle: "",
+    metaDescription: "",
+    canonicalUrl: "",
+  });
+  */
+
+  // Load mock data if Edit Mode
+  useEffect(() => {
+    if (isEditMode) {
+      // Mock fetch
+      setName("Classic Cotton T-Shirt");
+      setDescription("Premium organic cotton.");
+      setGender(["UNISEX"]);
+      setAttributes('{"Material":"100% Cotton","Fit":"Relaxed"}');
+      setIsPublished(true);
+      setCategoryId("cat_clothing");
+      setCollections(["Summer Essentials"]);
+      setVariants([
+        {
+          id: crypto.randomUUID(),
+          sku: "TSH-WHT-S",
+          size: "S",
+          colorName: "White",
+          colorValue: "#f8fafc",
+          stockQty: 42,
+          basePrice: "25.00",
+          originalPrice: "35.00",
+          isDefault: true,
+          images: [
+            {
+              id: "img1",
+              imageUrl: "",
+              isPrimary: true,
+              colorRef: "#f8fafc",
+            },
+          ],
+        },
+      ]);
+      /*
+      setSeo({
+        metaTitle: "Classic Cotton T-Shirt | Shop Name",
+        metaDescription: "Buy the ultimate Classic Cotton T-Shirt.",
+        canonicalUrl: "",
+      });
+      */
+    } else {
+      // Initialize with one empty variant for new products
+      setVariants([
+        {
+          id: crypto.randomUUID(),
+          sku: "",
+          size: "",
+          colorName: "",
+          colorValue: "#000000",
+          stockQty: 0,
+          basePrice: "0.00",
+          originalPrice: "0.00",
+          isDefault: true,
+          images: [],
+        },
+      ]);
+    }
+  }, [isEditMode]);
 
   return (
     <PageWrapper>
       <PageHeader
-        title={title}
+        title={isEditMode ? "Edit Product" : "Create Product"}
         description={
           <>
             <button
@@ -44,7 +116,7 @@ export default function ProductEditor() {
               Discard
             </button>
             <button className="px-4 py-2 text-sm font-bold bg-[#1325ec] text-white rounded-lg hover:opacity-90 transition-opacity shadow-lg shadow-[#1325ec]/20">
-              Save Changes
+              {isEditMode ? "Save Changes" : "Create Product"}
             </button>
           </>
         }
@@ -54,27 +126,32 @@ export default function ProductEditor() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Main Left Column */}
         <div className="xl:col-span-2 space-y-6">
-          <BasicInfoForm title={title} onTitleChange={setTitle} />
-          <MediaUpload />
-          <VariantsTable />
-          <SeoSection />
+          <BasicInfoForm
+            name={name}
+            onNameChange={setName}
+            description={description}
+            onDescriptionChange={setDescription}
+            gender={gender}
+            onGenderChange={setGender}
+            attributes={attributes}
+            onAttributesChange={setAttributes}
+          />
+          <VariantsTable variants={variants} onVariantsChange={setVariants} />
+          {/* <SeoSection seo={seo} onSeoChange={setSeo} /> */}
         </div>
 
         {/* Right Sidebar */}
         <div className="space-y-6">
           <StatusCard
-            status={status}
-            onStatusChange={setStatus}
-            visible={visible}
-            onVisibilityToggle={() => setVisible(!visible)}
+            isPublished={isPublished}
+            onIsPublishedChange={setIsPublished}
           />
-          <PricingCard
-            basePrice={basePrice}
-            comparePrice={comparePrice}
-            onBasePriceChange={setBasePrice}
-            onComparePriceChange={setComparePrice}
+          <OrganizationCard
+            categoryId={categoryId}
+            onCategoryIdChange={setCategoryId}
+            collections={collections}
+            onCollectionsChange={setCollections}
           />
-          <OrganizationCard />
         </div>
       </div>
     </PageWrapper>

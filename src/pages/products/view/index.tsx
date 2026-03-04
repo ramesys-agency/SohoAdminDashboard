@@ -7,6 +7,88 @@ import ReviewsSection from "./components/ReviewsSection";
 
 export default function ViewProduct() {
   const navigate = useNavigate();
+
+  // Dummy Product matching schema layout
+  const product = {
+    name: "Classic Cotton T-Shirt",
+    description:
+      "Our Classic Cotton T-Shirt is made from 100% premium organic cotton.\nFeatures a relaxed fit, reinforced seams, and a tag-less collar for ultimate comfort.\nPerfect for everyday wear.",
+    categoryId: "cat_clothing",
+    attributes: {
+      Material: "100% Cotton",
+      Fit: "Relaxed",
+      Care: "Machine wash cold",
+    },
+    overallRating: 4.67,
+    reviewCount: 3,
+    isPublished: true,
+    gender: ["UNISEX"],
+    collections: ["Summer Essentials"],
+    variants: [
+      {
+        id: "v1",
+        sku: "TSH-WHT-S",
+        size: "S",
+        colorName: "White",
+        colorValue: "#f8fafc",
+        stockQty: 42,
+        basePrice: "25.00",
+        originalPrice: "35.00",
+        isDefault: true,
+        images: [],
+      },
+      {
+        id: "v2",
+        sku: "TSH-BLK-M",
+        size: "M",
+        colorName: "Black",
+        colorValue: "#0f172a",
+        stockQty: 18,
+        basePrice: "25.00",
+        originalPrice: "35.00",
+        isDefault: false,
+        images: [],
+      },
+    ],
+    images: [
+      {
+        id: "img1",
+        imageUrl: "",
+        isPrimary: true,
+        colorRef: "#f8fafc",
+      },
+      {
+        id: "img2",
+        imageUrl: "",
+        isPrimary: false,
+        colorRef: "#0f172a",
+      },
+    ],
+    reviews: [
+      {
+        id: "r1",
+        name: "Sarah J.",
+        rating: 5,
+        comment: "Great quality! Fits perfectly and very comfortable.",
+        date: "Oct 20, 2023",
+      },
+      {
+        id: "r2",
+        name: "Mark S.",
+        rating: 4,
+        comment: "Nice shirt, the fabric is soft. Sizing runs slightly large.",
+        date: "Oct 18, 2023",
+      },
+      {
+        id: "r3",
+        name: "Emma W.",
+        rating: 5,
+        comment: "Bought 3 of these in different colors. Excellent value.",
+        date: "Oct 15, 2023",
+      },
+    ],
+  };
+
   return (
     <PageWrapper>
       <PageHeader
@@ -41,14 +123,14 @@ export default function ViewProduct() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
-          <ProductGallery />
+          <ProductGallery images={product.images} />
         </div>
         <div className="lg:col-span-2 space-y-6">
-          <ProductInfo />
+          <ProductInfo product={product} />
         </div>
       </div>
 
-      <ReviewsSection />
+      <ReviewsSection reviews={product.reviews} />
     </PageWrapper>
   );
 }

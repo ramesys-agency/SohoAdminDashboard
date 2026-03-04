@@ -1,23 +1,14 @@
-const reviews = [
-  {
-    name: "Sarah J.",
-    rating: 5,
-    comment: "Great quality! Fits perfectly and very comfortable.",
-    date: "Oct 20, 2023",
-  },
-  {
-    name: "Mark S.",
-    rating: 4,
-    comment: "Nice shirt, the fabric is soft. Sizing runs slightly large.",
-    date: "Oct 18, 2023",
-  },
-  {
-    name: "Emma W.",
-    rating: 5,
-    comment: "Bought 3 of these in different colors. Excellent value.",
-    date: "Oct 15, 2023",
-  },
-];
+export interface ReviewData {
+  id: string;
+  name: string;
+  rating: number;
+  comment: string;
+  date: string;
+}
+
+interface ReviewsSectionProps {
+  reviews: ReviewData[];
+}
 
 function Stars({ count }: { count: number }) {
   return (
@@ -35,16 +26,26 @@ function Stars({ count }: { count: number }) {
   );
 }
 
-export default function ReviewsSection() {
+export default function ReviewsSection({ reviews }: ReviewsSectionProps) {
+  if (reviews.length === 0) {
+    return (
+      <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h3 className="font-bold text-slate-900 mb-6">Customer Reviews</h3>
+        <p className="text-sm text-slate-500 italic">No reviews yet.</p>
+      </section>
+    );
+  }
+
   const avg = (
     reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
   ).toFixed(1);
+
   return (
     <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="font-bold text-slate-900">Customer Reviews</h3>
         <div className="flex items-center gap-2">
-          <Stars count={5} />
+          <Stars count={Math.round(parseFloat(avg))} />
           <span className="text-sm font-bold text-slate-900">{avg}</span>
           <span className="text-xs text-slate-500">
             ({reviews.length} reviews)
@@ -52,15 +53,15 @@ export default function ReviewsSection() {
         </div>
       </div>
       <div className="space-y-5">
-        {reviews.map((r, i) => (
+        {reviews.map((r) => (
           <div
-            key={i}
+            key={r.id}
             className="pb-5 border-b border-slate-100 last:border-b-0 last:pb-0"
           >
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-3">
-                <div className="size-9 rounded-full bg-[#1325ec]/10 text-[#1325ec] flex items-center justify-center font-bold text-sm">
-                  {r.name[0]}
+                <div className="size-9 rounded-full bg-[#1325ec]/10 text-[#1325ec] flex items-center justify-center font-bold text-sm uppercase">
+                  {r.name.charAt(0)}
                 </div>
                 <div>
                   <p className="text-sm font-bold text-slate-900">{r.name}</p>

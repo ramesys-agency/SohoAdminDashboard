@@ -119,6 +119,7 @@ export default function CollectionForm({
         </section>
 
         {/* SEO */}
+        {/*
         <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
           <h3 className="text-base font-bold mb-4 text-slate-900">SEO</h3>
           <div className="space-y-4">
@@ -146,6 +147,7 @@ export default function CollectionForm({
             </div>
           </div>
         </section>
+        */}
       </div>
 
       {/* Right sidebar */}

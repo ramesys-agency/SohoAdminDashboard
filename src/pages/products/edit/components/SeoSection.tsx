@@ -1,4 +1,19 @@
-export default function SeoSection() {
+interface ProductSEO {
+  metaTitle: string;
+  metaDescription: string;
+  canonicalUrl: string;
+}
+
+interface SeoSectionProps {
+  seo: ProductSEO;
+  onSeoChange: (seo: ProductSEO) => void;
+}
+
+export default function SeoSection({ seo, onSeoChange }: SeoSectionProps) {
+  const handleChange = (field: keyof ProductSEO, value: string) => {
+    onSeoChange({ ...seo, [field]: value });
+  };
+
   return (
     <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
       <h3 className="text-lg font-bold mb-4 text-slate-900">
@@ -12,7 +27,8 @@ export default function SeoSection() {
             </label>
             <input
               type="text"
-              defaultValue="Classic Cotton T-Shirt | Shop Name"
+              value={seo.metaTitle}
+              onChange={(e) => handleChange("metaTitle", e.target.value)}
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none text-slate-900"
             />
           </div>
@@ -22,21 +38,21 @@ export default function SeoSection() {
             </label>
             <textarea
               rows={3}
+              value={seo.metaDescription}
+              onChange={(e) => handleChange("metaDescription", e.target.value)}
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none text-slate-900 resize-none"
-              defaultValue="Buy the ultimate Classic Cotton T-Shirt. Organic, breathable, and ethically made. Free shipping on orders over $50."
             />
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold text-slate-700">
-              URL Handle
+              Canonical URL
             </label>
-            <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 overflow-hidden">
-              <span className="px-3 text-slate-400 text-xs">/products/</span>
-              <input
-                className="border-none bg-transparent flex-1 py-2 px-0 text-sm focus:outline-none text-slate-900"
-                defaultValue="classic-cotton-tshirt"
-              />
-            </div>
+            <input
+              type="text"
+              value={seo.canonicalUrl}
+              onChange={(e) => handleChange("canonicalUrl", e.target.value)}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none text-slate-900"
+            />
           </div>
         </div>
         <div className="p-4 bg-slate-50 rounded-lg">
@@ -44,15 +60,14 @@ export default function SeoSection() {
             Google Search Preview
           </p>
           <div className="space-y-1">
-            <p className="text-blue-700 text-lg font-medium">
-              Classic Cotton T-Shirt | Shop Name
+            <p className="text-blue-700 text-lg font-medium truncate">
+              {seo.metaTitle || "Page Title"}
             </p>
-            <p className="text-green-700 text-sm">
-              www.myshop.com › products › classic-cotton-tshirt
+            <p className="text-green-700 text-sm truncate">
+              {seo.canonicalUrl || "https://example.com/product/..."}
             </p>
-            <p className="text-slate-600 text-sm leading-snug">
-              Buy the ultimate Classic Cotton T-Shirt. Organic, breathable, and
-              ethically made. Free shipping on orders over $50.
+            <p className="text-slate-600 text-sm leading-snug break-words line-clamp-2">
+              {seo.metaDescription || "No description provided."}
             </p>
           </div>
         </div>
