@@ -1,3 +1,5 @@
+import Button from "./Button";
+
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
@@ -20,48 +22,50 @@ export default function Pagination({
     <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
       {showingText && <p className="text-sm text-slate-500">{showingText}</p>}
       <div className="flex items-center gap-1 ml-auto">
-        <button
+        <Button
+          variant="outline"
+          size="icon"
           disabled={currentPage === 1}
           onClick={() => onPageChange(currentPage - 1)}
-          className="size-8 flex items-center justify-center rounded border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="size-8 rounded font-normal text-slate-400"
         >
           <span className="material-symbols-outlined text-[18px]">
             chevron_left
           </span>
-        </button>
+        </Button>
         {pages.map((page) => (
-          <button
+          <Button
             key={page}
             onClick={() => onPageChange(page)}
-            className={`size-8 flex items-center justify-center rounded text-xs font-bold transition-colors ${
-              page === currentPage
-                ? "bg-[#1325ec] text-white"
-                : "border border-slate-200 text-slate-600 hover:bg-slate-100"
-            }`}
+            variant={page === currentPage ? "primary" : "outline"}
+            className={`size-8 rounded text-xs px-0 py-0 flex items-center justify-center font-bold`}
           >
             {page}
-          </button>
+          </Button>
         ))}
         {totalPages > 3 && (
           <>
             <span className="px-1 text-slate-300">...</span>
-            <button
+            <Button
+              variant="outline"
               onClick={() => onPageChange(totalPages)}
-              className="size-8 flex items-center justify-center rounded border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-bold"
+              className="size-8 rounded text-xs px-0 py-0 flex items-center justify-center font-bold"
             >
               {totalPages}
-            </button>
+            </Button>
           </>
         )}
-        <button
+        <Button
+          variant="outline"
+          size="icon"
           disabled={currentPage === totalPages}
           onClick={() => onPageChange(currentPage + 1)}
-          className="size-8 flex items-center justify-center rounded border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="size-8 rounded font-normal text-slate-400"
         >
           <span className="material-symbols-outlined text-[18px]">
             chevron_right
           </span>
-        </button>
+        </Button>
       </div>
     </div>
   );

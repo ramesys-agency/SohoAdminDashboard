@@ -6,6 +6,7 @@ import RevenueChart from "./components/RevenueChart";
 import CategoryDonut from "./components/CategoryDonut";
 import TopProductsChart from "./components/TopProductsChart";
 import LiveTransactionsTable from "./components/LiveTransactionsTable";
+import Button from "../../components/ui/Button";
 
 export default function Analytics() {
   const [activeRange, setActiveRange] = useState("Day");
@@ -17,25 +18,28 @@ export default function Analytics() {
         description="Real-time performance metrics and business intelligence."
         actions={
           <>
-            <div className="flex items-center bg-white border border-slate-200 rounded-lg p-1">
+            <div className="flex items-center bg-white border border-slate-200 rounded-xl p-1">
               {["Day", "Week", "Month"].map((r) => (
-                <button
+                <Button
                   key={r}
+                  variant={activeRange === r ? "secondary" : "ghost"}
+                  size="sm"
                   onClick={() => setActiveRange(r)}
-                  className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                    activeRange === r ? "bg-slate-100" : "hover:bg-slate-50"
-                  }`}
+                  className="rounded-lg"
                 >
                   {r}
-                </button>
+                </Button>
               ))}
             </div>
-            <button className="flex items-center gap-2 bg-[#1325ec] text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-[#1325ec]/20">
-              <span className="material-symbols-outlined text-sm">
-                calendar_today
-              </span>
+            <Button
+              leftIcon={
+                <span className="material-symbols-outlined text-sm">
+                  calendar_today
+                </span>
+              }
+            >
               Oct 1 – Oct 31, 2023
-            </button>
+            </Button>
           </>
         }
       />

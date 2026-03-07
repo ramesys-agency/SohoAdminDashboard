@@ -9,6 +9,7 @@ import VariantsTable, {
 // import SeoSection from "./components/SeoSection";
 import StatusCard from "./components/StatusCard";
 import OrganizationCard from "./components/OrganizationCard";
+import Button from "../../../components/ui/Button";
 
 export default function ProductEditor() {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export default function ProductEditor() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [gender, setGender] = useState<string[]>(["UNISEX"]);
-  const [attributes, setAttributes] = useState("{}");
+  const [attributes, setAttributes] = useState<Record<string, string>>({});
   const [isPublished, setIsPublished] = useState(false);
   const [categoryId, setCategoryId] = useState("");
   const [collections, setCollections] = useState<string[]>([]);
@@ -39,7 +40,7 @@ export default function ProductEditor() {
       setName("Classic Cotton T-Shirt");
       setDescription("Premium organic cotton.");
       setGender(["UNISEX"]);
-      setAttributes('{"Material":"100% Cotton","Fit":"Relaxed"}');
+      setAttributes({ Material: "100% Cotton", Fit: "Relaxed" });
       setIsPublished(true);
       setCategoryId("cat_clothing");
       setCollections(["Summer Essentials"]);
@@ -95,29 +96,26 @@ export default function ProductEditor() {
       <PageHeader
         title={isEditMode ? "Edit Product" : "Create Product"}
         description={
-          <>
-            <button
-              onClick={() => navigate("/products")}
-              className="inline-flex items-center gap-1 text-[#1325ec] text-sm font-semibold hover:underline"
-            >
+          <Button
+            variant="link"
+            size="sm"
+            onClick={() => navigate("/products")}
+            leftIcon={
               <span className="material-symbols-outlined text-sm">
                 arrow_back
               </span>
-              Back to Products
-            </button>
-          </>
+            }
+            className="hover:underline"
+          >
+            Back to Products
+          </Button>
         }
         actions={
           <>
-            <button
-              onClick={() => navigate("/products")}
-              className="px-4 py-2 text-sm font-bold bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
-            >
+            <Button variant="outline" onClick={() => navigate("/products")}>
               Discard
-            </button>
-            <button className="px-4 py-2 text-sm font-bold bg-[#1325ec] text-white rounded-lg hover:opacity-90 transition-opacity shadow-lg shadow-[#1325ec]/20">
-              {isEditMode ? "Save Changes" : "Create Product"}
-            </button>
+            </Button>
+            <Button>{isEditMode ? "Save Changes" : "Create Product"}</Button>
           </>
         }
       />
@@ -126,6 +124,12 @@ export default function ProductEditor() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Main Left Column */}
         <div className="xl:col-span-2 space-y-6">
+          <OrganizationCard
+            categoryId={categoryId}
+            onCategoryIdChange={setCategoryId}
+            collections={collections}
+            onCollectionsChange={setCollections}
+          />
           <BasicInfoForm
             name={name}
             onNameChange={setName}
@@ -145,12 +149,6 @@ export default function ProductEditor() {
           <StatusCard
             isPublished={isPublished}
             onIsPublishedChange={setIsPublished}
-          />
-          <OrganizationCard
-            categoryId={categoryId}
-            onCategoryIdChange={setCategoryId}
-            collections={collections}
-            onCollectionsChange={setCollections}
           />
         </div>
       </div>

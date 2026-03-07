@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import PageWrapper from "../../components/ui/PageWrapper";
 import PageHeader from "../../components/ui/PageHeader";
 import CollectionsTable from "./components/CollectionsTable";
+import Button from "../../components/ui/Button";
 
 const tabs = ["All Collections", "Active", "Archived"];
 
@@ -16,13 +17,14 @@ export default function Collections() {
         title="Collections"
         description="Group your products to help customers browse easily."
         actions={
-          <button
+          <Button
             onClick={() => navigate("/collections/create")}
-            className="inline-flex items-center gap-2 bg-[#1325ec] hover:bg-[#1325ec]/90 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-colors shadow-lg shadow-[#1325ec]/20"
+            leftIcon={
+              <span className="material-symbols-outlined text-lg">add</span>
+            }
           >
-            <span className="material-symbols-outlined text-lg">add</span>
             Add Collection
-          </button>
+          </Button>
         }
       />
       <div>

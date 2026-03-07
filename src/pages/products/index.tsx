@@ -2,7 +2,9 @@ import { useNavigate } from "react-router-dom";
 import PageWrapper from "../../components/ui/PageWrapper";
 import PageHeader from "../../components/ui/PageHeader";
 import ProductFilters from "./components/ProductFilters";
-import ProductsTable from "./components/ProductsTable";
+import ProductsTable from "../../components/ui/ProductsTable";
+import { mockProducts } from "../../mocks/products";
+import Button from "../../components/ui/Button";
 
 export default function Products() {
   const navigate = useNavigate();
@@ -12,17 +14,18 @@ export default function Products() {
         title="Products"
         description="View and manage your store inventory."
         actions={
-          <button
+          <Button
             onClick={() => navigate("/products/edit")}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#1325ec] text-white font-bold text-sm rounded-lg shadow-lg shadow-[#1325ec]/20 hover:opacity-90"
+            leftIcon={
+              <span className="material-symbols-outlined text-xl">add</span>
+            }
           >
-            <span className="material-symbols-outlined text-xl">add</span>
             Add Product
-          </button>
+          </Button>
         }
       />
       <ProductFilters />
-      <ProductsTable />
+      <ProductsTable products={mockProducts} />
     </PageWrapper>
   );
 }

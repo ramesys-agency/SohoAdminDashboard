@@ -1,8 +1,21 @@
+import { useState } from "react";
+
 interface CategoryFormProps {
   isEdit?: boolean;
 }
 
+import Button from "../../../../components/ui/Button";
+
 export default function CategoryForm({ isEdit = false }: CategoryFormProps) {
+  const [selectedGenders, setSelectedGenders] = useState<string[]>(["UNISEX"]);
+
+  const toggleGender = (g: string) => {
+    if (selectedGenders.includes(g)) {
+      setSelectedGenders(selectedGenders.filter((item) => item !== g));
+    } else {
+      setSelectedGenders([...selectedGenders, g]);
+    }
+  };
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
       {/* Left: Main form */}
@@ -24,6 +37,29 @@ export default function CategoryForm({ isEdit = false }: CategoryFormProps) {
                 className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none"
               />
             </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-slate-700">
+                Gender
+              </label>
+              <div className="flex gap-2 flex-wrap">
+                {["MALE", "FEMALE", "UNISEX", "KIDS"].map((g) => (
+                  <Button
+                    key={g}
+                    type="button"
+                    onClick={() => toggleGender(g)}
+                    variant={
+                      selectedGenders.includes(g) ? "primary" : "outline"
+                    }
+                    size="sm"
+                  >
+                    {g}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* 
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-slate-700">
                 Slug / URL Handle
@@ -40,7 +76,32 @@ export default function CategoryForm({ isEdit = false }: CategoryFormProps) {
                 />
               </div>
             </div>
-            <div className="flex flex-col gap-1.5">
+            */}
+            <div className="flex flex-col gap-2 pt-2">
+              <label className="text-sm font-semibold text-slate-700">
+                Cover Image
+              </label>
+              <div className="flex items-center gap-4">
+                <div className="size-24 rounded-full border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 hover:border-[#1325ec] transition-colors cursor-pointer bg-slate-50 group flex-shrink-0">
+                  <span className="material-symbols-outlined text-slate-400 group-hover:text-[#1325ec]">
+                    add_photo_alternate
+                  </span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <p className="text-xs font-semibold text-slate-700">
+                    Upload Category Cover
+                  </p>
+                  <p className="text-[10px] text-slate-400 font-medium">
+                    Recommended size: 800x800px. Max 2MB.
+                  </p>
+                  <p className="text-[10px] text-slate-400">
+                    Square images work best for full rounded display.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5 pt-2">
               <label className="text-sm font-semibold text-slate-700">
                 Description
               </label>
@@ -120,41 +181,6 @@ export default function CategoryForm({ isEdit = false }: CategoryFormProps) {
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
-        </section>
-
-        {/* Icon */}
-        <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <h3 className="text-sm font-bold text-slate-900 mb-4">Icon</h3>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-500 uppercase">
-              Material Icon Name
-            </label>
-            <input
-              type="text"
-              defaultValue={isEdit ? "devices" : ""}
-              placeholder="e.g. devices, apparel"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none"
-            />
-            <p className="text-xs text-slate-400">
-              From Material Symbols library
-            </p>
-          </div>
-          <div className="mt-3 size-12 rounded-lg bg-[#1325ec]/10 flex items-center justify-center text-[#1325ec]">
-            <span className="material-symbols-outlined">
-              {isEdit ? "devices" : "category"}
-            </span>
-          </div>
-        </section>
-
-        {/* Image */}
-        <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <h3 className="text-sm font-bold text-slate-900 mb-4">Cover Image</h3>
-          <div className="aspect-video rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-2 hover:border-[#1325ec] transition-colors cursor-pointer bg-slate-50 group">
-            <span className="material-symbols-outlined text-slate-400 group-hover:text-[#1325ec]">
-              add_photo_alternate
-            </span>
-            <span className="text-xs text-slate-500">Upload image</span>
-          </div>
         </section>
       </div>
     </div>

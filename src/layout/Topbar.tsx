@@ -1,3 +1,5 @@
+import Button from "../components/ui/Button";
+
 interface TopbarProps {
   title?: string;
   searchPlaceholder?: string;
@@ -24,13 +26,17 @@ export default function Topbar({
 
       {/* Actions */}
       <div className="flex items-center gap-2">
-        <button className="flex items-center justify-center p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors relative">
-          <span className="material-symbols-outlined">notifications</span>
+        <Button variant="ghost" size="icon" className="relative group">
+          <span className="material-symbols-outlined text-slate-600">
+            notifications
+          </span>
           <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white"></span>
-        </button>
-        <button className="flex items-center justify-center p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors">
-          <span className="material-symbols-outlined">settings</span>
-        </button>
+        </Button>
+        <Button variant="ghost" size="icon">
+          <span className="material-symbols-outlined text-slate-600">
+            settings
+          </span>
+        </Button>
 
         <div className="h-8 w-px bg-slate-200 mx-2"></div>
 

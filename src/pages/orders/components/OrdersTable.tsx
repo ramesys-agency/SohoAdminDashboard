@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import Pagination from "../../../components/ui/Pagination";
+import Button from "../../../components/ui/Button";
 
 const orders = [
   {
@@ -124,7 +125,9 @@ export default function OrdersTable() {
                   <StatusBadge status={order.fulfillment} />
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right">
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/orders/${order.id.replace("#", "")}`);
@@ -134,7 +137,7 @@ export default function OrdersTable() {
                     <span className="material-symbols-outlined text-slate-500">
                       open_in_new
                     </span>
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}

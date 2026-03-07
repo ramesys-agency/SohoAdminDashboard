@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import PageWrapper from "../../../components/ui/PageWrapper";
 import PageHeader from "../../../components/ui/PageHeader";
 import CollectionForm from "./components/CollectionForm";
+import Button from "../../../components/ui/Button";
 
 export default function CreateCollection() {
   const navigate = useNavigate();
@@ -10,27 +11,26 @@ export default function CreateCollection() {
       <PageHeader
         title="Create Collection"
         description={
-          <button
+          <Button
+            variant="link"
+            size="sm"
             onClick={() => navigate("/collections")}
-            className="inline-flex items-center gap-1 text-[#1325ec] text-sm font-semibold hover:underline"
+            leftIcon={
+              <span className="material-symbols-outlined text-sm">
+                arrow_back
+              </span>
+            }
+            className="hover:underline"
           >
-            <span className="material-symbols-outlined text-sm">
-              arrow_back
-            </span>
             Back to Collections
-          </button>
+          </Button>
         }
         actions={
           <>
-            <button
-              onClick={() => navigate("/collections")}
-              className="px-4 py-2 text-sm font-bold bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50"
-            >
+            <Button variant="outline" onClick={() => navigate("/collections")}>
               Discard
-            </button>
-            <button className="px-4 py-2 text-sm font-bold bg-[#1325ec] text-white rounded-lg shadow-lg shadow-[#1325ec]/20 hover:opacity-90">
-              Save Collection
-            </button>
+            </Button>
+            <Button>Save Collection</Button>
           </>
         }
       />

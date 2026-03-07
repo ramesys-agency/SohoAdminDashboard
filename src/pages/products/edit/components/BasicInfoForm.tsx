@@ -5,11 +5,13 @@ interface BasicInfoFormProps {
   onDescriptionChange: (v: string) => void;
   gender: string[];
   onGenderChange: (v: string[]) => void;
-  attributes: string;
-  onAttributesChange: (v: string) => void;
+  attributes: Record<string, string>;
+  onAttributesChange: (v: Record<string, string>) => void;
 }
 
 const GENDER_OPTIONS = ["MALE", "FEMALE", "UNISEX", "KIDS"];
+
+import Button from "../../../../components/ui/Button";
 
 export default function BasicInfoForm({
   name,
@@ -27,6 +29,29 @@ export default function BasicInfoForm({
     } else {
       onGenderChange([...gender, g]);
     }
+  };
+
+  const addAttribute = () => {
+    onAttributesChange({ ...attributes, "": "" });
+  };
+
+  const removeAttribute = (key: string) => {
+    const newAttributes = { ...attributes };
+    delete newAttributes[key];
+    onAttributesChange(newAttributes);
+  };
+
+  const updateAttributeKey = (oldKey: string, newKey: string) => {
+    if (oldKey === newKey) return;
+    const newAttributes = { ...attributes };
+    const value = newAttributes[oldKey];
+    delete newAttributes[oldKey];
+    newAttributes[newKey] = value;
+    onAttributesChange(newAttributes);
+  };
+
+  const updateAttributeValue = (key: string, value: string) => {
+    onAttributesChange({ ...attributes, [key]: value });
   };
 
   return (
@@ -58,11 +83,16 @@ export default function BasicInfoForm({
                 "format_list_bulleted",
                 "link",
               ].map((icon) => (
-                <button key={icon} className="p-1 hover:bg-slate-200 rounded">
+                <Button
+                  key={icon}
+                  variant="ghost"
+                  size="sm"
+                  className="p-1 size-8"
+                >
                   <span className="material-symbols-outlined text-xl text-slate-600">
                     {icon}
                   </span>
-                </button>
+                </Button>
               ))}
             </div>
             <textarea
@@ -79,32 +109,67 @@ export default function BasicInfoForm({
           <label className="text-sm font-semibold text-slate-700">Gender</label>
           <div className="flex gap-2 flex-wrap">
             {GENDER_OPTIONS.map((g) => (
-              <button
+              <Button
                 key={g}
                 onClick={() => toggleGender(g)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
-                  gender.includes(g)
-                    ? "bg-[#1325ec] border-[#1325ec] text-white"
-                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
-                }`}
+                variant={gender.includes(g) ? "primary" : "outline"}
+                size="sm"
               >
                 {g}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5 pt-2">
-          <label className="text-sm font-semibold text-slate-700">
-            Attributes (JSON)
-          </label>
-          <textarea
-            rows={4}
-            value={attributes}
-            onChange={(e) => onAttributesChange(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-mono focus:border-[#1325ec] outline-none text-slate-900"
-            placeholder='e.g. { "material": "cotton", "fit": "regular" }'
-          />
+        <div className="flex flex-col gap-3 pt-2">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-semibold text-slate-700">
+              Attributes
+            </label>
+            <Button
+              variant="link"
+              size="sm"
+              onClick={addAttribute}
+              leftIcon={
+                <span className="material-symbols-outlined text-sm">add</span>
+              }
+            >
+              Add Attribute
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {Object.entries(attributes).map(([key, value], index) => (
+              <div key={index} className="flex gap-2 items-start">
+                <input
+                  type="text"
+                  placeholder="Key"
+                  value={key}
+                  onChange={(e) => updateAttributeKey(key, e.target.value)}
+                  className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900"
+                />
+                <input
+                  type="text"
+                  placeholder="Value"
+                  value={value}
+                  onChange={(e) => updateAttributeValue(key, e.target.value)}
+                  className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeAttribute(key)}
+                  className="text-slate-400 hover:text-red-500"
+                >
+                  <span className="material-symbols-outlined">delete</span>
+                </Button>
+              </div>
+            ))}
+            {Object.keys(attributes).length === 0 && (
+              <p className="text-xs text-slate-400 italic">
+                No attributes added yet.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </section>

@@ -1,7 +1,9 @@
+import Button from "../../../components/ui/Button";
+
 const segments = [
   {
     color: "bg-[#1325ec]",
-    stroke: "#1325ec",
+    stroke: "#1325ec]",
     dasharray: "60 100",
     dashoffset: "0",
     label: "Electronics",
@@ -32,9 +34,11 @@ export default function CategoryDonut() {
         <h3 className="font-bold text-lg text-slate-900">
           Category Distribution
         </h3>
-        <button className="material-symbols-outlined text-slate-400">
-          more_horiz
-        </button>
+        <Button variant="ghost" size="icon">
+          <span className="material-symbols-outlined text-slate-400">
+            more_horiz
+          </span>
+        </Button>
       </div>
       <div className="flex-1 flex flex-col items-center justify-center gap-6">
         <div className="relative size-48">

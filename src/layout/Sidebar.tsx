@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import Button from "../components/ui/Button";
 
 const navItems = [
   { to: "/", icon: "dashboard", label: "Dashboard" },
@@ -8,7 +9,7 @@ const navItems = [
   { to: "/orders", icon: "shopping_cart", label: "Orders" },
   { to: "/customers", icon: "group", label: "Customers" },
   { to: "/offers", icon: "sell", label: "Offers" },
-  { to: "/analytics", icon: "monitoring", label: "Analytics" },
+  // { to: "/analytics", icon: "monitoring", label: "Analytics" },
 ];
 
 const bottomNavItems = [
@@ -69,12 +70,17 @@ export default function Sidebar() {
             <span>{item.label}</span>
           </NavLink>
         ))}
-        <button className="w-full flex items-center justify-center gap-2 bg-[#1325ec] text-white py-2 rounded-lg text-sm font-semibold hover:bg-[#1325ec]/90 transition-all mt-2">
-          <span className="material-symbols-outlined text-[18px]">
-            visibility
-          </span>
+        <Button
+          fullWidth
+          className="mt-2"
+          leftIcon={
+            <span className="material-symbols-outlined text-[18px]">
+              visibility
+            </span>
+          }
+        >
           View Store
-        </button>
+        </Button>
       </div>
     </aside>
   );

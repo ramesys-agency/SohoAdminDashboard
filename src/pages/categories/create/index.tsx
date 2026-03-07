@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import PageWrapper from "../../../components/ui/PageWrapper";
 import PageHeader from "../../../components/ui/PageHeader";
 import CategoryForm from "./components/CategoryForm";
+import Button from "../../../components/ui/Button";
 
 export default function CreateCategory() {
   const navigate = useNavigate();
@@ -10,27 +11,26 @@ export default function CreateCategory() {
       <PageHeader
         title="Create Category"
         description={
-          <button
+          <Button
+            variant="link"
+            size="sm"
             onClick={() => navigate("/categories")}
-            className="inline-flex items-center gap-1 text-[#1325ec] text-sm font-semibold hover:underline"
+            leftIcon={
+              <span className="material-symbols-outlined text-sm">
+                arrow_back
+              </span>
+            }
+            className="hover:underline"
           >
-            <span className="material-symbols-outlined text-sm">
-              arrow_back
-            </span>
             Back to Categories
-          </button>
+          </Button>
         }
         actions={
           <>
-            <button
-              onClick={() => navigate("/categories")}
-              className="px-4 py-2 text-sm font-bold bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50"
-            >
+            <Button variant="outline" onClick={() => navigate("/categories")}>
               Discard
-            </button>
-            <button className="px-4 py-2 text-sm font-bold bg-[#1325ec] text-white rounded-lg shadow-lg shadow-[#1325ec]/20 hover:opacity-90">
-              Save Category
-            </button>
+            </Button>
+            <Button>Save Category</Button>
           </>
         }
       />

@@ -27,7 +27,7 @@ export default function OrganizationCard({
 
   return (
     <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-      <h3 className="text-sm font-bold text-slate-900 mb-4">Organization</h3>
+      <h3 className="text-lg font-bold text-slate-900 mb-4">Organization</h3>
       <div className="space-y-4">
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-slate-500 uppercase">
@@ -64,14 +64,6 @@ export default function OrganizationCard({
               </button>
             ))}
           </div>
-        </div>
-      </div>
-      <div className="mt-6 pt-4 border-t border-slate-200">
-        <div className="flex items-center gap-2 text-slate-400 text-xs mb-2">
-          <span className="material-symbols-outlined text-sm">history</span>
-          <span>
-            Last edited 2 hours ago by <b>Admin</b>
-          </span>
         </div>
       </div>
     </section>
