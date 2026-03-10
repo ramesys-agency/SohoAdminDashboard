@@ -1,5 +1,6 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
+import { useAuthStore } from "../store/authStore";
 
 const navItems = [
   { to: "/", icon: "dashboard", label: "Dashboard" },
@@ -12,11 +13,15 @@ const navItems = [
   // { to: "/analytics", icon: "monitoring", label: "Analytics" },
 ];
 
-const bottomNavItems = [
-  { to: "/settings", icon: "settings", label: "Settings" },
-];
-
 export default function Sidebar() {
+  const navigate = useNavigate();
+  const logout = useAuthStore((state) => state.logout);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
     <aside className="w-64 border-r border-slate-200 bg-white flex flex-col fixed h-full z-20">
       {/* Logo */}
@@ -52,34 +57,17 @@ export default function Sidebar() {
 
       {/* Bottom Nav + View Store */}
       <div className="p-4 border-t border-slate-200 space-y-1">
-        {bottomNavItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm font-medium ${
-                isActive
-                  ? "bg-[#1325ec]/10 text-[#1325ec] font-semibold"
-                  : "text-slate-600 hover:bg-slate-100"
-              }`
-            }
-          >
-            <span className="material-symbols-outlined text-[20px]">
-              {item.icon}
-            </span>
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
         <Button
           fullWidth
           className="mt-2"
+          onClick={handleLogout}
           leftIcon={
             <span className="material-symbols-outlined text-[18px]">
-              visibility
+              logout
             </span>
           }
         >
-          View Store
+          Logout
         </Button>
       </div>
     </aside>
