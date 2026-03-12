@@ -12,4 +12,8 @@ export const apiEndpoint = {
   collections: {
     base: "/v1/collections",
   },
+  products: {
+    base: "/v1/products",
+    byId: (id: string) => `/v1/products/${id}`,
+  },
 };

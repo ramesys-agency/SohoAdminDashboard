@@ -14,12 +14,19 @@ interface ProductInfoProps {
     collections: string[];
     variants: ProductVariantData[];
   };
+  selectedVariantId?: string;
+  onVariantSelect?: (variantId: string) => void;
 }
 
-export default function ProductInfo({ product }: ProductInfoProps) {
+export default function ProductInfo({
+  product,
+  selectedVariantId,
+  onVariantSelect,
+}: ProductInfoProps) {
   // Find default variant or first variant for pricing if needed
-  const defaultVariant =
-    product.variants.find((v) => v.isDefault) || product.variants[0];
+  const displayVariant = selectedVariantId
+    ? product.variants.find((v) => v.id === selectedVariantId)
+    : product.variants.find((v) => v.isDefault) || product.variants[0];
 
   return (
     <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
@@ -49,15 +56,15 @@ export default function ProductInfo({ product }: ProductInfoProps) {
           </p>
         </div>
 
-        {defaultVariant && (
+        {displayVariant && (
           <div className="flex items-center gap-2">
             <span className="text-3xl font-black text-[#1325ec]">
-              ${defaultVariant.basePrice}
+              ${displayVariant.basePrice}
             </span>
-            {parseFloat(defaultVariant.originalPrice) >
-              parseFloat(defaultVariant.basePrice) && (
+            {parseFloat(displayVariant.originalPrice) >
+              parseFloat(displayVariant.basePrice) && (
               <span className="text-lg text-slate-400 line-through">
-                ${defaultVariant.originalPrice}
+                ${displayVariant.originalPrice}
               </span>
             )}
           </div>
@@ -75,7 +82,12 @@ export default function ProductInfo({ product }: ProductInfoProps) {
           {product.variants.map((v) => (
             <div
               key={v.id}
-              className="flex items-center gap-3 p-3 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors"
+              onClick={() => onVariantSelect?.(v.id)}
+              className={`flex items-center gap-3 p-3 rounded-lg border transition-colors cursor-pointer ${
+                selectedVariantId === v.id
+                  ? "border-[#1325ec] bg-[#1325ec]/5"
+                  : "border-slate-100 hover:border-slate-200"
+              }`}
             >
               <div
                 className="size-8 rounded flex-shrink-0 border border-slate-200"

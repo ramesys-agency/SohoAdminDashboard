@@ -1,92 +1,163 @@
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import PageWrapper from "../../../components/ui/PageWrapper";
 import PageHeader from "../../../components/ui/PageHeader";
 import ProductGallery from "./components/ProductGallery";
 import ProductInfo from "./components/ProductInfo";
 import ReviewsSection from "./components/ReviewsSection";
+import { getProductById, deleteProduct, type ApiProduct } from "../../../api/products";
 
 export default function ViewProduct() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
 
-  // Dummy Product matching schema layout
-  const product = {
-    name: "Classic Cotton T-Shirt",
-    description:
-      "Our Classic Cotton T-Shirt is made from 100% premium organic cotton.\nFeatures a relaxed fit, reinforced seams, and a tag-less collar for ultimate comfort.\nPerfect for everyday wear.",
-    categoryId: "cat_clothing",
-    attributes: {
-      Material: "100% Cotton",
-      Fit: "Relaxed",
-      Care: "Machine wash cold",
-    },
-    overallRating: 4.67,
-    reviewCount: 3,
-    isPublished: true,
-    gender: ["UNISEX"],
-    collections: ["Summer Essentials"],
-    variants: [
-      {
-        id: "v1",
-        sku: "TSH-WHT-S",
-        size: "S",
-        colorName: "White",
-        colorValue: "#f8fafc",
-        stockQty: 42,
-        basePrice: "25.00",
-        originalPrice: "35.00",
-        isDefault: true,
-        images: [],
-      },
-      {
-        id: "v2",
-        sku: "TSH-BLK-M",
-        size: "M",
-        colorName: "Black",
-        colorValue: "#0f172a",
-        stockQty: 18,
-        basePrice: "25.00",
-        originalPrice: "35.00",
-        isDefault: false,
-        images: [],
-      },
-    ],
-    images: [
-      {
-        id: "img1",
-        imageUrl: "",
-        isPrimary: true,
-        colorRef: "#f8fafc",
-      },
-      {
-        id: "img2",
-        imageUrl: "",
-        isPrimary: false,
-        colorRef: "#0f172a",
-      },
-    ],
-    reviews: [
-      {
-        id: "r1",
-        name: "Sarah J.",
-        rating: 5,
-        comment: "Great quality! Fits perfectly and very comfortable.",
-        date: "Oct 20, 2023",
-      },
-      {
-        id: "r2",
-        name: "Mark S.",
-        rating: 4,
-        comment: "Nice shirt, the fabric is soft. Sizing runs slightly large.",
-        date: "Oct 18, 2023",
-      },
-      {
-        id: "r3",
-        name: "Emma W.",
-        rating: 5,
-        comment: "Bought 3 of these in different colors. Excellent value.",
-        date: "Oct 15, 2023",
-      },
-    ],
+  const [product, setProduct] = useState<ApiProduct | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (!id) return;
+
+    setLoading(true);
+    getProductById(id)
+      .then((res) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const data = (res as any).data || res;
+        setProduct(data);
+        
+        // Auto-select the first variant by default
+        if (data?.variants?.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const defaultVar = data.variants.find((v: any) => v.isDefault) || data.variants[0];
+          setSelectedVariantId(defaultVar.id);
+        } else if (data?.availableColors?.length > 0) {
+          setSelectedVariantId("var-0");
+        } else {
+          setSelectedVariantId("default-var");
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch product:", err);
+        setError("Failed to load product details.");
+      })
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  const handleDelete = async () => {
+    if (!product) return;
+    if (!window.confirm(`Are you sure you want to delete "${product.name}"?`)) return;
+
+    try {
+      await deleteProduct(product.id);
+      navigate("/products");
+    } catch (err) {
+      console.error("Failed to delete product:", err);
+      alert("Failed to delete product. Please try again.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <PageWrapper>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-3 text-slate-400">
+            <span className="material-symbols-outlined text-4xl animate-spin">
+              progress_activity
+            </span>
+            <p>Loading product details...</p>
+          </div>
+        </div>
+      </PageWrapper>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <PageWrapper>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-3 text-rose-500">
+            <span className="material-symbols-outlined text-4xl">error</span>
+            <p>{error || "Product not found."}</p>
+            <button
+              onClick={() => navigate("/products")}
+              className="mt-4 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm"
+            >
+              Back to Products
+            </button>
+          </div>
+        </div>
+      </PageWrapper>
+    );
+  }
+
+  // Transform ApiProduct into the shape expected by the child components.
+  // We handle missing standard fields defensively.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const productData = product as any;
+  const safePrice = productData.price ?? 0;
+  const safeOriginalPrice = productData.originalPrice ?? safePrice;
+
+  const mappedProduct = {
+    name: productData.name || "Unknown Product",
+    description: productData.description || "No description provided.",
+    categoryId: productData.category?.name || "None",
+    attributes: productData.attributes || {},
+    overallRating: productData.rating || 0,
+    reviewCount: productData.reviewCount || 0,
+    isPublished: productData.isPublished ?? false,
+    gender: productData.gender || [],
+    collections: productData.collections || [],
+    variants: productData.variants?.length
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ? productData.variants.map((v: any, i: number) => ({
+          ...v,
+          basePrice: (v.basePrice ?? safePrice).toString(),
+          originalPrice: (v.originalPrice ?? safeOriginalPrice).toString(),
+          images: v.images || [],
+          isDefault: i === 0,
+        }))
+      : productData.availableColors?.length
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ? productData.availableColors.map((c: any, i: number) => ({
+            id: `var-${i}`,
+            sku: productData.sku || `${productData.id?.slice(0, 8) || "sku"}-${c.colorName.substring(0, 3).toUpperCase()}`,
+            size: "One Size",
+            colorName: c.colorName,
+            colorValue: c.colorValue,
+            stockQty: productData.inStock ? 10 : 0,
+            basePrice: safePrice.toString(),
+            originalPrice: safeOriginalPrice.toString(),
+            isDefault: i === 0,
+            images: [],
+          }))
+        : [
+            {
+              id: "default-var",
+              sku: productData.sku || "N/A",
+              size: "Standard",
+              colorName: "Standard",
+              colorValue: "#f1f5f9",
+              stockQty: productData.inStock ? 10 : 0,
+              basePrice: safePrice.toString(),
+              originalPrice: safeOriginalPrice.toString(),
+              isDefault: true,
+              images: [],
+            },
+          ],
+    images: productData.primaryImage
+      ? [
+          {
+            id: "img-primary",
+            imageUrl: productData.primaryImage,
+            isPrimary: true,
+            colorRef: null,
+          },
+        ]
+      : [],
+    reviews: productData.reviews || [],
   };
 
   return (
@@ -107,13 +178,16 @@ export default function ViewProduct() {
         actions={
           <>
             <button
-              onClick={() => navigate("/products/edit")}
+              onClick={() => navigate(`/products/edit/${product.id}`)}
               className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 bg-white text-slate-700 font-bold text-sm rounded-lg hover:bg-slate-50"
             >
               <span className="material-symbols-outlined text-sm">edit</span>
               Edit Product
             </button>
-            <button className="flex items-center gap-1.5 px-4 py-2 bg-rose-50 text-rose-600 font-bold text-sm rounded-lg border border-rose-200 hover:bg-rose-100">
+            <button
+              onClick={handleDelete}
+              className="flex items-center gap-1.5 px-4 py-2 bg-rose-50 text-rose-600 font-bold text-sm rounded-lg border border-rose-200 hover:bg-rose-100"
+            >
               <span className="material-symbols-outlined text-sm">delete</span>
               Delete
             </button>
@@ -123,14 +197,28 @@ export default function ViewProduct() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
-          <ProductGallery images={product.images} />
+          <ProductGallery 
+            images={
+              selectedVariantId 
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ? mappedProduct.variants.find((v: any) => v.id === selectedVariantId)?.images.length 
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  ? mappedProduct.variants.find((v: any) => v.id === selectedVariantId)?.images 
+                  : mappedProduct.images 
+                : mappedProduct.images
+            } 
+          />
         </div>
         <div className="lg:col-span-2 space-y-6">
-          <ProductInfo product={product} />
+          <ProductInfo 
+            product={mappedProduct} 
+            selectedVariantId={selectedVariantId || undefined}
+            onVariantSelect={setSelectedVariantId}
+          />
         </div>
       </div>
 
-      <ReviewsSection reviews={product.reviews} />
+      <ReviewsSection reviews={mappedProduct.reviews} />
     </PageWrapper>
   );
 }

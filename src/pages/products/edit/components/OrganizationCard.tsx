@@ -1,3 +1,6 @@
+import { useState, useEffect } from "react";
+import { getParentCategories } from "../../../../api/categories";
+
 interface OrganizationCardProps {
   categoryId: string;
   onCategoryIdChange: (v: string) => void;
@@ -5,33 +8,46 @@ interface OrganizationCardProps {
   onCollectionsChange: (v: string[]) => void;
 }
 
+interface ParentCategory {
+  id: string;
+  name: string;
+}
+
 export default function OrganizationCard({
   categoryId,
   onCategoryIdChange,
-  collections,
-  onCollectionsChange,
+  // collections,
+  // onCollectionsChange,
 }: OrganizationCardProps) {
-  const availableCollections = [
-    "Summer Essentials",
-    "All-Season Basics",
-    "New Arrivals",
-  ];
+  const [categories, setCategories] = useState<ParentCategory[]>([]);
 
-  const toggleCollection = (c: string) => {
-    if (collections.includes(c)) {
-      onCollectionsChange(collections.filter((item) => item !== c));
-    } else {
-      onCollectionsChange([...collections, c]);
-    }
-  };
+  useEffect(() => {
+    getParentCategories()
+      .then((res) => setCategories(res?.data ?? []))
+      .catch(() => {});
+  }, []);
+
+  // const availableCollections = [
+  //   "Summer Essentials",
+  //   "All-Season Basics",
+  //   "New Arrivals",
+  // ];
+
+  // const toggleCollection = (c: string) => {
+  //   if (collections.includes(c)) {
+  //     onCollectionsChange(collections.filter((item) => item !== c));
+  //   } else {
+  //     onCollectionsChange([...collections, c]);
+  //   }
+  // };
 
   return (
     <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-      <h3 className="text-lg font-bold text-slate-900 mb-4">Organization</h3>
+      <h3 className="text-lg font-bold text-slate-900 mb-4">Category</h3>
       <div className="space-y-4">
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-slate-500 uppercase">
-            Category
+            Select from dropdown
           </label>
           <select
             value={categoryId}
@@ -39,13 +55,15 @@ export default function OrganizationCard({
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900"
           >
             <option value="">Select a category</option>
-            <option value="cat_1">Clothing</option>
-            <option value="cat_2">Accessories</option>
-            <option value="cat_3">Footwear</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
           </select>
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        {/* <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-slate-500 uppercase">
             Collections
           </label>
@@ -64,7 +82,7 @@ export default function OrganizationCard({
               </button>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
   );

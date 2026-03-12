@@ -5,6 +5,7 @@ export interface ProductVariantImageData {
   imageUrl: string;
   isPrimary: boolean;
   colorRef: string | null;
+  file?: File;
 }
 
 interface ProductGalleryProps {
@@ -23,7 +24,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
     <div className="space-y-3">
       {/* Main image */}
       <div
-        className={`aspect-square rounded-xl flex items-center justify-center relative overflow-hidden`}
+        className={`aspect-[3/4] rounded-xl flex items-center justify-center relative overflow-hidden`}
         style={{
           backgroundColor: displayImages[active].imageUrl
             ? "transparent"
@@ -50,7 +51,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
           <button
             key={img.id || i}
             onClick={() => setActive(i)}
-            className={`aspect-square rounded-lg flex items-center justify-center transition-all overflow-hidden ${
+            className={`aspect-[3/4] rounded-lg flex items-center justify-center transition-all overflow-hidden ${
               active === i
                 ? "ring-2 ring-[#1325ec] ring-offset-2"
                 : "opacity-60 hover:opacity-100"

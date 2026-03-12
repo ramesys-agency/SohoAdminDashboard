@@ -3,13 +3,9 @@ interface BasicInfoFormProps {
   onNameChange: (v: string) => void;
   description: string;
   onDescriptionChange: (v: string) => void;
-  gender: string[];
-  onGenderChange: (v: string[]) => void;
   attributes: Record<string, string>;
   onAttributesChange: (v: Record<string, string>) => void;
 }
-
-const GENDER_OPTIONS = ["MALE", "FEMALE", "UNISEX", "KIDS"];
 
 import Button from "../../../../components/ui/Button";
 
@@ -18,18 +14,9 @@ export default function BasicInfoForm({
   onNameChange,
   description,
   onDescriptionChange,
-  gender,
-  onGenderChange,
   attributes,
   onAttributesChange,
 }: BasicInfoFormProps) {
-  const toggleGender = (g: string) => {
-    if (gender.includes(g)) {
-      onGenderChange(gender.filter((item) => item !== g));
-    } else {
-      onGenderChange([...gender, g]);
-    }
-  };
 
   const addAttribute = () => {
     onAttributesChange({ ...attributes, "": "" });
@@ -105,22 +92,6 @@ export default function BasicInfoForm({
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5 pt-2">
-          <label className="text-sm font-semibold text-slate-700">Gender</label>
-          <div className="flex gap-2 flex-wrap">
-            {GENDER_OPTIONS.map((g) => (
-              <Button
-                key={g}
-                onClick={() => toggleGender(g)}
-                variant={gender.includes(g) ? "primary" : "outline"}
-                size="sm"
-              >
-                {g}
-              </Button>
-            ))}
-          </div>
-        </div>
-
         <div className="flex flex-col gap-3 pt-2">
           <div className="flex items-center justify-between">
             <label className="text-sm font-semibold text-slate-700">
@@ -147,13 +118,27 @@ export default function BasicInfoForm({
                   onChange={(e) => updateAttributeKey(key, e.target.value)}
                   className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900"
                 />
-                <input
-                  type="text"
-                  placeholder="Value"
-                  value={value}
-                  onChange={(e) => updateAttributeValue(key, e.target.value)}
-                  className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900"
-                />
+                {key.toLowerCase() === "gender" ? (
+                  <select
+                    value={value}
+                    onChange={(e) => updateAttributeValue(key, e.target.value)}
+                    className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900 bg-white"
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="Men">Men</option>
+                    <option value="Women">Women</option>
+                    <option value="Unisex">Unisex</option>
+                    <option value="Kid">Kid</option>
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    placeholder="Value"
+                    value={value}
+                    onChange={(e) => updateAttributeValue(key, e.target.value)}
+                    className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900"
+                  />
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
