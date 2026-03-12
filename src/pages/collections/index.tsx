@@ -5,7 +5,7 @@ import PageHeader from "../../components/ui/PageHeader";
 import CollectionsTable from "./components/CollectionsTable";
 import Button from "../../components/ui/Button";
 
-const tabs = ["All Collections", "Active", "Archived"];
+const tabs = ["All Collections", "Active", "Inactive"];
 
 export default function Collections() {
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ export default function Collections() {
             </button>
           ))}
         </div>
-        <CollectionsTable />
+        <CollectionsTable activeTab={activeTab} />
       </div>
     </PageWrapper>
   );

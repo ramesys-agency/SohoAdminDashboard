@@ -8,6 +8,7 @@ import Categories from "./pages/categories";
 import CreateCategory from "./pages/categories/create";
 import Collections from "./pages/collections";
 import CreateCollection from "./pages/collections/create";
+import AddProductsToCollection from "./pages/collections/add-products";
 import Customers from "./pages/customers";
 import Offers from "./pages/offers";
 import CreateOffer from "./pages/offers/create";
@@ -34,6 +35,10 @@ export default function App() {
             <Route path="categories/create" element={<CreateCategory />} />
             <Route path="collections" element={<Collections />} />
             <Route path="collections/create" element={<CreateCollection />} />
+            <Route
+              path="collections/:id/add-products"
+              element={<AddProductsToCollection />}
+            />
             <Route path="customers" element={<Customers />} />
             <Route path="offers" element={<Offers />} />
             <Route path="offers/create" element={<CreateOffer />} />
