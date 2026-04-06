@@ -40,12 +40,54 @@ export interface CollectionsResponse {
 export const getCollections = async (
   page: number = 1,
   limit: number = 10,
+  search?: string,
+  placementPage?: string,
 ): Promise<CollectionsResponse> => {
+  const params: Record<string, string | number> = { page, limit };
+  if (search) params.search = search;
+  if (placementPage) params.placementPage = placementPage;
+
   const { data } = await api.get<CollectionsResponse>(
     apiEndpoint.collections.base,
     {
-      params: { page, limit },
+      params,
     },
+  );
+  return data;
+};
+
+export interface CollectionByIdResponse {
+  success: boolean;
+  data: Collection;
+}
+
+export const getCollectionById = async (
+  id: string,
+): Promise<CollectionByIdResponse> => {
+  const { data } = await api.get<CollectionByIdResponse>(
+    apiEndpoint.collections.byId(id),
+  );
+  return data;
+};
+
+export const addProductsToCollection = async (
+  id: string,
+  productIds: string[],
+) => {
+  const { data } = await api.post(
+    `${apiEndpoint.collections.byId(id)}/products`,
+    { productIds },
+  );
+  return data;
+};
+
+export const removeProductsFromCollection = async (
+  id: string,
+  productIds: string[],
+) => {
+  const { data } = await api.delete(
+    `${apiEndpoint.collections.byId(id)}/products`,
+    { data: { productIds } },
   );
   return data;
 };

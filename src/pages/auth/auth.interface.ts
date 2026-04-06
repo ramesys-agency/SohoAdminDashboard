@@ -5,8 +5,16 @@ export interface AuthResponse {
     user: {
       id: string;
       email: string;
-      name: string;
+      fullName?: string;
+      name?: string;
       role: string;
+      phone?: string;
+      gender?: string;
+      age?: number;
+      region?: string;
+      avatar?: string;
+      createdAt?: string;
+      updatedAt?: string;
     };
   };
   message: string;

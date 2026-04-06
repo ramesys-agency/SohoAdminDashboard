@@ -11,9 +11,19 @@ export const apiEndpoint = {
   },
   collections: {
     base: "/v1/collections",
+    byId: (id: string) => `/v1/collections/${id}`,
   },
   products: {
     base: "/v1/products",
     byId: (id: string) => `/v1/products/${id}`,
+  },
+  placements: {
+    base: "/v1/app-placement",
+    byId: (id: string) => `/v1/app-placement/${id}`,
+  },
+  users: {
+    profile: "/v1/users/profile",
+    byId: (id: string) => `/v1/users/${id}`,
+    adminAll: "/v1/users/admin/all",
   },
 };

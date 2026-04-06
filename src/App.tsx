@@ -6,9 +6,7 @@ import Dashboard from "./pages/dashboard";
 import Analytics from "./pages/analytics";
 import Categories from "./pages/categories";
 import CreateCategory from "./pages/categories/create";
-import Collections from "./pages/collections";
-import CreateCollection from "./pages/collections/create";
-import AddProductsToCollection from "./pages/collections/add-products";
+import AddProductsToCollection from "./pages/placements/add-products";
 import Customers from "./pages/customers";
 import Offers from "./pages/offers";
 import CreateOffer from "./pages/offers/create";
@@ -19,6 +17,8 @@ import ProductEditor from "./pages/products/edit";
 import ViewProduct from "./pages/products/view";
 import Settings from "./pages/settings";
 import LoginPage from "./pages/auth/LoginPage";
+import CreatePlacements from "./pages/placements/create";
+import Placements from "./pages/placements";
 
 export default function App() {
   return (
@@ -33,12 +33,13 @@ export default function App() {
             <Route path="analytics" element={<Analytics />} />
             <Route path="categories" element={<Categories />} />
             <Route path="categories/create" element={<CreateCategory />} />
-            <Route path="collections" element={<Collections />} />
-            <Route path="collections/create" element={<CreateCollection />} />
+            <Route path="placements" element={<Placements />} />
+            <Route path="placements/edit/:id" element={<CreatePlacements />} />
             <Route
-              path="collections/:id/add-products"
+              path="placements/collection/:id/add-products"
               element={<AddProductsToCollection />}
             />
+            <Route path="placements/create" element={<CreatePlacements />} />
             <Route path="customers" element={<Customers />} />
             <Route path="offers" element={<Offers />} />
             <Route path="offers/create" element={<CreateOffer />} />

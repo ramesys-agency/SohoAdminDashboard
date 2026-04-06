@@ -1,18 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import PageWrapper from "../../components/ui/PageWrapper";
-import PageHeader from "../../components/ui/PageHeader";
-import Button from "../../components/ui/Button";
-import Pagination from "../../components/ui/Pagination";
-import StatusBadge from "../../components/ui/StatusBadge";
-import ProductFilters from "./components/ProductFilters";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import PageWrapper from "../../../components/ui/PageWrapper";
+import PageHeader from "../../../components/ui/PageHeader";
+import Button from "../../../components/ui/Button";
+import Pagination from "../../../components/ui/Pagination";
+import StatusBadge from "../../../components/ui/StatusBadge";
+import ProductFilters from "../../products/components/ProductFilters";
 import {
   getProducts,
-  deleteProduct,
   type ApiProduct,
-} from "../../api/products";
-import { getCollections, type Collection } from "../../api/collections";
-import { getParentCategories } from "../../api/categories";
+} from "../../../api/products";
+import { getCollections, type Collection, addProductsToCollection, removeProductsFromCollection } from "../../../api/collections";
+import { getParentCategories } from "../../../api/categories";
 
 interface ParentCategory {
   id: string;
@@ -21,8 +20,11 @@ interface ParentCategory {
 
 const LIMIT = 20;
 
-export default function Products() {
+export default function AddProductsToCollection() {
+  const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const collectionName = location.state?.collectionName;
 
   // Filter state
   const [search, setSearch] = useState("");
@@ -30,9 +32,10 @@ export default function Products() {
   const [gender, setGender] = useState("");
   const [isPublished, setIsPublished] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [collectionId, setCollectionId] = useState("");
+  const [filterCollectionId, setFilterCollectionId] = useState("");
   const [sortBy, setSortBy] = useState("");
   const [page, setPage] = useState(1);
+  const [productFilter, setProductFilter] = useState<"All" | "Added" | "Not Added">("All");
 
   // Data state
   const [products, setProducts] = useState<ApiProduct[]>([]);
@@ -47,6 +50,10 @@ export default function Products() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Added Products state
+  const [selectedProductsMap, setSelectedProductsMap] = useState<Map<string, ApiProduct>>(new Map());
+  const [initialSelectedIds, setInitialSelectedIds] = useState<Set<string>>(new Set());
+
   // Debounce search input
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleSearchChange = useCallback((value: string) => {
@@ -59,26 +66,11 @@ export default function Products() {
   }, []);
 
   // Reset page when filters change
-  const handleGenderChange = (v: string) => {
-    setGender(v);
-    setPage(1);
-  };
-  const handleIsPublishedChange = (v: string) => {
-    setIsPublished(v);
-    setPage(1);
-  };
-  const handleCategoryChange = (v: string) => {
-    setCategoryId(v);
-    setPage(1);
-  };
-  const handleCollectionChange = (v: string) => {
-    setCollectionId(v);
-    setPage(1);
-  };
-  const handleSortByChange = (v: string) => {
-    setSortBy(v);
-    setPage(1);
-  };
+  const handleGenderChange = (v: string) => { setGender(v); setPage(1); };
+  const handleIsPublishedChange = (v: string) => { setIsPublished(v); setPage(1); };
+  const handleCategoryChange = (v: string) => { setCategoryId(v); setPage(1); };
+  const handleCollectionChange = (v: string) => { setFilterCollectionId(v); setPage(1); };
+  const handleSortByChange = (v: string) => { setSortBy(v); setPage(1); };
 
   // Fetch categories & collections once on mount
   useEffect(() => {
@@ -90,6 +82,35 @@ export default function Products() {
       .then((res) => setCollections(res?.data ?? []))
       .catch(() => {});
   }, []);
+
+  // Initial fetch for already-added products in the collection
+  useEffect(() => {
+    if (!id) return;
+    getProducts({ collectionId: id, limit: 1000 })
+      .then((res) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const anyRes = res as any;
+        const fetchedProducts: ApiProduct[] = Array.isArray(anyRes.data)
+          ? anyRes.data
+          : Array.isArray(anyRes.products)
+            ? anyRes.products
+            : Array.isArray(anyRes.items)
+              ? anyRes.items
+              : Array.isArray(anyRes)
+                ? anyRes
+                : [];
+
+        const newMap = new Map();
+        const initialSet = new Set<string>();
+        fetchedProducts.forEach(p => {
+          newMap.set(p.id, p);
+          initialSet.add(p.id);
+        });
+        setSelectedProductsMap(newMap);
+        setInitialSelectedIds(initialSet);
+      })
+      .catch(console.error);
+  }, [id]);
 
   // Fetch products whenever filters change
   useEffect(() => {
@@ -109,20 +130,16 @@ export default function Products() {
       if (gender) params.gender = gender;
       if (isPublished !== "") params.isPublished = isPublished === "true";
       if (categoryId) params.categoryId = categoryId;
-      if (collectionId) params.collectionId = collectionId;
+      if (filterCollectionId) params.collectionId = filterCollectionId;
       if (sortBy) params.sortBy = sortBy;
 
       try {
         const res = await getProducts(params);
         if (!isMounted) return;
 
-        console.log("[Products API raw response]", res);
-
-        // Handle various possible response shapes from the server
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const anyRes = res as any;
-
-        const products: ApiProduct[] = Array.isArray(anyRes.data)
+        const fetchedProducts: ApiProduct[] = Array.isArray(anyRes.data)
           ? anyRes.data
           : Array.isArray(anyRes.products)
             ? anyRes.products
@@ -132,17 +149,17 @@ export default function Products() {
                 ? anyRes
                 : [];
 
-        const meta = anyRes.meta ??
+        const newMeta = anyRes.meta ??
           anyRes.pagination ??
           anyRes.pageMeta ?? {
-            total: products.length,
+            total: fetchedProducts.length,
             page: 1,
             limit: LIMIT,
             totalPages: 1,
           };
 
-        setProducts(products);
-        setMeta(meta);
+        setProducts(fetchedProducts);
+        setMeta(newMeta);
       } catch {
         if (isMounted) {
           setError("Failed to load products. Please try again.");
@@ -165,21 +182,40 @@ export default function Products() {
     gender,
     isPublished,
     categoryId,
-    collectionId,
+    filterCollectionId,
     sortBy,
   ]);
 
-  const handleDeleteProduct = async (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
+  const toggleProduct = (product: ApiProduct) => {
+    setSelectedProductsMap((prev) => {
+      const next = new Map(prev);
+      if (next.has(product.id)) {
+        next.delete(product.id);
+      } else {
+        next.set(product.id, product);
+      }
+      return next;
+    });
+  };
 
+  const handleSave = async () => {
+    if (!id) return;
     try {
-      await deleteProduct(id);
-      // Remove product from list
-      setProducts(products.filter((p) => p.id !== id));
-      setMeta({ ...meta, total: meta.total - 1 });
+      const currentSelectedIds = Array.from(selectedProductsMap.keys());
+      const toAdd = currentSelectedIds.filter(pid => !initialSelectedIds.has(pid));
+      const toRemove = Array.from(initialSelectedIds).filter(pid => !selectedProductsMap.has(pid));
+
+      if (toAdd.length > 0) {
+        await addProductsToCollection(id, toAdd);
+      }
+      if (toRemove.length > 0) {
+        await removeProductsFromCollection(id, toRemove);
+      }
+      
+      navigate("/placements");
     } catch (err) {
-      console.error("Failed to delete product:", err);
-      alert("Failed to delete product. Please try again.");
+      console.error(err);
+      alert("Failed to save products to collection.");
     }
   };
 
@@ -189,12 +225,23 @@ export default function Products() {
       currency: "USD",
     }).format(price);
 
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString("en-US", {
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "—";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "—";
+    return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
     });
+  };
+
+  let displayedProducts = products;
+  if (productFilter === "Added") {
+    displayedProducts = Array.from(selectedProductsMap.values());
+  } else if (productFilter === "Not Added") {
+    displayedProducts = products.filter(p => !selectedProductsMap.has(p.id));
+  }
 
   const from = (page - 1) * LIMIT + 1;
   const to = Math.min(page * LIMIT, meta.total);
@@ -202,19 +249,60 @@ export default function Products() {
   return (
     <PageWrapper>
       <PageHeader
-        title="Products"
-        description="View and manage your store inventory."
-        actions={
+        title={`Add products to ${collectionName || "Collection"}`}
+        description={
           <Button
-            onClick={() => navigate("/products/create")}
+            variant="link"
+            size="sm"
+            onClick={() => navigate("/placements")}
             leftIcon={
-              <span className="material-symbols-outlined text-xl">add</span>
+              <span className="material-symbols-outlined text-sm">
+                arrow_back
+              </span>
             }
+            className="hover:underline"
           >
-            Add Product
+            Back to Placements
           </Button>
         }
+        actions={
+          <>
+            <Button variant="outline" onClick={() => navigate("/placements")}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>
+              Save Changes
+            </Button>
+          </>
+        }
       />
+
+      <div className="flex items-center justify-between gap-4 mb-4 mt-6">
+        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+          Products
+          <span className="px-2 py-0.5 rounded-full bg-[#1325ec]/10 text-[#1325ec] text-xs font-bold">
+            {selectedProductsMap.size} selected
+          </span>
+        </h3>
+        <div className="flex items-center bg-slate-100 p-1 rounded-lg">
+          {(["All", "Added", "Not Added"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => {
+                setProductFilter(tab);
+                setPage(1);
+              }}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                productFilter === tab
+                  ? "bg-white text-[#1325ec] shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <ProductFilters
         search={search}
@@ -225,7 +313,7 @@ export default function Products() {
         onIsPublishedChange={handleIsPublishedChange}
         categoryId={categoryId}
         onCategoryChange={handleCategoryChange}
-        collectionId={collectionId}
+        collectionId={filterCollectionId}
         onCollectionChange={handleCollectionChange}
         sortBy={sortBy}
         onSortByChange={handleSortByChange}
@@ -246,20 +334,18 @@ export default function Products() {
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-200">
                 {[
+                  "Select",
                   "Product",
                   "Category",
                   "Gender",
                   "Price",
                   "Variants",
                   "Status",
-                  "Created",
-                  "Actions",
+                  "Created"
                 ].map((h) => (
                   <th
                     key={h}
-                    className={`px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider ${
-                      h === "Actions" ? "text-right" : ""
-                    }`}
+                    className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider"
                   >
                     {h}
                   </th>
@@ -267,26 +353,15 @@ export default function Products() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {loading ? (
+              {loading && productFilter !== "Added" ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div className="size-11 rounded-xl bg-slate-100" />
-                        <div className="flex flex-col gap-1.5">
-                          <div className="h-3 w-36 rounded bg-slate-100" />
-                          <div className="h-2.5 w-20 rounded bg-slate-100" />
-                        </div>
-                      </div>
-                    </td>
-                    {[...Array(5)].map((_, j) => (
-                      <td key={j} className="px-6 py-4">
-                        <div className="h-3 w-20 rounded bg-slate-100" />
-                      </td>
-                    ))}
+                     <td colSpan={8} className="px-6 py-4">
+                        <div className="h-10 bg-slate-100 rounded w-full"></div>
+                     </td>
                   </tr>
                 ))
-              ) : products.length === 0 ? (
+              ) : displayedProducts.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-16 text-center">
                     <div className="flex flex-col items-center gap-3 text-slate-400">
@@ -295,17 +370,27 @@ export default function Products() {
                       </span>
                       <p className="text-sm font-medium">No products found</p>
                       <p className="text-xs">
-                        Try adjusting your filters or add a new product.
+                        Try adjusting your filters.
                       </p>
                     </div>
                   </td>
                 </tr>
               ) : (
-                products.map((p) => (
+                displayedProducts.map((p) => (
                   <tr
                     key={p.id}
                     className="hover:bg-slate-50/30 transition-all duration-200 group"
                   >
+                    {/* Checkbox */}
+                    <td className="px-6 py-4">
+                       <input 
+                         type="checkbox" 
+                         className="size-4 rounded border-slate-300 text-[#1325ec] focus:ring-[#1325ec]" 
+                         checked={selectedProductsMap.has(p.id)}
+                         onChange={() => toggleProduct(p)}
+                       />
+                    </td>
+
                     {/* Product */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
@@ -324,8 +409,7 @@ export default function Products() {
                         </div>
                         <div className="flex flex-col gap-0.5">
                           <p
-                            className="text-sm font-bold text-slate-900 cursor-pointer hover:text-[#1325ec] transition-colors"
-                            onClick={() => navigate(`/products/view/${p.id}`)}
+                            className="text-sm font-bold text-slate-900"
                           >
                             {p.name}
                           </p>
@@ -401,44 +485,6 @@ export default function Products() {
                         {formatDate(p.createdAt)}
                       </span>
                     </td>
-
-                    {/* Actions */}
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => navigate(`/products/view/${p.id}`)}
-                          title="View"
-                        >
-                          <span className="material-symbols-outlined text-lg">
-                            visibility
-                          </span>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => navigate(`/products/edit/${p.id}`)}
-                          className="hover:text-[#1325ec] hover:bg-[#1325ec]/5"
-                          title="Edit"
-                        >
-                          <span className="material-symbols-outlined text-lg">
-                            edit
-                          </span>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteProduct(p.id, p.name)}
-                          className="hover:text-red-500 hover:bg-red-50"
-                          title="Delete"
-                        >
-                          <span className="material-symbols-outlined text-lg">
-                            delete
-                          </span>
-                        </Button>
-                      </div>
-                    </td>
                   </tr>
                 ))
               )}
@@ -446,16 +492,18 @@ export default function Products() {
           </table>
         </div>
 
-        <Pagination
-          currentPage={page}
-          totalPages={meta.totalPages}
-          onPageChange={setPage}
-          showingText={
-            meta.total > 0
-              ? `Showing ${from}–${to} of ${meta.total} products`
-              : "No products"
-          }
-        />
+        {productFilter !== "Added" && (
+          <Pagination
+            currentPage={page}
+            totalPages={meta.totalPages}
+            onPageChange={setPage}
+            showingText={
+              meta.total > 0
+                ? `Showing ${from}–${to} of ${meta.total} products`
+                : "No products"
+            }
+          />
+        )}
       </div>
     </PageWrapper>
   );

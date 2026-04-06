@@ -22,7 +22,7 @@ export default function LoginPage() {
     mutationFn: (credentials: LoginCredentials) => loginUser(credentials),
     onSuccess: (data) => {
       console.log("data", data);
-      setToken(data.data.accessToken, data.data.refreshToken);
+      setToken(data.data.accessToken, data.data.refreshToken, data.data.user);
       navigate("/");
     },
     onError: (error: Error | import("axios").AxiosError) => {
@@ -168,69 +168,6 @@ export default function LoginPage() {
             </div>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-slate-500">
-                  Or continue with
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                fullWidth
-                className="!text-slate-600 font-medium"
-              >
-                <div className="flex justify-center items-center gap-2">
-                  <svg
-                    className="size-5"
-                    aria-hidden="true"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.28027 6.60998L5.27028 9.70498C6.21525 6.86002 8.87028 4.75 12.0003 4.75Z"
-                      fill="#EA4335"
-                    />
-                    <path
-                      d="M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.34 17.25 16.08 18.1L19.945 21.1C22.2 19.01 23.49 15.92 23.49 12.275Z"
-                      fill="#4285F4"
-                    />
-                    <path
-                      d="M5.26498 14.2949C5.02498 13.5699 4.88501 12.7999 4.88501 11.9999C4.88501 11.1999 5.01998 10.4299 5.26498 9.7049L1.275 6.60986C0.46 8.22986 0 10.0599 0 11.9999C0 13.9399 0.46 15.7699 1.28 17.3899L5.26498 14.2949Z"
-                      fill="#FBBC05"
-                    />
-                    <path
-                      d="M12.0004 24.0001C15.2404 24.0001 17.9654 22.935 19.9454 21.095L16.0804 18.095C15.0054 18.82 13.6204 19.245 12.0004 19.245C8.8704 19.245 6.21537 17.135 5.26538 14.29L1.27539 17.385C3.25539 21.31 7.3104 24.0001 12.0004 24.0001Z"
-                      fill="#34A853"
-                    />
-                  </svg>
-                  <span>Google</span>
-                </div>
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                fullWidth
-                className="!text-slate-600 font-medium"
-              >
-                <div className="flex justify-center items-center gap-2">
-                  <svg
-                    className="size-5 text-[#1877F2] fill-current"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
-                  <span>Facebook</span>
-                </div>
-              </Button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

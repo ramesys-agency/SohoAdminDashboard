@@ -75,7 +75,7 @@ export default function ProductsTable({
                       <p
                         className="text-sm font-bold text-slate-900 cursor-pointer hover:text-[#1325ec] transition-colors"
                         onClick={() =>
-                          !selectable && navigate(`/products/${p.sku}`)
+                          !selectable && navigate(`/products/view/${p.id}`)
                         }
                       >
                         {p.name}
@@ -128,7 +128,7 @@ export default function ProductsTable({
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => navigate(`/products/${p.sku}`)}
+                          onClick={() => navigate(`/products/view/${p.id}`)}
                           title="View"
                         >
                           <span className="material-symbols-outlined text-lg">
@@ -138,7 +138,7 @@ export default function ProductsTable({
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => navigate("/products/edit")}
+                          onClick={() => navigate(`/products/edit/${p.id}`)}
                           className="hover:text-[#1325ec] hover:bg-[#1325ec]/5"
                           title="Edit"
                         >

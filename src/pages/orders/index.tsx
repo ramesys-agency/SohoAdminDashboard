@@ -11,20 +11,20 @@ export default function Orders() {
       <PageHeader
         title="Order Management"
         description="Review and fulfill your latest customer transactions."
-        actions={
-          <>
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors text-slate-700">
-              <span className="material-symbols-outlined text-lg">
-                download
-              </span>
-              Export
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors text-slate-700">
-              <span className="material-symbols-outlined text-lg">print</span>
-              Batch Print
-            </button>
-          </>
-        }
+        // actions={
+        //   <>
+        //     <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors text-slate-700">
+        //       <span className="material-symbols-outlined text-lg">
+        //         download
+        //       </span>
+        //       Export
+        //     </button>
+        //     <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors text-slate-700">
+        //       <span className="material-symbols-outlined text-lg">print</span>
+        //       Batch Print
+        //     </button>
+        //   </>
+        // }
       />
       <OrderFilters />
       <OrdersTable />
