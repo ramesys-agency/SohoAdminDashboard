@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useAuthStore } from "../store/authStore";
-import { refreshAccessToken } from "../api/auth";
+import { apiEndpoint } from "./route";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
@@ -39,17 +39,19 @@ api.interceptors.response.use(
           return Promise.reject(error);
         }
 
-        // Call the refresh API
-        const response = await refreshAccessToken(refreshToken);
+        // Call the refresh API directly using axios to avoid circular dependency
+        const { data } = await axios.post(
+          `${import.meta.env.VITE_API_URL || "http://localhost:3000/api"}${apiEndpoint.auth.refresh}`,
+          { refreshToken },
+        );
 
-        if (response?.data?.accessToken) {
+        if (data?.data?.accessToken) {
+          const { accessToken, refreshToken: newRefreshToken, user } = data.data;
           // Save new tokens
-          useAuthStore
-            .getState()
-            .setToken(response.data.accessToken, response.data.refreshToken);
+          useAuthStore.getState().setToken(accessToken, newRefreshToken, user);
 
           // Retry the original request with the new token
-          originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return api(originalRequest);
         } else {
           // If no new token was generated

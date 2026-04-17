@@ -26,4 +26,15 @@ export const apiEndpoint = {
     byId: (id: string) => `/v1/users/${id}`,
     adminAll: "/v1/users/admin/all",
   },
+  orders: {
+    adminAll: "/v1/orders/admin/all",
+    byId: (id: string) => `/v1/orders/${id}`, // Reuse the specific byId if needed
+    updateStatus: (id: string) => `/v1/orders/admin/${id}/status`,
+    updatePayment: (id: string) => `/v1/orders/admin/${id}/payment`,
+  },
+  coupons: {
+    base: "/v1/coupons",
+    byId: (id: string) => `/v1/coupons/${id}`,
+    validate: "/v1/coupons/validate",
+  },
 };

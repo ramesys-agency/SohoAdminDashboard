@@ -21,7 +21,6 @@ export default function LoginPage() {
   const loginMutation = useMutation({
     mutationFn: (credentials: LoginCredentials) => loginUser(credentials),
     onSuccess: (data) => {
-      console.log("data", data);
       setToken(data.data.accessToken, data.data.refreshToken, data.data.user);
       navigate("/");
     },
@@ -55,7 +54,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f6f6f8] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-['Urbanist']">
+    <div className="min-h-screen bg-background-light flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-['Urbanist']">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-slate-900">
           Sign in to your account
@@ -91,7 +90,7 @@ export default function LoginPage() {
                     if (errors.email)
                       setErrors({ ...errors, email: undefined });
                   }}
-                  className={`block w-full appearance-none rounded-xl border ${errors.email ? "border-red-500 focus:border-red-500 focus:ring-red-500/10" : "border-slate-200 focus:border-[#1325ec] focus:ring-[#1325ec]/10"} bg-white px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-4 sm:text-sm transition-all duration-200`}
+                  className={`block w-full appearance-none rounded-xl border ${errors.email ? "border-red-500 focus:border-red-500 focus:ring-red-500/10" : "border-slate-200 focus:border-primary focus:ring-primary/10"} bg-white px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-4 sm:text-sm transition-all duration-200`}
                   placeholder="admin@soho.com"
                 />
                 {errors.email && (
@@ -167,7 +166,6 @@ export default function LoginPage() {
               </Button>
             </div>
           </form>
-
         </div>
       </div>
     </div>

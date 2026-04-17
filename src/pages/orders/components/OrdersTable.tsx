@@ -1,61 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import Pagination from "../../../components/ui/Pagination";
 import Button from "../../../components/ui/Button";
-
-const orders = [
-  {
-    id: "#ORD-8821",
-    initials: "JD",
-    customer: "Jane Doe",
-    email: "jane.doe@email.com",
-    date: "Oct 24, 2023",
-    total: "$249.00",
-    payment: "Paid",
-    fulfillment: "Fulfilled",
-  },
-  {
-    id: "#ORD-8820",
-    initials: "MS",
-    customer: "Mark Smith",
-    email: "m.smith@web.com",
-    date: "Oct 23, 2023",
-    total: "$1,020.50",
-    payment: "Pending",
-    fulfillment: "Unfulfilled",
-  },
-  {
-    id: "#ORD-8819",
-    initials: "KL",
-    customer: "Karen Lee",
-    email: "klee88@gmail.com",
-    date: "Oct 22, 2023",
-    total: "$89.00",
-    payment: "Paid",
-    fulfillment: "Fulfilled",
-  },
-  {
-    id: "#ORD-8818",
-    initials: "TW",
-    customer: "Tom Wright",
-    email: "tom.w@outlook.com",
-    date: "Oct 21, 2023",
-    total: "$156.40",
-    payment: "Failed",
-    fulfillment: "Unfulfilled",
-  },
-  {
-    id: "#ORD-8817",
-    initials: "AJ",
-    customer: "Alice Johnson",
-    email: "alice.j@corp.com",
-    date: "Oct 20, 2023",
-    total: "$542.00",
-    payment: "Paid",
-    fulfillment: "Processing",
-  },
-];
+import { getAllOrders, type Order } from "../../../api/orders";
+import dayjs from "dayjs";
 
 const headers = [
   "Order ID",
@@ -70,9 +19,35 @@ const headers = [
 export default function OrdersTable() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllOrders();
+      setOrders(data);
+    } catch (error) {
+      console.error("Failed to fetch orders:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 p-12 flex justify-center items-center shadow-sm">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1325ec]"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm mb-6">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -80,7 +55,9 @@ export default function OrdersTable() {
               {headers.map((h) => (
                 <th
                   key={h}
-                  className={`px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider ${h === "Actions" ? "text-right" : ""}`}
+                  className={`px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider ${
+                    h === "Actions" ? "text-right" : ""
+                  }`}
                 >
                   {h}
                 </th>
@@ -88,67 +65,87 @@ export default function OrdersTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {orders.map((order) => (
-              <tr
-                key={order.id}
-                onClick={() => navigate(`/orders/${order.id.replace("#", "")}`)}
-                className="hover:bg-slate-50 transition-colors cursor-pointer"
-              >
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="text-sm font-bold text-[#1325ec] hover:underline">
-                    {order.id}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center gap-3">
-                    <div className="size-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600">
-                      {order.initials}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">
-                        {order.customer}
-                      </p>
-                      <p className="text-xs text-slate-500">{order.email}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                  {order.date}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">
-                  {order.total}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <StatusBadge status={order.payment} />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <StatusBadge status={order.fulfillment} />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/orders/${order.id.replace("#", "")}`);
-                    }}
-                    className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-slate-500">
-                      open_in_new
-                    </span>
-                  </Button>
+            {orders.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-12 text-center text-slate-500 font-medium">
+                  No orders found.
                 </td>
               </tr>
-            ))}
+            ) : (
+              orders.map((order) => {
+                const customerInitials = order.user?.fullName
+                  ? order.user.fullName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                  : "U";
+                
+                const latestPayment = order.payments?.[0];
+
+                return (
+                  <tr
+                    key={order.id}
+                    onClick={() => navigate(`/orders/${order.id}`)}
+                    className="hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm font-bold text-[#1325ec] hover:underline">
+                        {order.orderCode || order.id.slice(0, 8).toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <div className="size-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600">
+                          {customerInitials}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">
+                            {order.user?.fullName || "Guest User"}
+                          </p>
+                          <p className="text-xs text-slate-500">{order.user?.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                      {dayjs(order.createdAt).format("MMM DD, YYYY")}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">
+                      ৳{parseFloat(order.totalAmount).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <StatusBadge status={latestPayment?.status || "pending"} />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <StatusBadge status={order.status} />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/orders/${order.id}`);
+                        }}
+                        className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-slate-500">
+                          open_in_new
+                        </span>
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
       <Pagination
         currentPage={page}
-        totalPages={16}
+        totalPages={1}
         onPageChange={setPage}
-        showingText="Showing 1 to 10 of 156 results"
+        showingText={`Showing ${orders.length} total orders`}
       />
     </div>
   );

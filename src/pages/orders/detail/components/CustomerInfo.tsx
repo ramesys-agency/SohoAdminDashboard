@@ -1,59 +1,72 @@
-export default function CustomerInfo() {
-  return (
-    <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-      <h3 className="font-bold text-slate-900 mb-4">Customer Information</h3>
-      <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
-        <div className="size-12 rounded-full bg-[#1325ec]/10 flex items-center justify-center text-[#1325ec] font-bold text-lg">
-          JD
-        </div>
-        <div>
-          <p className="font-bold text-slate-900">Jane Doe</p>
-          <p className="text-sm text-slate-500">jane.doe@email.com</p>
-          <p className="text-xs text-slate-400 mt-0.5">
-            42 previous orders · Customer since Jan 2022
-          </p>
-        </div>
-        <button className="ml-auto text-[#1325ec] text-sm font-bold hover:underline">
-          View Profile
-        </button>
-      </div>
+import type { Order } from "../../../../api/orders";
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+interface CustomerInfoProps {
+  order: Order;
+}
+
+export default function CustomerInfo({ order }: CustomerInfoProps) {
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <h3 className="font-bold text-slate-900 mb-6">
+        Customer & Shipping Information
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <p className="text-xs font-bold text-slate-500 uppercase mb-2">
-            Shipping Address
-          </p>
-          <p className="text-sm text-slate-700 leading-relaxed">
-            Jane Doe
-            <br />
-            123 Maple Street, Apt 4B
-            <br />
-            San Francisco, CA 94102
-            <br />
-            United States
-          </p>
+          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
+            Customer Details
+          </h4>
+          <div className="space-y-3">
+            <div>
+              <p className="text-xs text-slate-500">Full Name</p>
+              <p className="text-sm font-bold text-slate-900">
+                {order.user?.fullName || "Guest"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500">Email Address</p>
+              <p className="text-sm font-bold text-slate-900">
+                {order.user?.email || "N/A"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500">Phone Number</p>
+              <p className="text-sm font-bold text-slate-900">
+                {order.user?.phone || "N/A"}
+              </p>
+            </div>
+          </div>
         </div>
         <div>
-          <p className="text-xs font-bold text-slate-500 uppercase mb-2">
-            Billing Address
-          </p>
-          <p className="text-sm text-slate-700 leading-relaxed">
-            Jane Doe
-            <br />
-            123 Maple Street, Apt 4B
-            <br />
-            San Francisco, CA 94102
-            <br />
-            United States
-          </p>
-          <p className="mt-2 text-xs text-slate-400 flex items-center gap-1">
-            <span className="material-symbols-outlined text-xs">
-              credit_card
-            </span>
-            Visa ending in 4242
-          </p>
+          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
+            Shipping Address
+          </h4>
+          <div className="space-y-3">
+            <div>
+              <p className="text-xs text-slate-500">Street / Area</p>
+              <p className="text-sm font-medium text-slate-900">
+                {order.address?.street}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500">Location</p>
+              <p className="text-sm font-medium text-slate-900">
+                {order.address?.thana}, {order.address?.district}
+              </p>
+              <p className="text-sm font-medium text-slate-900">
+                {order.address?.division}
+              </p>
+            </div>
+            <div className="pt-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full">
+                <span className="material-symbols-outlined text-sm">
+                  local_shipping
+                </span>
+                {order.cod ? "Cash on Delivery" : "Prepaid Order"}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

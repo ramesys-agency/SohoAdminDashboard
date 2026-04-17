@@ -1,80 +1,107 @@
+import type { Order } from "../../../../api/orders";
 import StatusBadge from "../../../../components/ui/StatusBadge";
+import dayjs from "dayjs";
 
-export default function OrderSummary() {
+interface OrderSummaryProps {
+  order: Order;
+  onUpdateStatus: (status: string, note?: string) => void;
+  onUpdatePayment: (status: string) => void;
+}
+
+export default function OrderSummary({
+  order,
+  onUpdateStatus,
+  onUpdatePayment,
+}: OrderSummaryProps) {
+  const currentPayment = order.payments?.[0];
+  const isCODPending = currentPayment?.status === "cod_pending" || order.cod;
+
   return (
-    <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h2 className="text-2xl font-black text-slate-900">#ORD-8821</h2>
-            <StatusBadge status="Paid" />
-            <StatusBadge status="Fulfilled" />
+    <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm mb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex flex-wrap gap-x-8 gap-y-4">
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+              Placed On
+            </p>
+            <p className="text-sm font-bold text-slate-900">
+              {dayjs(order.createdAt).format("MMM DD, YYYY - hh:mm A")}
+            </p>
           </div>
-          <p className="text-sm text-slate-500">
-            Placed on October 24, 2023 at 10:30 AM
-          </p>
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+              Total Amount
+            </p>
+            <p className="text-sm font-bold text-slate-900">
+              ৳{parseFloat(order.totalAmount).toLocaleString()}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+              Order Status
+            </p>
+            <div className="flex items-center gap-2">
+              <StatusBadge status={order.status} />
+              <select
+                className="text-xs border border-slate-200 rounded px-1 py-0.5"
+                value={order.status}
+                onChange={(e) => onUpdateStatus(e.target.value)}
+              >
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+              Payment Status
+            </p>
+            <div className="flex items-center gap-2">
+              <StatusBadge status={currentPayment?.status || "pending"} />
+              <p className="text-xs text-slate-400">
+                ({order.cod ? "COD" : "Online"})
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1 px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50">
-            <span className="material-symbols-outlined text-sm">print</span>
-            Print
-          </button>
-          <button className="flex items-center gap-1 px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50">
-            <span className="material-symbols-outlined text-sm">download</span>
-            Invoice
-          </button>
-          <button className="px-4 py-2 bg-[#1325ec] text-white rounded-lg text-sm font-bold hover:opacity-90">
-            Fulfill Order
-          </button>
-        </div>
-      </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          {
-            label: "Order Total",
-            value: "$1,148.00",
-            icon: "payments",
-            color: "text-[#1325ec] bg-[#1325ec]/10",
-          },
-          {
-            label: "Items",
-            value: "2 Products",
-            icon: "inventory_2",
-            color: "text-orange-600 bg-orange-100",
-          },
-          {
-            label: "Payment",
-            value: "Credit Card",
-            icon: "credit_card",
-            color: "text-emerald-600 bg-emerald-100",
-          },
-          {
-            label: "Delivery",
-            value: "Standard",
-            icon: "local_shipping",
-            color: "text-blue-600 bg-blue-100",
-          },
-        ].map((s) => (
-          <div
-            key={s.label}
-            className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg"
-          >
-            <div
-              className={`size-9 rounded-lg flex items-center justify-center flex-shrink-0 ${s.color}`}
+        <div className="flex flex-wrap gap-3">
+          {isCODPending && currentPayment?.status !== "completed" && (
+            <>
+              <button
+                onClick={() => onUpdatePayment("completed")}
+                className="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 transition-colors"
+                title="Only use if cash has been collected"
+              >
+                Confirm Payment
+              </button>
+              <button
+                onClick={() => onUpdatePayment("cancelled")}
+                className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 text-sm font-bold rounded-lg hover:bg-red-100 transition-colors"
+              >
+                Reject Payment
+              </button>
+            </>
+          )}
+
+          {order.status !== "delivered" && order.status !== "cancelled" && (
+            <button
+              onClick={() =>
+                onUpdateStatus(
+                  "delivered",
+                  "Manually marked as delivered by admin",
+                )
+              }
+              className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity"
             >
-              <span className="material-symbols-outlined text-lg">
-                {s.icon}
-              </span>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500">{s.label}</p>
-              <p className="text-sm font-bold text-slate-900">{s.value}</p>
-            </div>
-          </div>
-        ))}
+              Fulfill Order
+            </button>
+          )}
+        </div>
       </div>
-    </section>
+    </div>
   );
 }

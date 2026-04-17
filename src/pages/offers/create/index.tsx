@@ -1,14 +1,18 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import PageWrapper from "../../../components/ui/PageWrapper";
 import PageHeader from "../../../components/ui/PageHeader";
 import DiscountForm from "./components/DiscountForm";
 
 export default function CreateOffer() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const editCoupon = location.state?.editCoupon;
+  const isEditMode = !!editCoupon;
+
   return (
     <PageWrapper>
       <PageHeader
-        title="Create Discount"
+        title={isEditMode ? "Edit Discount" : "Create Discount"}
         description={
           <button
             onClick={() => navigate("/offers")}
@@ -28,13 +32,17 @@ export default function CreateOffer() {
             >
               Discard
             </button>
-            <button className="px-4 py-2 text-sm font-bold bg-[#1325ec] text-white rounded-lg shadow-lg shadow-[#1325ec]/20 hover:opacity-90">
-              Save Discount
+            <button
+              form="create-offer-form"
+              type="submit"
+              className="px-4 py-2 text-sm font-bold bg-[#1325ec] text-white rounded-lg shadow-lg shadow-[#1325ec]/20 hover:opacity-90"
+            >
+              {isEditMode ? "Update Discount" : "Save Discount"}
             </button>
           </>
         }
       />
-      <DiscountForm />
+      <DiscountForm initialData={editCoupon} />
     </PageWrapper>
   );
 }

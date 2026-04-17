@@ -1,19 +1,50 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import PageWrapper from "../../components/ui/PageWrapper";
 import PageHeader from "../../components/ui/PageHeader";
 import CouponsTable from "./components/CouponsTable";
-import UsageStats from "./components/UsageStats";
-
-const filterTabs = [
-  { label: "Active", count: 12 },
-  { label: "Scheduled", count: 4 },
-  { label: "Expired", count: null },
-];
+import { getAllCoupons } from "../../api/coupons";
+import type { Coupon } from "../../api/coupons";
 
 export default function Offers() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
+
+  const { data: coupons = [], isLoading } = useQuery({
+    queryKey: ["coupons"],
+    queryFn: getAllCoupons,
+  });
+
+  const getStatus = (coupon: Coupon) => {
+    if (!coupon.isActive) return "Inactive";
+    const now = new Date();
+    const validFrom = new Date(coupon.validFrom);
+
+    if (now < validFrom) return "Scheduled";
+    if (coupon.validTo && now > new Date(coupon.validTo)) return "Expired";
+    return "Active";
+  };
+
+  const counts = {
+    Active: coupons.filter((c) => getStatus(c) === "Active").length,
+    Scheduled: coupons.filter((c) => getStatus(c) === "Scheduled").length,
+    Expired: coupons.filter((c) => getStatus(c) === "Expired").length,
+    All: coupons.length,
+  };
+
+  const filterTabs = [
+    { label: "All", count: counts.All },
+    { label: "Active", count: counts.Active },
+    { label: "Scheduled", count: counts.Scheduled },
+    { label: "Expired", count: counts.Expired },
+  ];
+
+  const filteredCoupons = coupons.filter((c) => {
+    const tab = filterTabs[activeTab].label;
+    if (tab === "All") return true;
+    return getStatus(c) === tab;
+  });
 
   return (
     <PageWrapper>
@@ -55,9 +86,8 @@ export default function Offers() {
             ))}
           </div>
         </div>
-        <CouponsTable />
+        <CouponsTable coupons={filteredCoupons} isLoading={isLoading} />
       </div>
-      <UsageStats />
     </PageWrapper>
   );
 }

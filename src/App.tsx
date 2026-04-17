@@ -10,6 +10,7 @@ import AddProductsToCollection from "./pages/placements/add-products";
 import Customers from "./pages/customers";
 import Offers from "./pages/offers";
 import CreateOffer from "./pages/offers/create";
+import ViewOffer from "./pages/offers/view";
 import Orders from "./pages/orders";
 import OrderDetail from "./pages/orders/detail";
 import Products from "./pages/products";
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="customers" element={<Customers />} />
             <Route path="offers" element={<Offers />} />
             <Route path="offers/create" element={<CreateOffer />} />
+            <Route path="offers/view/:id" element={<ViewOffer />} />
             <Route path="orders" element={<Orders />} />
             <Route path="orders/:id" element={<OrderDetail />} />
             <Route path="products" element={<Products />} />

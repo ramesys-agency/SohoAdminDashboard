@@ -116,8 +116,6 @@ export default function Products() {
         const res = await getProducts(params);
         if (!isMounted) return;
 
-        console.log("[Products API raw response]", res);
-
         // Handle various possible response shapes from the server
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const anyRes = res as any;
