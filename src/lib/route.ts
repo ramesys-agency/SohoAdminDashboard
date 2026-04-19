@@ -31,6 +31,8 @@ export const apiEndpoint = {
     byId: (id: string) => `/v1/orders/${id}`, // Reuse the specific byId if needed
     updateStatus: (id: string) => `/v1/orders/admin/${id}/status`,
     updatePayment: (id: string) => `/v1/orders/admin/${id}/payment`,
+    syncRoadRush: (id: string) => `/v1/orders/admin/${id}/sync-roadrush`,
+    refreshStatus: (id: string) => `/v1/orders/admin/${id}/refresh-status`,
   },
   coupons: {
     base: "/v1/coupons",

@@ -50,6 +50,14 @@ export interface Order {
     note: string;
     createdAt: string;
   }>;
+  customerMobileNumber?: string;
+  customerFullName?: string;
+  customerEmail?: string;
+  dropAddress?: string;
+  receiverDivision?: string;
+  receiverDistrict?: string;
+  receiverThana?: string;
+  lastLogisticsSync?: string;
 }
 
 export const getAllOrders = async (): Promise<Order[]> => {
@@ -69,5 +77,15 @@ export const updateOrderStatus = async (id: string, status: string, note?: strin
 
 export const updatePaymentStatus = async (id: string, status: string): Promise<any> => {
   const { data } = await api.patch(apiEndpoint.orders.updatePayment(id), { status });
+  return data;
+};
+
+export const syncOrderWithRoadRush = async (id: string): Promise<any> => {
+  const { data } = await api.post(apiEndpoint.orders.syncRoadRush(id));
+  return data;
+};
+
+export const refreshOrderStatus = async (id: string): Promise<any> => {
+  const { data } = await api.post(apiEndpoint.orders.refreshStatus(id));
   return data;
 };

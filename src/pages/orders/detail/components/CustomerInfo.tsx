@@ -19,19 +19,19 @@ export default function CustomerInfo({ order }: CustomerInfoProps) {
             <div>
               <p className="text-xs text-slate-500">Full Name</p>
               <p className="text-sm font-bold text-slate-900">
-                {order.user?.fullName || "Guest"}
+                {order.customerFullName || order.user?.fullName || "Guest"}
               </p>
             </div>
             <div>
               <p className="text-xs text-slate-500">Email Address</p>
               <p className="text-sm font-bold text-slate-900">
-                {order.user?.email || "N/A"}
+                {order.customerEmail || order.user?.email || "N/A"}
               </p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Phone Number</p>
+              <p className="text-xs text-slate-500">Phone (Logistics)</p>
               <p className="text-sm font-bold text-slate-900">
-                {order.user?.phone || "N/A"}
+                {order.customerMobileNumber || order.user?.phone || "N/A"}
               </p>
             </div>
           </div>
@@ -44,16 +44,16 @@ export default function CustomerInfo({ order }: CustomerInfoProps) {
             <div>
               <p className="text-xs text-slate-500">Street / Area</p>
               <p className="text-sm font-medium text-slate-900">
-                {order.address?.street}
+                {order.dropAddress || order.address?.street}
               </p>
             </div>
             <div>
               <p className="text-xs text-slate-500">Location</p>
               <p className="text-sm font-medium text-slate-900">
-                {order.address?.thana}, {order.address?.district}
+                {order.receiverThana || order.address?.thana}, {order.receiverDistrict || order.address?.district}
               </p>
               <p className="text-sm font-medium text-slate-900">
-                {order.address?.division}
+                {order.receiverDivision || order.address?.division}
               </p>
             </div>
             <div className="pt-2">

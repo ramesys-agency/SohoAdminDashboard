@@ -19,7 +19,7 @@ export default function OrderSummary({
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm mb-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex flex-wrap gap-x-8 gap-y-4">
+        <div className="flex flex-wrap gap-x-8 gap-y-4 text-center md:text-left">
           <div>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
               Placed On
@@ -32,7 +32,7 @@ export default function OrderSummary({
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
               Total Amount
             </p>
-            <p className="text-sm font-bold text-slate-900">
+            <p className="text-sm font-bold text-slate-900 text-primary">
               ৳{parseFloat(order.totalAmount).toLocaleString()}
             </p>
           </div>
@@ -43,7 +43,7 @@ export default function OrderSummary({
             <div className="flex items-center gap-2">
               <StatusBadge status={order.status} />
               <select
-                className="text-xs border border-slate-200 rounded px-1 py-0.5"
+                className="text-xs border border-slate-200 rounded px-1 py-0.5 outline-none focus:border-primary"
                 value={order.status}
                 onChange={(e) => onUpdateStatus(e.target.value)}
               >
@@ -69,23 +69,25 @@ export default function OrderSummary({
         </div>
 
         <div className="flex flex-wrap gap-3">
-          {isCODPending && currentPayment?.status !== "completed" && (
-            <>
-              <button
-                onClick={() => onUpdatePayment("completed")}
-                className="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 transition-colors"
-                title="Only use if cash has been collected"
-              >
-                Confirm Payment
-              </button>
-              <button
-                onClick={() => onUpdatePayment("cancelled")}
-                className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 text-sm font-bold rounded-lg hover:bg-red-100 transition-colors"
-              >
-                Reject Payment
-              </button>
-            </>
-          )}
+          {isCODPending &&
+            currentPayment?.status !== "success" &&
+            currentPayment?.status !== "cod_collected" && (
+              <>
+                <button
+                  onClick={() => onUpdatePayment("success")}
+                  className="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 transition-colors"
+                  title="Only use if cash has been collected"
+                >
+                  Confirm Payment
+                </button>
+                <button
+                  onClick={() => onUpdatePayment("failed")}
+                  className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 text-sm font-bold rounded-lg hover:bg-red-100 transition-colors"
+                >
+                  Reject Payment
+                </button>
+              </>
+            )}
 
           {order.status !== "delivered" && order.status !== "cancelled" && (
             <button

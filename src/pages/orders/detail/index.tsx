@@ -10,8 +10,11 @@ import {
   getOrderById,
   updateOrderStatus,
   updatePaymentStatus,
+  syncOrderWithRoadRush,
   type Order,
+  refreshOrderStatus,
 } from "../../../api/orders";
+import dayjs from "dayjs";
 
 export default function OrderDetail() {
   const navigate = useNavigate();
@@ -58,6 +61,29 @@ export default function OrderDetail() {
     }
   };
 
+  const handleSyncRoadRush = async () => {
+    if (!id) return;
+    try {
+      await syncOrderWithRoadRush(id);
+      alert("Order synced with RoadRush successfully!");
+      await fetchOrder();
+    } catch (error: any) {
+      console.error("Failed to sync with RoadRush:", error);
+      alert(error.response?.data?.message || "Failed to sync with RoadRush");
+    }
+  };
+
+  const handleRefreshStatus = async () => {
+    if (!id) return;
+    try {
+      await refreshOrderStatus(id);
+      await fetchOrder();
+    } catch (error: any) {
+      console.error("Failed to refresh status:", error);
+      alert(error.response?.data?.message || "Failed to refresh status");
+    }
+  };
+
   if (loading) {
     return (
       <PageWrapper>
@@ -98,6 +124,49 @@ export default function OrderDetail() {
             </span>
             Back to Orders
           </button>
+        }
+        actions={
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-2">
+              {order.lastLogisticsSync && (
+                <span className="text-[10px] text-slate-400 font-medium italic">
+                  Last updated:{" "}
+                  {dayjs(order.lastLogisticsSync).format("MMM DD, hh:mm A")}
+                </span>
+              )}
+              {order.orderCode ? (
+                <button
+                  onClick={handleRefreshStatus}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1325ec]/5 text-[#1325ec] text-sm font-bold rounded-xl border border-[#1325ec]/20 hover:bg-[#1325ec] hover:text-white transition-all shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-lg">
+                    refresh
+                  </span>
+                  Refresh Status
+                </button>
+              ) : (
+                <button
+                  onClick={handleSyncRoadRush}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-black text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-md"
+                >
+                  <span className="material-symbols-outlined text-lg">
+                    sync
+                  </span>
+                  Sync with RoadRush
+                </button>
+              )}
+            </div>
+            {order.orderCode && (
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                  Tracking ID:
+                </span>
+                <span className="px-2 py-0.5 rounded-md text-[11px] font-extrabold bg-blue-50 text-blue-700 border border-blue-100">
+                  {order.orderCode}
+                </span>
+              </div>
+            )}
+          </div>
         }
       />
 
