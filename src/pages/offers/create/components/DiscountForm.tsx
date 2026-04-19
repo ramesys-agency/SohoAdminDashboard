@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { getCollections, type Collection } from "../../../../api/collections";
@@ -55,7 +55,7 @@ export default function DiscountForm({ initialData }: DiscountFormProps) {
     queryFn: () => getCollections(1, 100),
   });
 
-  const { mutate: handleSave, isPending } = useMutation({
+  const { mutate: handleSave } = useMutation({
     mutationFn: (payload: any) =>
       initialData
         ? updateCoupon(initialData.id, payload)
