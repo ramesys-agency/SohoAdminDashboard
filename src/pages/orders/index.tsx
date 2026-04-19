@@ -2,8 +2,8 @@ import PageWrapper from "../../components/ui/PageWrapper";
 import PageHeader from "../../components/ui/PageHeader";
 import OrderFilters from "./components/OrderFilters";
 import OrdersTable from "./components/OrdersTable";
-import SalesPerformanceChart from "./components/SalesPerformanceChart";
-import CalendarWidget from "./components/CalendarWidget";
+// import SalesPerformanceChart from "./components/SalesPerformanceChart";
+// import CalendarWidget from "./components/CalendarWidget";
 
 export default function Orders() {
   return (
@@ -28,12 +28,12 @@ export default function Orders() {
       />
       <OrderFilters />
       <OrdersTable />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <SalesPerformanceChart />
         </div>
         <CalendarWidget />
-      </div>
+      </div> */}
     </PageWrapper>
   );
 }

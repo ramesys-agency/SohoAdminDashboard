@@ -37,4 +37,8 @@ export const apiEndpoint = {
     byId: (id: string) => `/v1/coupons/${id}`,
     validate: "/v1/coupons/validate",
   },
+  logistics: {
+    aggregators: "/v1/logistics/aggregators",
+    pickupAddresses: "/v1/logistics/pickup-addresses",
+  },
 };

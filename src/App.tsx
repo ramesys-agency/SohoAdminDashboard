@@ -20,6 +20,7 @@ import Settings from "./pages/settings";
 import LoginPage from "./pages/auth/LoginPage";
 import CreatePlacements from "./pages/placements/create";
 import Placements from "./pages/placements";
+import ShippingPage from "./pages/shipping";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="analytics" element={<Analytics />} />
             <Route path="categories" element={<Categories />} />
             <Route path="categories/create" element={<CreateCategory />} />
+            <Route path="shipping" element={<ShippingPage />} />
             <Route path="placements" element={<Placements />} />
             <Route path="placements/edit/:id" element={<CreatePlacements />} />
             <Route

@@ -11,6 +11,7 @@ const navItems = [
   { to: "/orders", icon: "shopping_cart", label: "Orders" },
   { to: "/customers", icon: "group", label: "Customers" },
   { to: "/offers", icon: "sell", label: "Offers" },
+  { to: "/shipping", icon: "local_shipping", label: "Shipping" },
   // { to: "/analytics", icon: "monitoring", label: "Analytics" },
 ];
 
