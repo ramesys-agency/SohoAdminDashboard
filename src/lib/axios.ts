@@ -1,9 +1,10 @@
 import axios from "axios";
 import { useAuthStore } from "../store/authStore";
+import { config } from "../config";
 import { apiEndpoint } from "./route";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
+  baseURL: config.apiUrl,
   headers: {
     "Content-Type": "application/json",
   },
@@ -41,7 +42,7 @@ api.interceptors.response.use(
 
         // Call the refresh API directly using axios to avoid circular dependency
         const { data } = await axios.post(
-          `${import.meta.env.VITE_API_URL || "http://localhost:3000/api"}${apiEndpoint.auth.refresh}`,
+          `${config.apiUrl}${apiEndpoint.auth.refresh}`,
           { refreshToken },
         );
 

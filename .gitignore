@@ -25,3 +25,6 @@ dist-ssr
 
 # Temporary files
 temp_screens/
+
+# Environment variables
+.env
