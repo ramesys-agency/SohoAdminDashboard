@@ -26,6 +26,7 @@ export default function ProductEditor() {
   const [attributes, setAttributes] = useState<Record<string, string>>({});
   const [isPublished, setIsPublished] = useState(false);
   const [categoryId, setCategoryId] = useState("");
+  const [gender, setGender] = useState<string[]>([]);
   const [collections, setCollections] = useState<string[]>([]);
   const [variants, setVariants] = useState<ProductVariantData[]>([]);
   const [categoryAttributes, setCategoryAttributes] = useState<string[]>([]);
@@ -49,7 +50,12 @@ export default function ProductEditor() {
           setDescription(product.description || "");
           setAttributes(product.attributes || {});
           setIsPublished(product.isPublished || false);
-          setCategoryId(product.categoryId || product.category?.id || "");
+          setGender(product.gender || []);
+          if (product.category) {
+            setCategoryId(product.category.id);
+          } else if (product.categoryId) {
+            setCategoryId(product.categoryId);
+          }
           
           // Assuming collections is populated later or handle if present
           if (product.collections) {
@@ -108,21 +114,19 @@ export default function ProductEditor() {
   // Track previous category attributes to clean up when switching
   const [prevCategoryAttributes, setPrevCategoryAttributes] = useState<string[]>([]);
 
-  // Fetch category attributes when category changes
+  // Fetch aggregated category attributes when category change
   useEffect(() => {
     if (categoryId) {
       getCategoryById(categoryId)
         .then((res) => {
           const category = res.data || res;
-          const attrKeys = (category.attributes || []).map((a: any) => 
-            typeof a === "string" ? a : a.key
-          );
+          const attrKeys = (category.attributes || []).map((a: any) => typeof a === "string" ? a : a.key);
           
           setAttributes(prev => {
             const next = { ...prev };
             let changed = false;
 
-            // 1. Remove empty attributes that were from the previous category but not in the new one
+            // 1. Remove empty attributes that were from previous category but not in current one
             prevCategoryAttributes.forEach(key => {
               if (!attrKeys.includes(key) && next[key] === "") {
                 delete next[key];
@@ -205,6 +209,7 @@ export default function ProductEditor() {
         name,
         description,
         categoryId,
+        gender,
         isPublished,
         attributes,
         variants: processedVariants
@@ -273,6 +278,8 @@ export default function ProductEditor() {
             onNameChange={setName}
             description={description}
             onDescriptionChange={setDescription}
+            gender={gender}
+            onGenderChange={setGender}
             attributes={attributes}
             onAttributesChange={setAttributes}
             categoryAttributes={categoryAttributes}

@@ -11,13 +11,12 @@ export default function CategoryTreeTable() {
   const [expanded, setExpanded] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
-  const [selectedGender, setSelectedGender] = useState<string>("MEN");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["categories-hierarchy", page, selectedGender],
-    queryFn: () => getCategoryHierarchy(page, 10, selectedGender),
+    queryKey: ["categories-hierarchy", page],
+    queryFn: () => getCategoryHierarchy(page, 10),
   });
 
   const { mutate: handleDelete, isPending: isDeleting } = useMutation({
@@ -41,7 +40,7 @@ export default function CategoryTreeTable() {
     );
 
   const handleEdit = (cat: Category) => {
-    navigate("/categories/create", { state: { editCategory: cat } });
+    navigate(`/categories/edit/${cat.id}`, { state: { editCategory: cat } });
   };
 
   if (isLoading) {
@@ -81,24 +80,6 @@ export default function CategoryTreeTable() {
 
   return (
     <>
-      <div className="flex gap-4 mb-6 border-b border-slate-200">
-        {["MEN", "WOMEN", "KIDS"].map((g) => (
-          <button
-            key={g}
-            onClick={() => {
-              setSelectedGender(g);
-              setPage(1);
-            }}
-            className={`px-4 py-2 text-sm font-bold transition-all border-b-2 ${
-              selectedGender === g
-                ? "border-[#1325ec] text-[#1325ec]"
-                : "border-transparent text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            {g}
-          </button>
-        ))}
-      </div>
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">

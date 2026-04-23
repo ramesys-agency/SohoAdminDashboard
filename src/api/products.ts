@@ -62,14 +62,14 @@ export interface GetProductsParams {
   collectionId?: string;
   collectionSlug?: string;
   isPublished?: boolean;
-  gender?: string;
+  gender?: string | string[];
   minPrice?: number;
   maxPrice?: number;
   search?: string;
   sortBy?: string;
   page?: number;
   limit?: number;
-  [key: string]: string | number | boolean | undefined;
+  [key: string]: string | string[] | number | boolean | undefined;
 }
 
 export const getProducts = async (

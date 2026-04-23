@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import PageWrapper from "../../../components/ui/PageWrapper";
 import PageHeader from "../../../components/ui/PageHeader";
 import CategoryForm from "./components/CategoryForm";
@@ -8,8 +8,9 @@ import type { Category } from "../category.interface";
 export default function CreateCategory() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { id } = useParams();
   const editCategory: Category | undefined = location.state?.editCategory;
-  const isEditMode = Boolean(editCategory);
+  const isEditMode = Boolean(id || editCategory);
 
   return (
     <PageWrapper>

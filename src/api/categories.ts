@@ -5,7 +5,6 @@ import type { CategoryHierarchyResponse } from "../pages/categories/category.int
 export const getCategoryHierarchy = async (
   page: number = 1,
   limit: number = 5,
-  gender?: string,
 ): Promise<CategoryHierarchyResponse> => {
   const { data } = await api.get<CategoryHierarchyResponse>(
     apiEndpoint.categories.hierarchy,
@@ -13,7 +12,6 @@ export const getCategoryHierarchy = async (
       params: {
         page,
         limit,
-        gender,
       },
     },
   );
@@ -22,10 +20,11 @@ export const getCategoryHierarchy = async (
 
 export interface CreateCategoryPayload {
   name: string;
-  gender: string;
   attributes: string[];
-  parentId?: string;
-  image?: File;
+  parentId?: string | null;
+  isActive?: boolean;
+  imageUrl?: string;
+  genderImages?: { gender: string; imageUrl: string }[];
 }
 
 export const createCategory = async (payload: CreateCategoryPayload) => {
@@ -37,16 +36,13 @@ export const createCategory = async (payload: CreateCategoryPayload) => {
   return data;
 };
 
-export const getParentCategories = async (params?: { gender?: string }) => {
-  const { data } = await api.get(apiEndpoint.categories.parents, {
-    params,
-  });
+export const getParentCategories = async () => {
+  const { data } = await api.get(apiEndpoint.categories.parents);
   return data;
 };
 
 export interface UpdateCategoryPayload {
   name?: string;
-  gender?: string;
   attributes?: string[];
   parentId?: string | null;
   isActive?: boolean;

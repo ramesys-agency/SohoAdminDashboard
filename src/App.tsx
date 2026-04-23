@@ -35,6 +35,7 @@ export default function App() {
             <Route path="analytics" element={<Analytics />} />
             <Route path="categories" element={<Categories />} />
             <Route path="categories/create" element={<CreateCategory />} />
+            <Route path="categories/edit/:id" element={<CreateCategory />} />
             <Route path="shipping" element={<ShippingPage />} />
             <Route path="placements" element={<Placements />} />
             <Route path="placements/edit/:id" element={<CreatePlacements />} />

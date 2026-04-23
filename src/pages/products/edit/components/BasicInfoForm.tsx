@@ -3,6 +3,8 @@ interface BasicInfoFormProps {
   onNameChange: (v: string) => void;
   description: string;
   onDescriptionChange: (v: string) => void;
+  gender: string[];
+  onGenderChange: (v: string[]) => void;
   attributes: Record<string, string>;
   onAttributesChange: (v: Record<string, string>) => void;
   categoryAttributes?: string[];
@@ -15,6 +17,8 @@ export default function BasicInfoForm({
   onNameChange,
   description,
   onDescriptionChange,
+  gender,
+  onGenderChange,
   attributes,
   onAttributesChange,
   categoryAttributes = [],
@@ -62,6 +66,37 @@ export default function BasicInfoForm({
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-semibold text-slate-700">
+            Gender <span className="text-red-500">*</span>
+          </label>
+          <div className="flex gap-2">
+            {["MEN", "WOMEN", "KIDS"].map((g) => {
+              const isSelected = gender.includes(g);
+              return (
+                <Button
+                  key={g}
+                  type="button"
+                  variant={isSelected ? "primary" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    if (isSelected) {
+                      onGenderChange(gender.filter((item: string) => item !== g));
+                    } else {
+                      onGenderChange([...gender, g]);
+                    }
+                  }}
+                  className="px-4 py-2"
+                >
+                  {g}
+                </Button>
+              );
+            })}
+          </div>
+          {gender.length === 0 && (
+            <p className="text-[10px] text-amber-600 font-medium italic">At least one gender must be selected</p>
+          )}
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-semibold text-slate-700">
             Description
           </label>
           <div className="border border-slate-200 rounded-lg overflow-hidden">
@@ -96,9 +131,16 @@ export default function BasicInfoForm({
 
         <div className="flex flex-col gap-3 pt-2">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-semibold text-slate-700">
-              Attributes
-            </label>
+            <div className="flex flex-col gap-0.5">
+              <label className="text-sm font-semibold text-slate-700">
+                Attributes
+              </label>
+              {categoryAttributes.length > 0 && (
+                <p className="text-[10px] text-slate-400">
+                  Recommended: {categoryAttributes.join(", ")}
+                </p>
+              )}
+            </div>
             <Button
               variant="link"
               size="sm"
@@ -126,7 +168,7 @@ export default function BasicInfoForm({
                   <input
                     type="text"
                     placeholder="Value"
-                    value={value}
+                    value={value as string}
                     onChange={(e) => updateAttributeValue(key, e.target.value)}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900"
                   />

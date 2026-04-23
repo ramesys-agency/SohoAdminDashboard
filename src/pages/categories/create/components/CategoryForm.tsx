@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import {
   createCategory,
   updateCategory,
   getParentCategories,
+  getCategoryById,
 } from "../../../../api/categories";
 import { uploadFile } from "../../../../api/upload";
 import Button from "../../../../components/ui/Button";
@@ -14,32 +15,75 @@ import type { Category } from "../../category.interface";
 export default function CategoryForm() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { id } = useParams();
   const editCategory: Category | undefined = location.state?.editCategory;
-  const isEditMode = Boolean(editCategory);
+  const isEditMode = Boolean(id || editCategory);
 
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState("");
-  const [selectedGender, setSelectedGender] = useState<string>("");
   const [attributes, setAttributes] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [, setLoading] = useState(false);
+
+  // Gender Specific Images
+  const [menImageFile, setMenImageFile] = useState<File | null>(null);
+  const [menImagePreview, setMenImagePreview] = useState<string | null>(null);
+  const [menImageUrl, setMenImageUrl] = useState<string | null>(null);
+
+  const [womenImageFile, setWomenImageFile] = useState<File | null>(null);
+  const [womenImagePreview, setWomenImagePreview] = useState<string | null>(
+    null,
+  );
+  const [womenImageUrl, setWomenImageUrl] = useState<string | null>(null);
+
+  const [kidsImageFile, setKidsImageFile] = useState<File | null>(null);
+  const [kidsImagePreview, setKidsImagePreview] = useState<string | null>(null);
+  const [kidsImageUrl, setKidsImageUrl] = useState<string | null>(null);
+
+  // Fetch category data if in edit mode (handles page refreshes)
+  const categoryId = id || editCategory?.id;
+  const { data: fetchedCategoryRes } = useQuery({
+    queryKey: ["category", categoryId],
+    queryFn: () => getCategoryById(categoryId!),
+    enabled: isEditMode && Boolean(categoryId),
+  });
+
+  const categoryData = fetchedCategoryRes?.data || editCategory;
 
   // Pre-populate from state when editing
   useEffect(() => {
-    if (editCategory) {
-      setName(editCategory.name);
-      setParentId(editCategory.parentId ?? "");
-      setSelectedGender(editCategory.gender ?? "");
-      setAttributes(editCategory.attributes ?? []);
-      setIsActive(editCategory.isActive);
-      setImageUrl(editCategory.imageUrl);
-      if (editCategory.imageUrl) {
-        setImagePreview(editCategory.imageUrl);
+    if (categoryData) {
+      setName(categoryData.name);
+      setParentId(categoryData.parentId ?? "");
+      setAttributes(categoryData.attributes || []);
+      setIsActive(categoryData.isActive);
+      setImageUrl(categoryData.imageUrl);
+      if (categoryData.imageUrl) {
+        setImagePreview(categoryData.imageUrl);
+      }
+
+      // Pre-populate gender images
+      if (categoryData.genderImages) {
+        categoryData.genderImages.forEach((gi: any) => {
+          if (gi.gender === "MEN") {
+            setMenImageUrl(gi.imageUrl);
+            setMenImagePreview(gi.imageUrl);
+          }
+          if (gi.gender === "WOMEN") {
+            setWomenImageUrl(gi.imageUrl);
+            setWomenImagePreview(gi.imageUrl);
+          }
+          if (gi.gender === "KIDS") {
+            setKidsImageUrl(gi.imageUrl);
+            setKidsImagePreview(gi.imageUrl);
+          }
+        });
       }
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [categoryData]);
 
   const addAttribute = () => {
     setAttributes([...attributes, ""]);
@@ -57,13 +101,9 @@ export default function CategoryForm() {
     setAttributes(newAttributes);
   };
 
-  const setGender = (g: string) => {
-    setSelectedGender(g);
-  };
-
   const { data: parentsResponse } = useQuery({
-    queryKey: ["parent-categories", selectedGender],
-    queryFn: () => getParentCategories({ gender: selectedGender }),
+    queryKey: ["parent-categories"],
+    queryFn: () => getParentCategories(),
   });
 
   const parentOptions = (parentsResponse?.data || []).filter(
@@ -78,7 +118,11 @@ export default function CategoryForm() {
     },
     onError: (error: any) => {
       console.error("Failed to create category", error);
-      toast.error(error?.response?.data?.message || error?.message || "Failed to create category");
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to create category",
+      );
     },
   });
 
@@ -91,7 +135,11 @@ export default function CategoryForm() {
     },
     onError: (error: any) => {
       console.error("Failed to update category", error);
-      toast.error(error?.response?.data?.message || error?.message || "Failed to update category");
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to update category",
+      );
     },
   });
 
@@ -100,42 +148,64 @@ export default function CategoryForm() {
       toast.error("Please enter a category name");
       return;
     }
-    if (!selectedGender) {
-      toast.error("Please select a gender");
-      return;
-    }
 
-    let finalImageUrl = imageUrl;
+    setLoading(true);
 
-    // Handle image upload if a new file is selected
-    if (imageFile) {
-      try {
-        const uploadRes = await uploadFile(imageFile, "category", name);
-        finalImageUrl = uploadRes.data.url;
-      } catch (error) {
-        console.error("Image upload failed", error);
-        toast.error("Failed to upload image. Please try again.");
-        return;
+    const uploadImages = async () => {
+      let mainUrl = imageUrl;
+      let mUrl = menImageUrl;
+      let wUrl = womenImageUrl;
+      let kUrl = kidsImageUrl;
+
+      const categoryFolder = `category/${name.toLowerCase().replace(/\s+/g, "-")}`;
+
+      if (imageFile) {
+        const res = await uploadFile(imageFile, categoryFolder, "main");
+        mainUrl = res.data.url;
       }
-    }
+      if (menImageFile) {
+        const res = await uploadFile(menImageFile, categoryFolder, "men");
+        mUrl = res.data.url;
+      }
+      if (womenImageFile) {
+        const res = await uploadFile(womenImageFile, categoryFolder, "women");
+        wUrl = res.data.url;
+      }
+      if (kidsImageFile) {
+        const res = await uploadFile(kidsImageFile, categoryFolder, "kids");
+        kUrl = res.data.url;
+      }
 
-    if (isEditMode) {
-      handleUpdate({
+      return { mainUrl, mUrl, wUrl, kUrl };
+    };
+
+    try {
+      const { mainUrl, mUrl, wUrl, kUrl } = await uploadImages();
+
+      const genderImages = [];
+      if (mUrl) genderImages.push({ gender: "MEN", imageUrl: mUrl });
+      if (wUrl) genderImages.push({ gender: "WOMEN", imageUrl: wUrl });
+      if (kUrl) genderImages.push({ gender: "KIDS", imageUrl: kUrl });
+
+      const payload = {
         name,
-        gender: selectedGender,
         attributes: attributes.filter((a) => a.trim() !== ""),
-        parentId: parentId || null,
+        parentId: parentId || (isEditMode ? null : undefined),
         isActive,
-        imageUrl: finalImageUrl || undefined,
-      });
-    } else {
-      handleCreate({
-        name,
-        gender: selectedGender,
-        attributes: attributes.filter((a) => a.trim() !== ""),
-        parentId: parentId || undefined,
-        imageUrl: finalImageUrl || undefined,
-      });
+        imageUrl: mainUrl || undefined,
+        genderImages,
+      };
+
+      if (isEditMode) {
+        handleUpdate(payload);
+      } else {
+        handleCreate(payload);
+      }
+    } catch (error) {
+      console.error("Upload failed", error);
+      toast.error("Failed to upload images");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -169,34 +239,16 @@ export default function CategoryForm() {
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700">
-                Gender
-              </label>
-              <div className="flex gap-2 flex-wrap">
-                {["MEN", "WOMEN", "KIDS"].map((g) => (
-                  <Button
-                    key={g}
-                    type="button"
-                    onClick={() => setGender(g)}
-                    variant={
-                      selectedGender === g ? "primary" : "outline"
-                    }
-                    size="sm"
-                  >
-                    {g}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
+            {/* Main Category Image */}
             <div className="flex flex-col gap-2 pt-2">
               <label className="text-sm font-semibold text-slate-700">
-                Cover Image
+                Default Cover Image
               </label>
               <div className="flex items-center gap-4">
                 <div
-                  onClick={() => document.getElementById("category-image")?.click()}
+                  onClick={() =>
+                    document.getElementById("category-image")?.click()
+                  }
                   className="size-24 rounded-full border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 hover:border-[#1325ec] transition-colors cursor-pointer bg-slate-50 group flex-shrink-0 overflow-hidden"
                 >
                   {imagePreview ? (
@@ -226,13 +278,13 @@ export default function CategoryForm() {
                 </div>
                 <div className="flex flex-col gap-0.5">
                   <p className="text-xs font-semibold text-slate-700">
-                    {imageFile ? imageFile.name : "Upload Category Cover"}
+                    {imageFile ? imageFile.name : "Upload Default Cover"}
                   </p>
                   <p className="text-[10px] text-slate-400 font-medium">
                     Recommended size: 800x800px. Max 2MB.
                   </p>
                   <p className="text-[10px] text-slate-400">
-                    Square images work best for full rounded display.
+                    Used if gender-specific image is not provided.
                   </p>
                   {imagePreview && (
                     <button
@@ -247,6 +299,122 @@ export default function CategoryForm() {
                       Remove Image
                     </button>
                   )}
+                </div>
+              </div>
+            </div>
+
+            {/* Gender Specific Images */}
+            <div className="pt-6 border-t border-slate-100">
+              <h4 className="text-xs font-bold text-slate-500 uppercase mb-4">
+                Gender Specific Displays
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* MEN */}
+                <div className="space-y-3 flex flex-col items-center">
+                  <label className="text-[10px] font-bold text-slate-500 flex items-center gap-1 uppercase tracking-wider">
+                    MEN
+                  </label>
+                  <div
+                    onClick={() =>
+                      document.getElementById("men-image")?.click()
+                    }
+                    className="size-20 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-[#1325ec] bg-slate-50 overflow-hidden relative group shadow-sm"
+                  >
+                    {menImagePreview ? (
+                      <img
+                        src={menImagePreview}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="material-symbols-outlined text-slate-300 text-lg">
+                        man
+                      </span>
+                    )}
+                    <input
+                      id="men-image"
+                      type="file"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setMenImageFile(file);
+                          setMenImagePreview(URL.createObjectURL(file));
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* WOMEN */}
+                <div className="space-y-3 flex flex-col items-center">
+                  <label className="text-[10px] font-bold text-slate-500 flex items-center gap-1 uppercase tracking-wider">
+                    WOMEN
+                  </label>
+                  <div
+                    onClick={() =>
+                      document.getElementById("women-image")?.click()
+                    }
+                    className="size-20 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-[#1325ec] bg-slate-50 overflow-hidden relative group shadow-sm"
+                  >
+                    {womenImagePreview ? (
+                      <img
+                        src={womenImagePreview}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="material-symbols-outlined text-slate-300 text-lg">
+                        woman
+                      </span>
+                    )}
+                    <input
+                      id="women-image"
+                      type="file"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setWomenImageFile(file);
+                          setWomenImagePreview(URL.createObjectURL(file));
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* KIDS */}
+                <div className="space-y-3 flex flex-col items-center">
+                  <label className="text-[10px] font-bold text-slate-500 flex items-center gap-1 uppercase tracking-wider">
+                    KIDS
+                  </label>
+                  <div
+                    onClick={() =>
+                      document.getElementById("kids-image")?.click()
+                    }
+                    className="size-20 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-[#1325ec] bg-slate-50 overflow-hidden relative group shadow-sm"
+                  >
+                    {kidsImagePreview ? (
+                      <img
+                        src={kidsImagePreview}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="material-symbols-outlined text-slate-300 text-lg">
+                        child_care
+                      </span>
+                    )}
+                    <input
+                      id="kids-image"
+                      type="file"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setKidsImageFile(file);
+                          setKidsImagePreview(URL.createObjectURL(file));
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -275,7 +443,7 @@ export default function CategoryForm() {
                   <div key={index} className="flex gap-2 items-start">
                     <input
                       type="text"
-                      placeholder="e.g. Fabric, Size, Material..."
+                      placeholder="e.g. Fabric, Material, Style..."
                       value={attr}
                       onChange={(e) => updateAttribute(index, e.target.value)}
                       className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900"

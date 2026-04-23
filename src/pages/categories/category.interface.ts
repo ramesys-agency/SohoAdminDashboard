@@ -4,7 +4,6 @@ export interface Category {
   slug: string;
   parentId: string | null;
   level: number;
-  gender: string;
   attributes: string[];
   imageUrl: string | null;
   isActive: boolean;
@@ -12,6 +11,7 @@ export interface Category {
   updatedAt: string;
   totalProducts: number;
   children?: Category[];
+  genderImages?: { gender: string; imageUrl: string }[];
 }
 
 export interface CategoryHierarchyResponse {
