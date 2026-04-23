@@ -1,7 +1,7 @@
 const cards = [
   {
     title: "Total Revenue",
-    value: "$128,430.00",
+    value: "৳128,430.00",
     icon: "payments",
     iconBg: "bg-emerald-100",
     iconColor: "text-emerald-600",
@@ -28,7 +28,7 @@ const cards = [
   },
   {
     title: "Avg. Order Value",
-    value: "$84.50",
+    value: "৳84.50",
     icon: "trending_up",
     iconBg: "bg-blue-100",
     iconColor: "text-blue-600",

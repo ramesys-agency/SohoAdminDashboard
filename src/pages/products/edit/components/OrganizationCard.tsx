@@ -43,7 +43,7 @@ export default function OrganizationCard({
 
   return (
     <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-      <h3 className="text-lg font-bold text-slate-900 mb-4">Category</h3>
+      <h3 className="text-lg font-bold text-slate-900 mb-4">Category <span className="text-red-500">*</span></h3>
       <div className="space-y-4">
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-slate-500 uppercase">

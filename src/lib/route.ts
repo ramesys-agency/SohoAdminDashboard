@@ -23,8 +23,13 @@ export const apiEndpoint = {
   },
   users: {
     profile: "/v1/users/profile",
+    avatar: "/v1/users/avatar",
+    updatePassword: "/v1/users/password",
     byId: (id: string) => `/v1/users/${id}`,
     adminAll: "/v1/users/admin/all",
+  },
+  stats: {
+    dashboard: "/v1/stats/dashboard",
   },
   orders: {
     adminAll: "/v1/orders/admin/all",
@@ -42,5 +47,8 @@ export const apiEndpoint = {
   logistics: {
     aggregators: "/v1/logistics/aggregators",
     pickupAddresses: "/v1/logistics/pickup-addresses",
+  },
+  upload: {
+    base: "/v1/upload",
   },
 };

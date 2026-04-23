@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import PageWrapper from "../../../components/ui/PageWrapper";
 import PageHeader from "../../../components/ui/PageHeader";
 import BasicInfoForm from "./components/BasicInfoForm";
@@ -11,6 +12,8 @@ import StatusCard from "./components/StatusCard";
 import OrganizationCard from "./components/OrganizationCard";
 import Button from "../../../components/ui/Button";
 import { createProduct, getProductById, updateProduct } from "../../../api/products";
+import { getCategoryById } from "../../../api/categories";
+import { uploadFile } from "../../../api/upload";
 
 export default function ProductEditor() {
   const navigate = useNavigate();
@@ -25,6 +28,7 @@ export default function ProductEditor() {
   const [categoryId, setCategoryId] = useState("");
   const [collections, setCollections] = useState<string[]>([]);
   const [variants, setVariants] = useState<ProductVariantData[]>([]);
+  const [categoryAttributes, setCategoryAttributes] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   /*
   const [seo, setSeo] = useState({
@@ -79,7 +83,7 @@ export default function ProductEditor() {
         })
         .catch((err) => {
           console.error("Failed to load product:", err);
-          alert("Failed to load product details.");
+          toast.error(err?.response?.data?.error || err?.response?.data?.message || err?.message || "Failed to load product details.");
         })
         .finally(() => setLoading(false));
     } else {
@@ -101,17 +105,90 @@ export default function ProductEditor() {
     }
   }, [isEditMode, id]);
 
+  // Track previous category attributes to clean up when switching
+  const [prevCategoryAttributes, setPrevCategoryAttributes] = useState<string[]>([]);
+
+  // Fetch category attributes when category changes
+  useEffect(() => {
+    if (categoryId) {
+      getCategoryById(categoryId)
+        .then((res) => {
+          const category = res.data || res;
+          const attrKeys = (category.attributes || []).map((a: any) => 
+            typeof a === "string" ? a : a.key
+          );
+          
+          setAttributes(prev => {
+            const next = { ...prev };
+            let changed = false;
+
+            // 1. Remove empty attributes that were from the previous category but not in the new one
+            prevCategoryAttributes.forEach(key => {
+              if (!attrKeys.includes(key) && next[key] === "") {
+                delete next[key];
+                changed = true;
+              }
+            });
+
+            // 2. Add new category attributes if they don't exist
+            attrKeys.forEach((key: string) => {
+              if (next[key] === undefined) {
+                next[key] = "";
+                changed = true;
+              }
+            });
+
+            return changed ? next : prev;
+          });
+
+          setCategoryAttributes(attrKeys);
+          setPrevCategoryAttributes(attrKeys);
+        })
+        .catch((err) => {
+          console.error("Failed to load category attributes:", err);
+        });
+    } else {
+      setCategoryAttributes([]);
+    }
+  }, [categoryId]);
+
   const handleSave = async () => {
     try {
       setLoading(true);
 
-      const payload = {
-        name,
-        description,
-        categoryId,
-        isPublished,
-        attributes,
-        variants: variants.map(v => ({
+      const productFolderName = name.toLowerCase().trim().replace(/\s+/g, '-');
+      const uploadFolder = `products/${productFolderName}`;
+
+      // Process all variants and their images
+      const processedVariants = await Promise.all(variants.map(async (v) => {
+        const processedImages = await Promise.all((v.images || []).map(async (img: any, i: number) => {
+          if (img.file) {
+            // New file to upload
+            const fileExt = img.file.name.split('.').pop();
+            const uniqueName = `${v.sku || 'variant'}-${i}-${Date.now()}.${fileExt}`;
+            try {
+              const res = await uploadFile(img.file, uploadFolder, uniqueName);
+              return {
+                imageUrl: res.data.url,
+                isPrimary: img.isPrimary,
+                displayOrder: i + 1,
+                colorRef: img.colorRef
+              };
+            } catch (error) {
+              console.error(`Failed to upload image for variant ${v.sku}:`, error);
+              return null;
+            }
+          }
+          // Already an URL
+          return {
+            imageUrl: img.imageUrl,
+            isPrimary: img.isPrimary,
+            displayOrder: i + 1,
+            colorRef: img.colorRef
+          };
+        }));
+
+        return {
           sku: v.sku,
           size: v.size,
           colorName: v.colorName,
@@ -120,26 +197,31 @@ export default function ProductEditor() {
           basePrice: Number(v.basePrice) || 0,
           originalPrice: Number(v.originalPrice) || 0,
           isDefault: v.isDefault,
-          images: v.images?.map((img, i) => ({
-            imageUrl: img.imageUrl,
-            isPrimary: img.isPrimary,
-            displayOrder: i + 1,
-            colorRef: img.colorRef
-          })).filter(img => img.imageUrl) || [] // Keep URLs only
-        }))
+          images: processedImages.filter((img): img is any => img !== null && !!img.imageUrl)
+        };
+      }));
+
+      const payload = {
+        name,
+        description,
+        categoryId,
+        isPublished,
+        attributes,
+        variants: processedVariants
       };
 
       if (isEditMode && id) {
         await updateProduct(id, payload);
-        alert("Product updated successfully!");
+        toast.success("Product updated successfully!");
+        navigate("/products");
       } else {
         await createProduct(payload);
-        alert("Product created successfully!");
+        toast.success("Product created successfully!");
+        navigate("/products");
       }
-      navigate("/products");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert(isEditMode ? "Failed to update product." : "Failed to save product.");
+      toast.error(err?.response?.data?.error || err?.response?.data?.message || err?.message || (isEditMode ? "Failed to update product." : "Failed to save product."));
     } finally {
       setLoading(false);
     }
@@ -193,6 +275,7 @@ export default function ProductEditor() {
             onDescriptionChange={setDescription}
             attributes={attributes}
             onAttributesChange={setAttributes}
+            categoryAttributes={categoryAttributes}
           />
           <VariantsTable variants={variants} onVariantsChange={setVariants} />
           {/* <SeoSection seo={seo} onSeoChange={setSeo} /> */}

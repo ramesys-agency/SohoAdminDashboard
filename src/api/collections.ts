@@ -91,3 +91,13 @@ export const removeProductsFromCollection = async (
   );
   return data;
 };
+
+export const createCollection = async (
+  payload: { name: string; slug?: string; isActive?: boolean; gender?: string[] }
+): Promise<CollectionByIdResponse> => {
+  const { data } = await api.post<CollectionByIdResponse>(
+    apiEndpoint.collections.base,
+    payload
+  );
+  return data;
+};

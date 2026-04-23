@@ -2,7 +2,8 @@ import api from "../lib/axios";
 import { apiEndpoint } from "../lib/route";
 
 export interface PlacementPayload {
-  collectionId: string;
+  collectionId?: string;
+  collectionName?: string;
   page: string;
   section?: string;
   isBanner: boolean;
@@ -21,7 +22,8 @@ export interface PlacementUpdatePayload {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const createPlacement = async (payload: PlacementPayload): Promise<any> => {
   const form = new FormData();
-  form.append("collectionId", payload.collectionId);
+  if (payload.collectionId) form.append("collectionId", payload.collectionId);
+  if (payload.collectionName) form.append("collectionName", payload.collectionName);
   form.append("page", payload.page);
   if (payload.section) form.append("section", payload.section);
   form.append("isBanner", String(payload.isBanner));

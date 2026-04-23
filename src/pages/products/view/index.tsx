@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import PageWrapper from "../../../components/ui/PageWrapper";
 import PageHeader from "../../../components/ui/PageHeader";
 import ProductGallery from "./components/ProductGallery";
@@ -52,10 +53,11 @@ export default function ViewProduct() {
 
     try {
       await deleteProduct(product.id);
+      toast.success("Product deleted successfully.");
       navigate("/products");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to delete product:", err);
-      alert("Failed to delete product. Please try again.");
+      toast.error(err?.response?.data?.message || err?.message || "Failed to delete product. Please try again.");
     }
   };
 

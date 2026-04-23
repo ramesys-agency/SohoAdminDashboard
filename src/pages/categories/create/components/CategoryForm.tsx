@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "sonner";
 import {
   createCategory,
   updateCategory,
   getParentCategories,
 } from "../../../../api/categories";
+import { uploadFile } from "../../../../api/upload";
 import Button from "../../../../components/ui/Button";
 import type { Category } from "../../category.interface";
 
@@ -17,55 +19,51 @@ export default function CategoryForm() {
 
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState("");
-  const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
-  const [attributes, setAttributes] = useState<Record<string, string>>({});
+  const [selectedGender, setSelectedGender] = useState<string>("");
+  const [attributes, setAttributes] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   // Pre-populate from state when editing
   useEffect(() => {
     if (editCategory) {
       setName(editCategory.name);
       setParentId(editCategory.parentId ?? "");
-      setSelectedGenders(editCategory.gender ?? []);
-      setAttributes(editCategory.attributes ?? {});
+      setSelectedGender(editCategory.gender ?? "");
+      setAttributes(editCategory.attributes ?? []);
       setIsActive(editCategory.isActive);
+      setImageUrl(editCategory.imageUrl);
+      if (editCategory.imageUrl) {
+        setImagePreview(editCategory.imageUrl);
+      }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const addAttribute = () => {
-    setAttributes({ ...attributes, "": "" });
+    setAttributes([...attributes, ""]);
   };
 
-  const removeAttribute = (key: string) => {
-    const newAttributes = { ...attributes };
-    delete newAttributes[key];
+  const removeAttribute = (index: number) => {
+    const newAttributes = [...attributes];
+    newAttributes.splice(index, 1);
     setAttributes(newAttributes);
   };
 
-  const updateAttributeKey = (oldKey: string, newKey: string) => {
-    if (oldKey === newKey) return;
-    const newAttributes = { ...attributes };
-    const value = newAttributes[oldKey];
-    delete newAttributes[oldKey];
-    newAttributes[newKey] = value;
+  const updateAttribute = (index: number, value: string) => {
+    const newAttributes = [...attributes];
+    newAttributes[index] = value;
     setAttributes(newAttributes);
   };
 
-  const updateAttributeValue = (key: string, value: string) => {
-    setAttributes({ ...attributes, [key]: value });
-  };
-
-  const toggleGender = (g: string) => {
-    if (selectedGenders.includes(g)) {
-      setSelectedGenders(selectedGenders.filter((item) => item !== g));
-    } else {
-      setSelectedGenders([...selectedGenders, g]);
-    }
+  const setGender = (g: string) => {
+    setSelectedGender(g);
   };
 
   const { data: parentsResponse } = useQuery({
-    queryKey: ["parent-categories", selectedGenders[0]],
-    queryFn: () => getParentCategories({ gender: selectedGenders[0] }),
+    queryKey: ["parent-categories", selectedGender],
+    queryFn: () => getParentCategories({ gender: selectedGender }),
   });
 
   const parentOptions = (parentsResponse?.data || []).filter(
@@ -75,11 +73,12 @@ export default function CategoryForm() {
   const { mutate: handleCreate } = useMutation({
     mutationFn: createCategory,
     onSuccess: () => {
+      toast.success("Category created successfully");
       navigate("/categories");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Failed to create category", error);
-      alert("Failed to create category");
+      toast.error(error?.response?.data?.message || error?.message || "Failed to create category");
     },
   });
 
@@ -87,38 +86,55 @@ export default function CategoryForm() {
     mutationFn: (payload: Parameters<typeof updateCategory>[1]) =>
       updateCategory(editCategory!.id, payload),
     onSuccess: () => {
+      toast.success("Category updated successfully");
       navigate("/categories");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Failed to update category", error);
-      alert("Failed to update category");
+      toast.error(error?.response?.data?.message || error?.message || "Failed to update category");
     },
   });
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     if (!name) {
-      alert("Please enter a category name");
+      toast.error("Please enter a category name");
       return;
     }
-    if (selectedGenders.length === 0) {
-      alert("Please select at least one gender");
+    if (!selectedGender) {
+      toast.error("Please select a gender");
       return;
+    }
+
+    let finalImageUrl = imageUrl;
+
+    // Handle image upload if a new file is selected
+    if (imageFile) {
+      try {
+        const uploadRes = await uploadFile(imageFile, "category", name);
+        finalImageUrl = uploadRes.data.url;
+      } catch (error) {
+        console.error("Image upload failed", error);
+        toast.error("Failed to upload image. Please try again.");
+        return;
+      }
     }
 
     if (isEditMode) {
       handleUpdate({
         name,
-        gender: selectedGenders,
-        attributes,
+        gender: selectedGender,
+        attributes: attributes.filter((a) => a.trim() !== ""),
         parentId: parentId || null,
         isActive,
+        imageUrl: finalImageUrl || undefined,
       });
     } else {
       handleCreate({
         name,
-        gender: selectedGenders,
-        attributes,
+        gender: selectedGender,
+        attributes: attributes.filter((a) => a.trim() !== ""),
         parentId: parentId || undefined,
+        imageUrl: finalImageUrl || undefined,
       });
     }
   };
@@ -162,9 +178,9 @@ export default function CategoryForm() {
                   <Button
                     key={g}
                     type="button"
-                    onClick={() => toggleGender(g)}
+                    onClick={() => setGender(g)}
                     variant={
-                      selectedGenders.includes(g) ? "primary" : "outline"
+                      selectedGender === g ? "primary" : "outline"
                     }
                     size="sm"
                   >
@@ -179,14 +195,38 @@ export default function CategoryForm() {
                 Cover Image
               </label>
               <div className="flex items-center gap-4">
-                <div className="size-24 rounded-full border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 hover:border-[#1325ec] transition-colors cursor-pointer bg-slate-50 group flex-shrink-0">
-                  <span className="material-symbols-outlined text-slate-400 group-hover:text-[#1325ec]">
-                    add_photo_alternate
-                  </span>
+                <div
+                  onClick={() => document.getElementById("category-image")?.click()}
+                  className="size-24 rounded-full border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 hover:border-[#1325ec] transition-colors cursor-pointer bg-slate-50 group flex-shrink-0 overflow-hidden"
+                >
+                  {imagePreview ? (
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="material-symbols-outlined text-slate-400 group-hover:text-[#1325ec]">
+                      add_photo_alternate
+                    </span>
+                  )}
+                  <input
+                    id="category-image"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setImageFile(file);
+                        setImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
                 </div>
                 <div className="flex flex-col gap-0.5">
                   <p className="text-xs font-semibold text-slate-700">
-                    Upload Category Cover
+                    {imageFile ? imageFile.name : "Upload Category Cover"}
                   </p>
                   <p className="text-[10px] text-slate-400 font-medium">
                     Recommended size: 800x800px. Max 2MB.
@@ -194,6 +234,19 @@ export default function CategoryForm() {
                   <p className="text-[10px] text-slate-400">
                     Square images work best for full rounded display.
                   </p>
+                  {imagePreview && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImageFile(null);
+                        setImagePreview(null);
+                        setImageUrl(null);
+                      }}
+                      className="text-[10px] text-red-500 font-bold hover:underline text-left mt-1"
+                    >
+                      Remove Image
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -218,36 +271,27 @@ export default function CategoryForm() {
                 </Button>
               </div>
               <div className="space-y-2">
-                {Object.entries(attributes).map(([key, value], index) => (
+                {attributes.map((attr, index) => (
                   <div key={index} className="flex gap-2 items-start">
                     <input
                       type="text"
-                      placeholder="Key"
-                      value={key}
-                      onChange={(e) => updateAttributeKey(key, e.target.value)}
-                      className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Value"
-                      value={value}
-                      onChange={(e) =>
-                        updateAttributeValue(key, e.target.value)
-                      }
+                      placeholder="e.g. Fabric, Size, Material..."
+                      value={attr}
+                      onChange={(e) => updateAttribute(index, e.target.value)}
                       className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      onClick={() => removeAttribute(key)}
+                      onClick={() => removeAttribute(index)}
                       className="text-slate-400 hover:text-red-500 flex-shrink-0"
                     >
                       <span className="material-symbols-outlined">delete</span>
                     </Button>
                   </div>
                 ))}
-                {Object.keys(attributes).length === 0 && (
+                {attributes.length === 0 && (
                   <p className="text-xs text-slate-400 italic">
                     No attributes added yet.
                   </p>

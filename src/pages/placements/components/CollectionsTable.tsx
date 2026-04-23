@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import Pagination from "../../../components/ui/Pagination";
@@ -54,13 +55,13 @@ export default function CollectionsTable() {
   const deleteMutation = useMutation({
     mutationFn: (placementId: string) => deletePlacement(placementId),
     onSuccess: () => {
-      alert("Placement deleted successfully.");
+      toast.success("Placement deleted successfully.");
       queryClient.invalidateQueries({ queryKey: ["collections"] });
       setDeletingId(null);
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
-      alert(error?.response?.data?.message ?? "Failed to delete placement.");
+      toast.error(error?.response?.data?.message ?? "Failed to delete placement.");
       setDeletingId(null);
     },
   });
@@ -68,7 +69,7 @@ export default function CollectionsTable() {
   const handleDelete = (col: Collection) => {
     const placementId = col.collectionPlacements?.[0]?.id;
     if (!placementId) {
-      alert("No placement found for this collection.");
+      toast.error("No placement found for this collection.");
       return;
     }
     if (!window.confirm(`Delete placement for "${col.name}"? This cannot be undone.`)) return;

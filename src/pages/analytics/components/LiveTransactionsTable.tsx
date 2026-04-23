@@ -7,7 +7,7 @@ const transactions = [
     color: "bg-[#1325ec]/20 text-[#1325ec]",
     status: "Completed",
     date: "Oct 24, 14:20",
-    amount: "$1,240.00",
+    amount: "৳1,240.00",
   },
   {
     initials: "MA",
@@ -15,7 +15,7 @@ const transactions = [
     color: "bg-orange-100 text-orange-600",
     status: "Pending",
     date: "Oct 24, 13:10",
-    amount: "$845.50",
+    amount: "৳845.50",
   },
   {
     initials: "KC",
@@ -23,7 +23,7 @@ const transactions = [
     color: "bg-blue-100 text-blue-600",
     status: "Completed",
     date: "Oct 24, 11:45",
-    amount: "$2,100.00",
+    amount: "৳2,100.00",
   },
   {
     initials: "LW",
@@ -31,7 +31,7 @@ const transactions = [
     color: "bg-slate-100 text-slate-600",
     status: "Failed",
     date: "Oct 23, 18:22",
-    amount: "$50.00",
+    amount: "৳50.00",
   },
 ];
 

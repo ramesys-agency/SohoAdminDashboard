@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Button from "../../../components/ui/Button";
 import PageWrapper from "../../../components/ui/PageWrapper";
@@ -56,13 +57,13 @@ export default function CreatePlacements() {
   const createMutation = useMutation({
     mutationFn: createPlacement,
     onSuccess: () => {
-      alert("Placement created successfully!");
+      toast.success("Placement created successfully!");
       queryClient.invalidateQueries({ queryKey: ["collections"] });
       navigate("/placements");
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
-      alert(error?.response?.data?.message ?? "Failed to create placement.");
+      toast.error(error?.response?.data?.message ?? "Failed to create placement.");
     },
   });
 
@@ -76,51 +77,57 @@ export default function CreatePlacements() {
       payload: Parameters<typeof updatePlacement>[1];
     }) => updatePlacement(pId, payload),
     onSuccess: () => {
-      alert("Placement updated successfully!");
+      toast.success("Placement updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["collections"] });
       navigate("/placements");
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
-      alert(error?.response?.data?.message ?? "Failed to update placement.");
+      toast.error(error?.response?.data?.message ?? "Failed to update placement.");
     },
   });
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!isEdit && !collectionId) {
-      alert("Please select or enter a collection.");
+      toast.error("Please select or enter a collection.");
       return;
     }
     if (!pageName) {
-      alert("Please select a target app page.");
+      toast.error("Please select a target app page.");
       return;
     }
 
     setIsSaving(true);
 
-    if (isEdit && placementId) {
-      updateMutation.mutate({
-        pId: placementId,
-        payload: {
+    try {
+      if (isEdit && placementId) {
+        updateMutation.mutate({
+          pId: placementId,
+          payload: {
+            page: pageName,
+            section: sectionName || undefined,
+            isBanner,
+            isActive,
+            image: imageFile ?? undefined,
+          },
+        });
+      } else {
+        createMutation.mutate({
+          collectionId: collectionMode === "existing" ? collectionId : undefined,
+          collectionName: collectionMode === "new" ? collectionId : undefined,
           page: pageName,
           section: sectionName || undefined,
           isBanner,
           isActive,
           image: imageFile ?? undefined,
-        },
-      });
-    } else {
-      createMutation.mutate({
-        collectionId,
-        page: pageName,
-        section: sectionName || undefined,
-        isBanner,
-        isActive,
-        image: imageFile ?? undefined,
-      });
+        });
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || err?.message || "Failed to create placement.");
+    } finally {
+      setIsSaving(false);
     }
-
-    setIsSaving(false);
   };
 
   const isPending = createMutation.isPending || updateMutation.isPending || isSaving;

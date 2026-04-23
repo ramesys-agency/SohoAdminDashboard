@@ -22,7 +22,7 @@ export default function UsageStats() {
     {
       icon: "trending_up",
       label: "Total Revenue Impact",
-      value: "$12,450.00", // Placeholder until orders API is integrated for this
+      value: "৳12,450.00", // Placeholder until orders API is integrated for this
       trend: "+12.5%",
       trendUp: true,
     },

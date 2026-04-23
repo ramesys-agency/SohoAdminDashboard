@@ -5,6 +5,7 @@ interface BasicInfoFormProps {
   onDescriptionChange: (v: string) => void;
   attributes: Record<string, string>;
   onAttributesChange: (v: Record<string, string>) => void;
+  categoryAttributes?: string[];
 }
 
 import Button from "../../../../components/ui/Button";
@@ -16,6 +17,7 @@ export default function BasicInfoForm({
   onDescriptionChange,
   attributes,
   onAttributesChange,
+  categoryAttributes = [],
 }: BasicInfoFormProps) {
 
   const addAttribute = () => {
@@ -49,7 +51,7 @@ export default function BasicInfoForm({
       <div className="space-y-4">
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-semibold text-slate-700">
-            Product Name
+            Product Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -111,47 +113,38 @@ export default function BasicInfoForm({
           <div className="space-y-2">
             {Object.entries(attributes).map(([key, value], index) => (
               <div key={index} className="flex gap-2 items-start">
-                <input
-                  type="text"
-                  placeholder="Key"
-                  value={key}
-                  onChange={(e) => updateAttributeKey(key, e.target.value)}
-                  className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900"
-                />
-                {key.toLowerCase() === "gender" ? (
-                  <select
-                    value={value}
-                    onChange={(e) => updateAttributeValue(key, e.target.value)}
-                    className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900 bg-white"
-                  >
-                    <option value="">Select Gender</option>
-                    <option value="Men">Men</option>
-                    <option value="Women">Women</option>
-                    <option value="Unisex">Unisex</option>
-                    <option value="Kid">Kid</option>
-                  </select>
-                ) : (
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <input
+                    type="text"
+                    placeholder="Key"
+                    value={key}
+                    onChange={(e) => updateAttributeKey(key, e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900 font-bold"
+                  />
+                </div>
+                <div className="flex-1 flex flex-col gap-1.5">
                   <input
                     type="text"
                     placeholder="Value"
                     value={value}
                     onChange={(e) => updateAttributeValue(key, e.target.value)}
-                    className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900"
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900"
                   />
-                )}
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => removeAttribute(key)}
-                  className="text-slate-400 hover:text-red-500"
+                  className="text-slate-400 hover:text-red-500 mt-0.5"
                 >
                   <span className="material-symbols-outlined">delete</span>
                 </Button>
               </div>
             ))}
+
             {Object.keys(attributes).length === 0 && (
               <p className="text-xs text-slate-400 italic">
-                No attributes added yet.
+                No attributes added yet. Select a category to see recommended attributes or add custom ones.
               </p>
             )}
           </div>

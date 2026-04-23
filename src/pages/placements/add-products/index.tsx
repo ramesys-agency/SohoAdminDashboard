@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { toast } from "sonner";
 import PageWrapper from "../../../components/ui/PageWrapper";
 import PageHeader from "../../../components/ui/PageHeader";
 import Button from "../../../components/ui/Button";
@@ -212,10 +213,11 @@ export default function AddProductsToCollection() {
         await removeProductsFromCollection(id, toRemove);
       }
       
+      toast.success("Products saved to collection successfully.");
       navigate("/placements");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Failed to save products to collection.");
+      toast.error(err?.response?.data?.message || err?.message || "Failed to save products to collection.");
     }
   };
 

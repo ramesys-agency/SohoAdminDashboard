@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { getCollections, type Collection } from "../../../../api/collections";
 import { createCoupon, updateCoupon, type Coupon } from "../../../../api/coupons";
 
@@ -61,10 +62,11 @@ export default function DiscountForm({ initialData }: DiscountFormProps) {
         ? updateCoupon(initialData.id, payload)
         : createCoupon(payload),
     onSuccess: () => {
+      toast.success("Coupon saved successfully!");
       navigate("/offers");
     },
     onError: (err: any) => {
-      alert(err.response?.data?.message || "Failed to save coupon");
+      toast.error(err?.response?.data?.message || err?.message || "Failed to save coupon");
     },
   });
 
@@ -95,7 +97,7 @@ export default function DiscountForm({ initialData }: DiscountFormProps) {
       !startDate ||
       (appliesTo === "collections" && selectedCollections.length === 0)
     ) {
-      alert(
+      toast.error(
         "Please fill all mandatory fields (Code, Value, Start Date, and at least one collection if Specific Collections is selected)",
       );
       return;

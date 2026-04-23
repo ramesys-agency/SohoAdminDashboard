@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import PageWrapper from "../../components/ui/PageWrapper";
 import PageHeader from "../../components/ui/PageHeader";
 import Button from "../../components/ui/Button";
@@ -175,9 +176,10 @@ export default function Products() {
       // Remove product from list
       setProducts(products.filter((p) => p.id !== id));
       setMeta({ ...meta, total: meta.total - 1 });
-    } catch (err) {
+      toast.success("Product deleted successfully.");
+    } catch (err: any) {
       console.error("Failed to delete product:", err);
-      alert("Failed to delete product. Please try again.");
+      toast.error(err?.response?.data?.message || err?.message || "Failed to delete product. Please try again.");
     }
   };
 

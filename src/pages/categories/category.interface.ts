@@ -4,8 +4,8 @@ export interface Category {
   slug: string;
   parentId: string | null;
   level: number;
-  gender: string[];
-  attributes: Record<string, string>;
+  gender: string;
+  attributes: string[];
   imageUrl: string | null;
   isActive: boolean;
   createdAt: string;

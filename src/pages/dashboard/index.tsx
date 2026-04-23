@@ -1,36 +1,47 @@
-// import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import PageWrapper from "../../components/ui/PageWrapper";
 import PageHeader from "../../components/ui/PageHeader";
 import MetricCards from "./components/MetricCards";
 import SalesChart from "./components/SalesChart";
 import RecentOrdersTable from "./components/RecentOrdersTable";
 import LowStockList from "./components/LowStockList";
+import { getDashboardStats } from "../../api/stats";
 
 export default function Dashboard() {
-  // const navigate = useNavigate();
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ["dashboardStats"],
+    queryFn: getDashboardStats,
+  });
+
+  if (isLoading) {
+    return (
+      <PageWrapper>
+        <div className="flex items-center justify-center h-screen">
+          <div className="size-8 border-4 border-[#1325ec]/20 border-t-[#1325ec] rounded-full animate-spin"></div>
+        </div>
+      </PageWrapper>
+    );
+  }
+
   return (
     <PageWrapper>
       <PageHeader
         title="Dashboard Overview"
         description="Welcome back! Here's what's happening today."
-        actions={
-          <>
-            {/* <button
-              onClick={() => navigate("/products/edit")}
-              className="px-4 py-2 bg-[#1325ec] text-white rounded-lg text-sm font-bold hover:bg-[#1325ec]/90 shadow-lg shadow-[#1325ec]/10"
-            >
-              Add Product
-            </button> */}
-          </>
-        }
       />
-      <MetricCards />
-      <SalesChart />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <RecentOrdersTable />
+      <div className="space-y-6">
+        <MetricCards 
+          totalSales={stats?.totalSales} 
+          totalOrders={stats?.totalOrders} 
+          totalCustomers={stats?.totalCustomers} 
+        />
+        <SalesChart trend={stats?.salesTrend} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <RecentOrdersTable orders={stats?.recentOrders} />
+          </div>
+          <LowStockList />
         </div>
-        <LowStockList />
       </div>
     </PageWrapper>
   );

@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import PageWrapper from "../../../components/ui/PageWrapper";
 import PageHeader from "../../../components/ui/PageHeader";
 import OrderSummary from "./components/OrderSummary";
@@ -43,10 +44,11 @@ export default function OrderDetail() {
     if (!id) return;
     try {
       await updateOrderStatus(id, status, note);
+      toast.success("Status updated successfully");
       await fetchOrder(); // Refresh
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to update status:", error);
-      alert("Failed to update status");
+      toast.error(error?.response?.data?.message || error?.message || "Failed to update status");
     }
   };
 
@@ -54,10 +56,11 @@ export default function OrderDetail() {
     if (!id) return;
     try {
       await updatePaymentStatus(id, status);
+      toast.success("Payment status updated successfully");
       await fetchOrder(); // Refresh
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to update payment status:", error);
-      alert("Failed to update payment status");
+      toast.error(error?.response?.data?.message || error?.message || "Failed to update payment status");
     }
   };
 
@@ -65,11 +68,11 @@ export default function OrderDetail() {
     if (!id) return;
     try {
       await syncOrderWithRoadRush(id);
-      alert("Order synced with RoadRush successfully!");
+      toast.success("Order synced with RoadRush successfully!");
       await fetchOrder();
     } catch (error: any) {
       console.error("Failed to sync with RoadRush:", error);
-      alert(error.response?.data?.message || "Failed to sync with RoadRush");
+      toast.error(error?.response?.data?.message || "Failed to sync with RoadRush");
     }
   };
 
@@ -77,10 +80,11 @@ export default function OrderDetail() {
     if (!id) return;
     try {
       await refreshOrderStatus(id);
+      toast.success("Status refreshed successfully");
       await fetchOrder();
     } catch (error: any) {
       console.error("Failed to refresh status:", error);
-      alert(error.response?.data?.message || "Failed to refresh status");
+      toast.error(error?.response?.data?.message || "Failed to refresh status");
     }
   };
 

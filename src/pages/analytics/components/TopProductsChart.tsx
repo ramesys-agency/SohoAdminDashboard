@@ -1,8 +1,8 @@
 const products = [
-  { name: "iPhone 15 Pro Max", value: "$42,300.00", pct: 85 },
-  { name: "MacBook Air M3", value: "$31,100.00", pct: 65 },
-  { name: "Sony WH-1000XM5", value: "$18,400.00", pct: 40 },
-  { name: "Apple Watch Ultra", value: "$12,900.00", pct: 25 },
+  { name: "iPhone 15 Pro Max", value: "৳42,300.00", pct: 85 },
+  { name: "MacBook Air M3", value: "৳31,100.00", pct: 65 },
+  { name: "Sony WH-1000XM5", value: "৳18,400.00", pct: 40 },
+  { name: "Apple Watch Ultra", value: "৳12,900.00", pct: 25 },
 ];
 
 export default function TopProductsChart() {

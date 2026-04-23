@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import Pagination from "../../../components/ui/Pagination";
 import { getCategoryHierarchy, deleteCategory } from "../../../api/categories";
@@ -10,22 +11,24 @@ export default function CategoryTreeTable() {
   const [expanded, setExpanded] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
+  const [selectedGender, setSelectedGender] = useState<string>("MEN");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["categories-hierarchy", page],
-    queryFn: () => getCategoryHierarchy(page, 10),
+    queryKey: ["categories-hierarchy", page, selectedGender],
+    queryFn: () => getCategoryHierarchy(page, 10, selectedGender),
   });
 
   const { mutate: handleDelete, isPending: isDeleting } = useMutation({
     mutationFn: (id: string) => deleteCategory(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories-hierarchy"] });
+      toast.success("Category deleted successfully.");
       setDeleteTarget(null);
     },
-    onError: () => {
-      alert("Failed to delete category. Please try again.");
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to delete category. Please try again.");
     },
   });
 
@@ -78,6 +81,25 @@ export default function CategoryTreeTable() {
 
   return (
     <>
+      <div className="flex gap-4 mb-6 border-b border-slate-200">
+        {["MEN", "WOMEN", "KIDS"].map((g) => (
+          <button
+            key={g}
+            onClick={() => {
+              setSelectedGender(g);
+              setPage(1);
+            }}
+            className={`px-4 py-2 text-sm font-bold transition-all border-b-2 ${
+              selectedGender === g
+                ? "border-[#1325ec] text-[#1325ec]"
+                : "border-transparent text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            {g}
+          </button>
+        ))}
+      </div>
+
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">

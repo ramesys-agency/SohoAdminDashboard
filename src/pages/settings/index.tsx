@@ -1,12 +1,56 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState, useRef, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
-import { getUserById } from "../../api/user";
+import { getUserById, updateUserProfile, updateUserAvatar } from "../../api/user";
 import type { AuthResponse } from "../auth/auth.interface";
+import { toast } from "sonner";
+import PasswordModal from "./components/PasswordModal";
 
 type User = AuthResponse["data"]["user"];
 
-function ProfileSettings({ user }: { user?: User }) {
-  const [firstName, lastName] = (user?.fullName || user?.name || "").split(" ");
+function ProfileSettings({ 
+  user, 
+  onDataChange,
+  onPasswordClick
+}: { 
+  user?: User, 
+  onDataChange: (data: any) => void,
+  onPasswordClick: () => void
+}) {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (user) {
+      const [f, ...l] = (user.fullName || "").split(" ");
+      setFirstName(f || "");
+      setLastName(l.join(" ") || "");
+      setPhone(user.phone || "");
+    }
+  }, [user]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarPreview(URL.createObjectURL(file));
+      onDataChange({ avatarFile: file });
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    if (field === "firstName") setFirstName(value);
+    if (field === "lastName") setLastName(value);
+    if (field === "phone") setPhone(value);
+    
+    onDataChange({ 
+      fullName: field === "firstName" ? `${value} ${lastName}` : field === "lastName" ? `${firstName} ${value}` : `${firstName} ${lastName}`,
+      phone: field === "phone" ? value : phone 
+    });
+  };
+
   return (
     <div className="space-y-6">
       <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
@@ -14,25 +58,35 @@ function ProfileSettings({ user }: { user?: User }) {
           Personal Information
         </h3>
         <div className="flex items-center gap-6 mb-6 pb-6 border-b border-slate-100">
-          <div className="size-20 rounded-full bg-[#1325ec]/10 flex items-center justify-center text-[#1325ec] text-3xl font-bold overflow-hidden">
-            {user?.avatar ? (
+          <div className="size-20 rounded-full bg-[#1325ec]/10 flex items-center justify-center text-[#1325ec] text-3xl font-bold overflow-hidden border border-slate-100">
+            {avatarPreview || user?.avatar ? (
               <img
-                src={user.avatar}
-                alt={user.fullName || user.name || "User"}
+                src={avatarPreview || user?.avatar}
+                alt={user?.fullName || "User"}
                 className="size-full object-cover"
               />
             ) : (
-              (user?.fullName || user?.name || "A").charAt(0).toUpperCase()
+              (user?.fullName || "A").charAt(0).toUpperCase()
             )}
           </div>
           <div>
             <p className="font-bold text-slate-900">
-              {user?.fullName || user?.name || "Alex Rivera"}
+              {user?.fullName || "Admin User"}
             </p>
             <p className="text-sm text-slate-500 mb-3">
-              {user?.email || "alex@storeadmin.com"}
+              {user?.email || "admin@soho.com"}
             </p>
-            <button className="px-3 py-1.5 text-xs font-bold bg-[#1325ec]/10 text-[#1325ec] rounded-lg hover:bg-[#1325ec]/20">
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+              className="hidden" 
+              accept="image/*"
+            />
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="px-3 py-1.5 text-xs font-bold bg-[#1325ec]/10 text-[#1325ec] rounded-lg hover:bg-[#1325ec]/20 transition-colors"
+            >
               Change Avatar
             </button>
           </div>
@@ -44,8 +98,8 @@ function ProfileSettings({ user }: { user?: User }) {
             </label>
             <input
               type="text"
-              key={firstName}
-              defaultValue={firstName || ""}
+              value={firstName}
+              onChange={(e) => handleInputChange("firstName", e.target.value)}
               placeholder="First Name"
               className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none placeholder:text-slate-400"
             />
@@ -56,8 +110,8 @@ function ProfileSettings({ user }: { user?: User }) {
             </label>
             <input
               type="text"
-              key={lastName}
-              defaultValue={lastName || ""}
+              value={lastName}
+              onChange={(e) => handleInputChange("lastName", e.target.value)}
               placeholder="Last Name"
               className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none placeholder:text-slate-400"
             />
@@ -68,10 +122,9 @@ function ProfileSettings({ user }: { user?: User }) {
             </label>
             <input
               type="email"
-              key={user?.email}
-              defaultValue={user?.email || ""}
-              placeholder="email@example.com"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none placeholder:text-slate-400"
+              value={user?.email || ""}
+              disabled
+              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm bg-slate-50 text-slate-500 outline-none"
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -80,8 +133,8 @@ function ProfileSettings({ user }: { user?: User }) {
             </label>
             <input
               type="text"
-              key={user?.phone}
-              defaultValue={user?.phone || ""}
+              value={phone}
+              onChange={(e) => handleInputChange("phone", e.target.value)}
               placeholder="+1 (555) 000-0000"
               className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none placeholder:text-slate-400"
             />
@@ -90,8 +143,8 @@ function ProfileSettings({ user }: { user?: User }) {
             <label className="text-sm font-semibold text-slate-700">
               Time Zone
             </label>
-            <select className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] outline-none">
-              <option>UTC−05:00 (Eastern Time)</option>
+            <select className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] outline-none bg-white">
+              <option>UTC+06:00 (Bangladesh Standard Time)</option>
               <option>UTC+05:30 (India Standard Time)</option>
               <option>UTC+00:00 (GMT)</option>
             </select>
@@ -99,40 +152,21 @@ function ProfileSettings({ user }: { user?: User }) {
         </div>
       </section>
       <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-        <h3 className="text-base font-bold text-slate-900 mb-6">
-          Change Password
-        </h3>
-        <div className="space-y-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-slate-700">
-              Current Password
-            </label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none"
-            />
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-base font-bold text-slate-900">
+              Security & Password
+            </h3>
+            <p className="text-sm text-slate-500">
+              Update your account password to keep your account secure.
+            </p>
           </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-slate-700">
-              New Password
-            </label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none"
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-slate-700">
-              Confirm New Password
-            </label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none"
-            />
-          </div>
+          <button 
+            onClick={() => onPasswordClick()}
+            className="px-4 py-2 text-sm font-bold bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+          >
+            Change Password
+          </button>
         </div>
       </section>
     </div>
@@ -141,6 +175,10 @@ function ProfileSettings({ user }: { user?: User }) {
 
 export default function Settings() {
   const authUser = useAuthStore((state) => state.user);
+  const queryClient = useQueryClient();
+  const [formData, setFormData] = useState<any>({});
+  const [saving, setSaving] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   const { data: userProfile, isLoading } = useQuery({
     queryKey: ["userProfile", authUser?.id],
@@ -148,8 +186,36 @@ export default function Settings() {
     enabled: !!authUser?.id,
   });
 
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      
+      // 1. Handle Avatar Upload if changed
+      if (formData.avatarFile) {
+        await updateUserAvatar(formData.avatarFile);
+      }
+
+      // 2. Handle Profile Update
+      const profilePayload = {
+        fullName: formData.fullName,
+        phone: formData.phone,
+      };
+
+      if (profilePayload.fullName || profilePayload.phone) {
+        await updateUserProfile(profilePayload);
+      }
+
+      toast.success("Profile updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-8">
+    <div className="p-8 max-w-4xl mx-auto space-y-8 pb-20">
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-slate-900">
           Account Settings
@@ -166,18 +232,30 @@ export default function Settings() {
           </div>
         ) : (
           <>
-            <ProfileSettings user={userProfile} />
+            <ProfileSettings 
+              user={userProfile} 
+              onDataChange={(data) => setFormData((prev: any) => ({ ...prev, ...data }))} 
+              onPasswordClick={() => setIsPasswordModalOpen(true)}
+            />
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
               <button className="px-5 py-2.5 text-sm font-bold border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700">
                 Cancel
               </button>
-              <button className="px-5 py-2.5 text-sm font-bold bg-[#1325ec] text-white rounded-lg shadow-lg shadow-[#1325ec]/20 hover:opacity-90 transition-all">
-                Save Changes
+              <button 
+                onClick={handleSave}
+                disabled={saving}
+                className="px-5 py-2.5 text-sm font-bold bg-[#1325ec] text-white rounded-lg shadow-lg shadow-[#1325ec]/20 hover:opacity-90 transition-all disabled:opacity-50"
+              >
+                {saving ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </>
         )}
       </div>
+      <PasswordModal 
+        isOpen={isPasswordModalOpen} 
+        onClose={() => setIsPasswordModalOpen(false)} 
+      />
     </div>
   );
 }
