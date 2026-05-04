@@ -30,7 +30,7 @@ export default function ProductEditor() {
   const [gender, setGender] = useState<string[]>([]);
   const [collections, setCollections] = useState<string[]>([]);
   const [colorGroups, setColorGroups] = useState<ColorGroupData[]>([]);
-  const [categoryAttributes, setCategoryAttributes] = useState<string[]>([]);
+  const [categoryAttributes, setCategoryAttributes] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   /*
   const [seo, setSeo] = useState({
@@ -138,7 +138,9 @@ export default function ProductEditor() {
       getCategoryById(categoryId)
         .then((res) => {
           const category = res.data || res;
-          const attrKeys = (category.attributes || []).map((a: any) => typeof a === "string" ? a : a.key);
+          const attrs = category.attributes || [];
+          
+          const attrKeys = attrs.map((a: any) => typeof a === "string" ? a : a.key);
           
           setAttributes(prev => {
             const next = { ...prev };
@@ -163,7 +165,7 @@ export default function ProductEditor() {
             return changed ? next : prev;
           });
 
-          setCategoryAttributes(attrKeys);
+          setCategoryAttributes(attrs.map((a: any) => typeof a === "string" ? { key: a, label: a, type: "text" } : a));
           setPrevCategoryAttributes(attrKeys);
         })
         .catch((err) => {
@@ -196,9 +198,9 @@ export default function ProductEditor() {
                 displayOrder: i + 1,
                 colorRef: img.colorRef
               };
-            } catch (error) {
+            } catch (error: any) {
               console.error(`Failed to upload image for color group ${cg.colorName}:`, error);
-              return null;
+              throw new Error(`Failed to upload image for color group ${cg.colorName}: ${error?.message || "Unknown error"}`);
             }
           }
           return {
@@ -230,7 +232,8 @@ export default function ProductEditor() {
       const payload = {
         name,
         description,
-        categoryId,
+        categoryIds: categoryId ? [categoryId] : [],
+        collectionIds: collections.length > 0 ? collections : undefined,
         gender,
         isPublished,
         attributes,

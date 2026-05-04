@@ -7,7 +7,7 @@ interface BasicInfoFormProps {
   onGenderChange: (v: string[]) => void;
   attributes: Record<string, string>;
   onAttributesChange: (v: Record<string, string>) => void;
-  categoryAttributes?: string[];
+  categoryAttributes?: any[];
 }
 
 import Button from "../../../../components/ui/Button";
@@ -137,7 +137,7 @@ export default function BasicInfoForm({
               </label>
               {categoryAttributes.length > 0 && (
                 <p className="text-[10px] text-slate-400">
-                  Recommended: {categoryAttributes.join(", ")}
+                  Recommended: {categoryAttributes.map((a: any) => a.label).join(", ")}
                 </p>
               )}
             </div>
@@ -153,36 +153,90 @@ export default function BasicInfoForm({
             </Button>
           </div>
           <div className="space-y-2">
-            {Object.entries(attributes).map(([key, value], index) => (
-              <div key={index} className="flex gap-2 items-start">
-                <div className="flex-1 flex flex-col gap-1.5">
-                  <input
-                    type="text"
-                    placeholder="Key"
-                    value={key}
-                    onChange={(e) => updateAttributeKey(key, e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900 font-bold"
-                  />
+            {Object.entries(attributes).map(([key, value], index) => {
+              const categoryAttr = categoryAttributes.find((a: any) => a.key === key);
+
+              if (categoryAttr) {
+                // Determine options array safely
+                const optionsList = Array.isArray(categoryAttr.options) 
+                  ? categoryAttr.options 
+                  : (typeof categoryAttr.options === "string" ? categoryAttr.options.split(",").map((s: string) => s.trim()) : []);
+
+                return (
+                  <div key={index} className="flex gap-4 items-start bg-slate-50/80 p-3 rounded-lg border border-slate-100">
+                    <div className="w-1/3 pt-1">
+                      <span className="text-sm font-semibold text-slate-700 block mb-0.5">{categoryAttr.label}</span>
+                      <span className="text-[10px] text-slate-400 uppercase tracking-wide font-bold">{categoryAttr.key}</span>
+                    </div>
+                    <div className="flex-1">
+                      {categoryAttr.type === "select" && optionsList.length > 0 ? (
+                        <select
+                          value={value as string}
+                          onChange={(e) => updateAttributeValue(key, e.target.value)}
+                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900 bg-white"
+                        >
+                          <option value="">Select {categoryAttr.label}</option>
+                          {optionsList.map((opt: string) => (
+                            <option key={opt} value={opt}>{opt}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type={categoryAttr.type === "number" ? "number" : "text"}
+                          placeholder={`Enter ${categoryAttr.label}...`}
+                          value={value as string}
+                          onChange={(e) => updateAttributeValue(key, e.target.value)}
+                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900 bg-white"
+                        />
+                      )}
+                    </div>
+                    <div className="w-8 flex justify-center">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeAttribute(key)}
+                        className="text-slate-400 hover:text-red-500"
+                        title="Remove Category Attribute"
+                      >
+                        <span className="material-symbols-outlined">delete</span>
+                      </Button>
+                    </div>
+                  </div>
+                );
+              }
+
+              // Render standard custom attribute row
+              return (
+                <div key={index} className="flex gap-2 items-start">
+                  <div className="flex-1 flex flex-col gap-1.5">
+                    <input
+                      type="text"
+                      placeholder="Key"
+                      value={key}
+                      onChange={(e) => updateAttributeKey(key, e.target.value)}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900 font-bold"
+                    />
+                  </div>
+                  <div className="flex-1 flex flex-col gap-1.5">
+                    <input
+                      type="text"
+                      placeholder="Value"
+                      value={value as string}
+                      onChange={(e) => updateAttributeValue(key, e.target.value)}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900"
+                    />
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeAttribute(key)}
+                    className="text-slate-400 hover:text-red-500 mt-0.5"
+                  >
+                    <span className="material-symbols-outlined">delete</span>
+                  </Button>
                 </div>
-                <div className="flex-1 flex flex-col gap-1.5">
-                  <input
-                    type="text"
-                    placeholder="Value"
-                    value={value as string}
-                    onChange={(e) => updateAttributeValue(key, e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900"
-                  />
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeAttribute(key)}
-                  className="text-slate-400 hover:text-red-500 mt-0.5"
-                >
-                  <span className="material-symbols-outlined">delete</span>
-                </Button>
-              </div>
-            ))}
+              );
+            })}
 
             {Object.keys(attributes).length === 0 && (
               <p className="text-xs text-slate-400 italic">

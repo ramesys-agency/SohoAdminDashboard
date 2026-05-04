@@ -12,6 +12,15 @@ import { uploadFile } from "../../../../api/upload";
 import Button from "../../../../components/ui/Button";
 import type { Category } from "../../category.interface";
 
+export interface AttributeData {
+  id?: string;
+  key: string;
+  label: string;
+  type: string;
+  options?: any;
+  isFilterable: boolean;
+}
+
 export default function CategoryForm() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,7 +30,7 @@ export default function CategoryForm() {
 
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState("");
-  const [attributes, setAttributes] = useState<string[]>([]);
+  const [attributes, setAttributes] = useState<AttributeData[]>([]);
   const [isActive, setIsActive] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -86,7 +95,7 @@ export default function CategoryForm() {
   }, [categoryData]);
 
   const addAttribute = () => {
-    setAttributes([...attributes, ""]);
+    setAttributes([...attributes, { key: "", label: "", type: "text", isFilterable: false }]);
   };
 
   const removeAttribute = (index: number) => {
@@ -95,9 +104,9 @@ export default function CategoryForm() {
     setAttributes(newAttributes);
   };
 
-  const updateAttribute = (index: number, value: string) => {
+  const updateAttribute = (index: number, field: keyof AttributeData, value: any) => {
     const newAttributes = [...attributes];
-    newAttributes[index] = value;
+    newAttributes[index] = { ...newAttributes[index], [field]: value };
     setAttributes(newAttributes);
   };
 
@@ -189,7 +198,7 @@ export default function CategoryForm() {
 
       const payload = {
         name,
-        attributes: attributes.filter((a) => a.trim() !== ""),
+        attributes: attributes.filter((a) => a.key.trim() !== ""),
         parentId: parentId || (isEditMode ? null : undefined),
         isActive,
         imageUrl: mainUrl || undefined,
@@ -438,30 +447,86 @@ export default function CategoryForm() {
                   Add Attribute
                 </Button>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-4">
                 {attributes.map((attr, index) => (
-                  <div key={index} className="flex gap-2 items-start">
-                    <input
-                      type="text"
-                      placeholder="e.g. Fabric, Material, Style..."
-                      value={attr}
-                      onChange={(e) => updateAttribute(index, e.target.value)}
-                      className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none text-slate-900"
-                    />
+                  <div key={index} className="flex flex-col gap-3 bg-slate-50 p-4 rounded-lg border border-slate-200 relative group">
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       onClick={() => removeAttribute(index)}
-                      className="text-slate-400 hover:text-red-500 flex-shrink-0"
+                      className="absolute top-2 right-2 text-slate-400 hover:text-red-500 h-8 w-8"
                     >
-                      <span className="material-symbols-outlined">delete</span>
+                      <span className="material-symbols-outlined text-[18px]">close</span>
                     </Button>
+                    
+                    <div className="grid grid-cols-2 gap-3 pr-8">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1 block">Key <span className="text-red-500">*</span></label>
+                        <input
+                          type="text"
+                          placeholder="e.g. fabric_type"
+                          value={attr.key}
+                          onChange={(e) => updateAttribute(index, "key", e.target.value)}
+                          className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:border-[#1325ec] outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1 block">Label <span className="text-red-500">*</span></label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Fabric Type"
+                          value={attr.label}
+                          onChange={(e) => updateAttribute(index, "label", e.target.value)}
+                          className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:border-[#1325ec] outline-none"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1 block">Type</label>
+                        <select
+                          value={attr.type}
+                          onChange={(e) => updateAttribute(index, "type", e.target.value)}
+                          className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:border-[#1325ec] outline-none"
+                        >
+                          <option value="text">Text</option>
+                          <option value="number">Number</option>
+                          <option value="boolean">Boolean</option>
+                          <option value="select">Select Options</option>
+                        </select>
+                      </div>
+                      <div className="flex items-end pb-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={attr.isFilterable}
+                            onChange={(e) => updateAttribute(index, "isFilterable", e.target.checked)}
+                            className="rounded text-[#1325ec] focus:ring-[#1325ec]" 
+                          />
+                          <span className="text-sm font-medium text-slate-700">Use for Filtering</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {attr.type === "select" && (
+                      <div>
+                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1 block">Options (comma separated)</label>
+                         <input
+                           type="text"
+                           placeholder="e.g. Cotton, Polyester, Wool"
+                           value={Array.isArray(attr.options) ? attr.options.join(", ") : (attr.options || "")}
+                           onChange={(e) => updateAttribute(index, "options", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
+                           className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:border-[#1325ec] outline-none"
+                         />
+                      </div>
+                    )}
                   </div>
                 ))}
                 {attributes.length === 0 && (
-                  <p className="text-xs text-slate-400 italic">
-                    No attributes added yet.
+                  <p className="text-xs text-slate-400 italic text-center py-4 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                    No attributes added yet. Click "Add Attribute" to define custom fields.
                   </p>
                 )}
               </div>

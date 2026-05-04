@@ -20,7 +20,7 @@ export const getCategoryHierarchy = async (
 
 export interface CreateCategoryPayload {
   name: string;
-  attributes: string[];
+  attributes: any[];
   parentId?: string | null;
   isActive?: boolean;
   imageUrl?: string;
@@ -43,7 +43,7 @@ export const getParentCategories = async () => {
 
 export interface UpdateCategoryPayload {
   name?: string;
-  attributes?: string[];
+  attributes?: any[];
   parentId?: string | null;
   isActive?: boolean;
   displayOrder?: number;
