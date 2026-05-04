@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import { type ProductVariantImageData } from "../../view/components/ProductGallery";
+import { generateUUID } from "../../../../utils/uuid";
 
 export interface ProductVariantData {
   id: string;
@@ -38,7 +39,7 @@ function VariantCard({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newImages = Array.from(e.target.files).map((file, i) => ({
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         imageUrl: URL.createObjectURL(file),
         file,
         isPrimary: variant.images.length === 0 && i === 0,
@@ -295,7 +296,7 @@ export default function VariantsTable({
 }: VariantsTableProps) {
   const addVariant = () => {
     const newVariant: ProductVariantData = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       sku: "",
       size: "",
       colorName: "",

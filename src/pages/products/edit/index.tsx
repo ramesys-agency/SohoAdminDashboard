@@ -14,6 +14,7 @@ import Button from "../../../components/ui/Button";
 import { createProduct, getProductById, updateProduct } from "../../../api/products";
 import { getCategoryById } from "../../../api/categories";
 import { uploadFile } from "../../../api/upload";
+import { generateUUID } from "../../../utils/uuid";
 
 export default function ProductEditor() {
   const navigate = useNavigate();
@@ -65,7 +66,7 @@ export default function ProductEditor() {
           if (product.variants && product.variants.length > 0) {
             setVariants(
               product.variants.map((v: Record<string, unknown>) => ({
-                id: (v.id as string) || crypto.randomUUID(),
+                id: (v.id as string) || generateUUID(),
                 sku: (v.sku as string) || "",
                 size: (v.size as string) || "",
                 colorName: (v.colorName as string) || "",
@@ -75,7 +76,7 @@ export default function ProductEditor() {
                 originalPrice: v.originalPrice?.toString() || "0.00",
                 isDefault: (v.isDefault as boolean) || false,
                 images: (v.images as Array<Record<string, unknown>>)?.map((img) => ({
-                  id: (img.id as string) || crypto.randomUUID(),
+                  id: (img.id as string) || generateUUID(),
                   imageUrl: (img.imageUrl as string) || "",
                   isPrimary: (img.isPrimary as boolean) || false,
                   colorRef: (img.colorRef as string) || "#f8fafc",
@@ -96,7 +97,7 @@ export default function ProductEditor() {
       // Initialize with one empty variant for new products
       setVariants([
         {
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           sku: "",
           size: "",
           colorName: "",

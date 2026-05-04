@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { type ProductVariantImageData } from "../../view/components/ProductGallery";
+import { generateUUID } from "../../../../utils/uuid";
 
 interface MediaUploadProps {
   images: ProductVariantImageData[];
@@ -15,7 +16,7 @@ export default function MediaUpload({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newImages = Array.from(e.target.files).map((file) => ({
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         imageUrl: URL.createObjectURL(file), // create local preview URL
         file, // attach the actual file to be uploaded later
         isPrimary: images.length === 0,
