@@ -1,5 +1,18 @@
 import StatusBadge from "../../../../components/ui/StatusBadge";
-import { type ProductVariantData } from "../../edit/components/VariantsTable";
+import type { ProductVariantImageData } from "./ProductGallery";
+
+export interface ProductVariantData {
+  id: string;
+  sku: string;
+  size: string;
+  colorName: string;
+  colorValue: string;
+  stockQty: number;
+  basePrice: string;
+  originalPrice: string;
+  isDefault: boolean;
+  images: ProductVariantImageData[];
+}
 
 interface ProductInfoProps {
   product: {

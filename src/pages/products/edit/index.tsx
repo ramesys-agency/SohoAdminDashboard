@@ -5,7 +5,7 @@ import PageWrapper from "../../../components/ui/PageWrapper";
 import PageHeader from "../../../components/ui/PageHeader";
 import BasicInfoForm from "./components/BasicInfoForm";
 import VariantsTable, {
-  type ProductVariantData,
+  type ColorGroupData,
 } from "./components/VariantsTable";
 // import SeoSection from "./components/SeoSection";
 import StatusCard from "./components/StatusCard";
@@ -29,7 +29,7 @@ export default function ProductEditor() {
   const [categoryId, setCategoryId] = useState("");
   const [gender, setGender] = useState<string[]>([]);
   const [collections, setCollections] = useState<string[]>([]);
-  const [variants, setVariants] = useState<ProductVariantData[]>([]);
+  const [colorGroups, setColorGroups] = useState<ColorGroupData[]>([]);
   const [categoryAttributes, setCategoryAttributes] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   /*
@@ -64,28 +64,40 @@ export default function ProductEditor() {
           }
 
           if (product.variants && product.variants.length > 0) {
-            setVariants(
-              product.variants.map((v: Record<string, unknown>) => ({
+            const colorGroupsMap = new Map<string, ColorGroupData>();
+            for (const v of product.variants) {
+              const colorVal = v.colorValue || "#000000";
+              const colorNm = (v.colorName as string) || "";
+              const key = `${colorVal}-${colorNm}`;
+              if (!colorGroupsMap.has(key)) {
+                colorGroupsMap.set(key, {
+                  id: generateUUID(),
+                  colorName: colorNm,
+                  colorValue: colorVal,
+                  isDefault: false,
+                  images: (v.images as Array<Record<string, unknown>>)?.map((img) => ({
+                    id: (img.id as string) || generateUUID(),
+                    imageUrl: (img.imageUrl as string) || "",
+                    isPrimary: (img.isPrimary as boolean) || false,
+                    colorRef: (img.colorRef as string) || "#f8fafc",
+                  })) || [],
+                  sizes: []
+                });
+              }
+              const group = colorGroupsMap.get(key)!;
+              if (v.isDefault) group.isDefault = true;
+              group.sizes.push({
                 id: (v.id as string) || generateUUID(),
-                sku: (v.sku as string) || "",
                 size: (v.size as string) || "",
-                colorName: (v.colorName as string) || "",
-                colorValue: (v.colorValue as string) || "#000000",
+                sku: (v.sku as string) || "",
                 stockQty: (v.stockQty as number) || 0,
                 basePrice: v.basePrice?.toString() || "0.00",
                 originalPrice: v.originalPrice?.toString() || "0.00",
-                isDefault: (v.isDefault as boolean) || false,
-                images: (v.images as Array<Record<string, unknown>>)?.map((img) => ({
-                  id: (img.id as string) || generateUUID(),
-                  imageUrl: (img.imageUrl as string) || "",
-                  isPrimary: (img.isPrimary as boolean) || false,
-                  colorRef: (img.colorRef as string) || "#f8fafc",
-                })) || [],
-              }))
-            );
+              });
+            }
+            setColorGroups(Array.from(colorGroupsMap.values()));
           } else {
-             // Initialize with empty array but we already default to length 1 below
-             setVariants([]);
+             setColorGroups([]);
           }
         })
         .catch((err) => {
@@ -95,18 +107,23 @@ export default function ProductEditor() {
         .finally(() => setLoading(false));
     } else {
       // Initialize with one empty variant for new products
-      setVariants([
+      setColorGroups([
         {
           id: generateUUID(),
-          sku: "",
-          size: "",
           colorName: "",
           colorValue: "#000000",
-          stockQty: 0,
-          basePrice: "0.00",
-          originalPrice: "0.00",
           isDefault: true,
           images: [],
+          sizes: [
+            {
+              id: generateUUID(),
+              size: "",
+              sku: "",
+              stockQty: 0,
+              basePrice: "0.00",
+              originalPrice: "0.00",
+            }
+          ]
         },
       ]);
     }
@@ -164,13 +181,13 @@ export default function ProductEditor() {
       const productFolderName = name.toLowerCase().trim().replace(/\s+/g, '-');
       const uploadFolder = `products/${productFolderName}`;
 
-      // Process all variants and their images
-      const processedVariants = await Promise.all(variants.map(async (v) => {
-        const processedImages = await Promise.all((v.images || []).map(async (img: any, i: number) => {
+      // Process all color groups and their variants
+      const processedVariants: any[] = [];
+      await Promise.all(colorGroups.map(async (cg) => {
+        const processedImages = await Promise.all((cg.images || []).map(async (img: any, i: number) => {
           if (img.file) {
-            // New file to upload
             const fileExt = img.file.name.split('.').pop();
-            const uniqueName = `${v.sku || 'variant'}-${i}-${Date.now()}.${fileExt}`;
+            const uniqueName = `color-${cg.id}-${i}-${Date.now()}.${fileExt}`;
             try {
               const res = await uploadFile(img.file, uploadFolder, uniqueName);
               return {
@@ -180,11 +197,10 @@ export default function ProductEditor() {
                 colorRef: img.colorRef
               };
             } catch (error) {
-              console.error(`Failed to upload image for variant ${v.sku}:`, error);
+              console.error(`Failed to upload image for color group ${cg.colorName}:`, error);
               return null;
             }
           }
-          // Already an URL
           return {
             imageUrl: img.imageUrl,
             isPrimary: img.isPrimary,
@@ -193,17 +209,22 @@ export default function ProductEditor() {
           };
         }));
 
-        return {
-          sku: v.sku,
-          size: v.size,
-          colorName: v.colorName,
-          colorValue: v.colorValue,
-          stockQty: Number(v.stockQty) || 0,
-          basePrice: Number(v.basePrice) || 0,
-          originalPrice: Number(v.originalPrice) || 0,
-          isDefault: v.isDefault,
-          images: processedImages.filter((img): img is any => img !== null && !!img.imageUrl)
-        };
+        const validImages = processedImages.filter((img): img is any => img !== null && !!img.imageUrl);
+
+        for (let idx = 0; idx < cg.sizes.length; idx++) {
+           const sizeData = cg.sizes[idx];
+           processedVariants.push({
+             sku: sizeData.sku,
+             size: sizeData.size,
+             colorName: cg.colorName,
+             colorValue: cg.colorValue,
+             stockQty: Number(sizeData.stockQty) || 0,
+             basePrice: Number(sizeData.basePrice) || 0,
+             originalPrice: Number(sizeData.originalPrice) || 0,
+             isDefault: cg.isDefault && idx === 0, // only the first size is marked as default to avoid multiple defaults
+             images: validImages
+           });
+        }
       }));
 
       const payload = {
@@ -285,7 +306,7 @@ export default function ProductEditor() {
             onAttributesChange={setAttributes}
             categoryAttributes={categoryAttributes}
           />
-          <VariantsTable variants={variants} onVariantsChange={setVariants} />
+          <VariantsTable colorGroups={colorGroups} onColorGroupsChange={setColorGroups} />
           {/* <SeoSection seo={seo} onSeoChange={setSeo} /> */}
         </div>
 
