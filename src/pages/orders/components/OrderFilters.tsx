@@ -35,7 +35,7 @@ export default function OrderFilters() {
           <span>Oct 1 – Oct 31, 2023</span>
         </div>
       </div>
-      <button className="text-[#1325ec] text-sm font-bold hover:underline">
+      <button className="text-primary text-sm font-bold hover:underline">
         Clear Filters
       </button>
     </div>

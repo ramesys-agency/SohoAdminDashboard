@@ -179,7 +179,11 @@ export default function Products() {
       toast.success("Product deleted successfully.");
     } catch (err: any) {
       console.error("Failed to delete product:", err);
-      toast.error(err?.response?.data?.message || err?.message || "Failed to delete product. Please try again.");
+      toast.error(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to delete product. Please try again.",
+      );
     }
   };
 
@@ -309,7 +313,7 @@ export default function Products() {
                     {/* Product */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
-                        <div className="size-11 rounded-xl bg-slate-50 border border-slate-100 flex-shrink-0 flex items-center justify-center group-hover:border-[#1325ec]/20 transition-colors overflow-hidden">
+                        <div className="size-11 rounded-xl bg-slate-50 border border-slate-100 flex-shrink-0 flex items-center justify-center group-hover:border-primary/20 transition-colors overflow-hidden">
                           {p.primaryImage ? (
                             <img
                               src={p.primaryImage}
@@ -317,14 +321,14 @@ export default function Products() {
                               className="size-full object-cover rounded-xl"
                             />
                           ) : (
-                            <span className="material-symbols-outlined text-slate-300 group-hover:text-[#1325ec]/40">
+                            <span className="material-symbols-outlined text-slate-300 group-hover:text-primary/40">
                               inventory_2
                             </span>
                           )}
                         </div>
                         <div className="flex flex-col gap-0.5">
                           <p
-                            className="text-sm font-bold text-slate-900 cursor-pointer hover:text-[#1325ec] transition-colors"
+                            className="text-sm font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors"
                             onClick={() => navigate(`/products/view/${p.id}`)}
                           >
                             {p.name}
@@ -419,7 +423,7 @@ export default function Products() {
                           variant="ghost"
                           size="icon"
                           onClick={() => navigate(`/products/edit/${p.id}`)}
-                          className="hover:text-[#1325ec] hover:bg-[#1325ec]/5"
+                          className="hover:text-primary hover:bg-primary/5"
                           title="Edit"
                         >
                           <span className="material-symbols-outlined text-lg">

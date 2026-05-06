@@ -71,7 +71,7 @@ export default function ProductInfo({
 
         {displayVariant && (
           <div className="flex items-center gap-2">
-            <span className="text-3xl font-black text-[#1325ec]">
+            <span className="text-3xl font-black text-primary">
               ${displayVariant.basePrice}
             </span>
             {parseFloat(displayVariant.originalPrice) >
@@ -98,7 +98,7 @@ export default function ProductInfo({
               onClick={() => onVariantSelect?.(v.id)}
               className={`flex items-center gap-3 p-3 rounded-lg border transition-colors cursor-pointer ${
                 selectedVariantId === v.id
-                  ? "border-[#1325ec] bg-[#1325ec]/5"
+                  ? "border-primary bg-primary/5"
                   : "border-slate-100 hover:border-slate-200"
               }`}
             >

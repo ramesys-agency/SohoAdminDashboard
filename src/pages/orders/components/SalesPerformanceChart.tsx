@@ -5,7 +5,7 @@ export default function SalesPerformanceChart() {
     <div className="bg-white rounded-xl border border-slate-200 p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="font-bold text-lg text-slate-900">Sales Performance</h3>
-        <button className="text-[#1325ec] text-sm font-bold">
+        <button className="text-primary text-sm font-bold">
           View Full Report
         </button>
       </div>
@@ -13,7 +13,7 @@ export default function SalesPerformanceChart() {
         {bars.map((h, i) => (
           <div
             key={i}
-            className="w-12 rounded-t bg-[#1325ec] transition-all"
+            className="w-12 rounded-t bg-primary transition-all"
             style={{ height: `${h}%`, opacity: 0.2 + i * 0.15 }}
           ></div>
         ))}

@@ -53,7 +53,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
             onClick={() => setActive(i)}
             className={`aspect-[3/4] rounded-lg flex items-center justify-center transition-all overflow-hidden ${
               active === i
-                ? "ring-2 ring-[#1325ec] ring-offset-2"
+                ? "ring-2 ring-primary ring-offset-2"
                 : "opacity-60 hover:opacity-100"
             }`}
             style={{

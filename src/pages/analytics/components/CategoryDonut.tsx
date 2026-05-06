@@ -2,7 +2,7 @@ import Button from "../../../components/ui/Button";
 
 const segments = [
   {
-    color: "bg-[#1325ec]",
+    color: "bg-primary",
     stroke: "#1325ec]",
     dasharray: "60 100",
     dashoffset: "0",

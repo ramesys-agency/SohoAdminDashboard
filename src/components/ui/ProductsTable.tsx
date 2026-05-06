@@ -66,14 +66,14 @@ export default function ProductsTable({
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-4">
-                    <div className="size-11 rounded-xl bg-slate-50 border border-slate-100 flex-shrink-0 flex items-center justify-center group-hover:border-[#1325ec]/20 transition-colors">
-                      <span className="material-symbols-outlined text-slate-300 group-hover:text-[#1325ec]/40">
+                    <div className="size-11 rounded-xl bg-slate-50 border border-slate-100 shrink-0 flex items-center justify-center group-hover:border-primary/20 transition-colors">
+                      <span className="material-symbols-outlined text-slate-300 group-hover:text-primary/40">
                         inventory_2
                       </span>
                     </div>
                     <div className="flex flex-col gap-0.5">
                       <p
-                        className="text-sm font-bold text-slate-900 cursor-pointer hover:text-[#1325ec] transition-colors"
+                        className="text-sm font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors"
                         onClick={() =>
                           !selectable && navigate(`/products/view/${p.id}`)
                         }
@@ -112,8 +112,8 @@ export default function ProductsTable({
                           onClick={() => onToggle?.(p.id)}
                           className={`size-6 rounded-lg border-2 flex items-center justify-center transition-all ${
                             selectedIds.has(p.id)
-                              ? "bg-[#1325ec] border-[#1325ec] shadow-md shadow-[#1325ec]/20"
-                              : "border-slate-200 hover:border-[#1325ec]/50"
+                              ? "bg-primary border-primary shadow-md shadow-primary/20"
+                              : "border-slate-200 hover:border-primary/50"
                           }`}
                         >
                           {selectedIds.has(p.id) && (
@@ -139,7 +139,7 @@ export default function ProductsTable({
                           variant="ghost"
                           size="icon"
                           onClick={() => navigate(`/products/edit/${p.id}`)}
-                          className="hover:text-[#1325ec] hover:bg-[#1325ec]/5"
+                          className="hover:text-primary hover:bg-primary/5"
                           title="Edit"
                         >
                           <span className="material-symbols-outlined text-lg">

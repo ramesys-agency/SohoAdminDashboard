@@ -19,7 +19,7 @@ export default function ViewOffer() {
     return (
       <PageWrapper>
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="w-8 h-8 rounded-full border-2 border-[#1325ec] border-t-transparent animate-spin" />
+          <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
         </div>
       </PageWrapper>
     );
@@ -29,10 +29,12 @@ export default function ViewOffer() {
     return (
       <PageWrapper>
         <div className="text-center py-20">
-          <h2 className="text-2xl font-bold text-slate-800">Coupon not found</h2>
+          <h2 className="text-2xl font-bold text-slate-800">
+            Coupon not found
+          </h2>
           <button
             onClick={() => navigate("/offers")}
-            className="mt-4 text-[#1325ec] font-bold"
+            className="mt-4 text-primary font-bold"
           >
             Back to Offers
           </button>
@@ -57,7 +59,7 @@ export default function ViewOffer() {
         description={
           <button
             onClick={() => navigate("/offers")}
-            className="inline-flex items-center gap-1 text-[#1325ec] text-sm font-semibold hover:underline"
+            className="inline-flex items-center gap-1 text-primary text-sm font-semibold hover:underline"
           >
             <span className="material-symbols-outlined text-sm">
               arrow_back
@@ -70,7 +72,7 @@ export default function ViewOffer() {
             onClick={() =>
               navigate("/offers/create", { state: { editCoupon: coupon } })
             }
-            className="px-4 py-2 text-sm font-bold bg-[#1325ec] text-white rounded-lg shadow-lg shadow-[#1325ec]/20 hover:opacity-90"
+            className="px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg shadow-lg shadow-primary/20 hover:opacity-90"
           >
             Edit Coupon
           </button>
@@ -117,7 +119,9 @@ export default function ViewOffer() {
                   Usage Limit
                 </p>
                 <p className="text-sm font-bold text-slate-900">
-                  {coupon.usageLimit ? `${coupon.usageLimit} total uses` : "Unlimited"}
+                  {coupon.usageLimit
+                    ? `${coupon.usageLimit} total uses`
+                    : "Unlimited"}
                 </p>
               </div>
               <div>
@@ -133,7 +137,9 @@ export default function ViewOffer() {
                   Valid To
                 </p>
                 <p className="text-sm font-bold text-slate-900">
-                  {coupon.validTo ? new Date(coupon.validTo).toLocaleString() : "Never Expires"}
+                  {coupon.validTo
+                    ? new Date(coupon.validTo).toLocaleString()
+                    : "Never Expires"}
                 </p>
               </div>
               <div>
@@ -157,17 +163,29 @@ export default function ViewOffer() {
 
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100">
-              <h3 className="text-lg font-bold text-slate-900">Usage History</h3>
+              <h3 className="text-lg font-bold text-slate-900">
+                Usage History
+              </h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
                   <tr className="bg-slate-50">
-                    <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase">Order ID</th>
-                    <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase">Customer</th>
-                    <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase">Date</th>
-                    <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase">Total Amount</th>
-                    <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase text-right">Action</th>
+                    <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase">
+                      Order ID
+                    </th>
+                    <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase">
+                      Customer
+                    </th>
+                    <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase">
+                      Total Amount
+                    </th>
+                    <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase text-right">
+                      Action
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -178,8 +196,12 @@ export default function ViewOffer() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <span className="text-xs font-bold text-slate-900">{order.user?.firstName} {order.user?.lastName}</span>
-                          <span className="text-[10px] text-slate-500">{order.user?.email}</span>
+                          <span className="text-xs font-bold text-slate-900">
+                            {order.user?.firstName} {order.user?.lastName}
+                          </span>
+                          <span className="text-[10px] text-slate-500">
+                            {order.user?.email}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-xs text-slate-600">
@@ -191,7 +213,7 @@ export default function ViewOffer() {
                       <td className="px-6 py-4 text-right">
                         <button
                           onClick={() => navigate(`/orders/${order.id}`)}
-                          className="text-[#1325ec] text-xs font-bold hover:underline"
+                          className="text-primary text-xs font-bold hover:underline"
                         >
                           View Order
                         </button>
@@ -200,7 +222,10 @@ export default function ViewOffer() {
                   ))}
                   {(!coupon as any).orders?.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-xs text-slate-500">
+                      <td
+                        colSpan={5}
+                        className="px-6 py-8 text-center text-xs text-slate-500"
+                      >
                         No orders have used this coupon yet.
                       </td>
                     </tr>
@@ -240,12 +265,13 @@ export default function ViewOffer() {
                       364.4 -
                       (364.4 *
                         Math.min(
-                          (coupon.usageCount / (coupon.usageLimit || 100)) * 100,
+                          (coupon.usageCount / (coupon.usageLimit || 100)) *
+                            100,
                           100,
                         )) /
                         100
                     }
-                    className="text-[#1325ec]"
+                    className="text-primary"
                   />
                 </svg>
                 <div className="absolute flex flex-col items-center">

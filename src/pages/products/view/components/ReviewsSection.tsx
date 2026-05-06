@@ -60,7 +60,7 @@ export default function ReviewsSection({ reviews }: ReviewsSectionProps) {
           >
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-3">
-                <div className="size-9 rounded-full bg-[#1325ec]/10 text-[#1325ec] flex items-center justify-center font-bold text-sm uppercase">
+                <div className="size-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm uppercase">
                   {r.name.charAt(0)}
                 </div>
                 <div>

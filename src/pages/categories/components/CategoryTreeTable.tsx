@@ -27,7 +27,11 @@ export default function CategoryTreeTable() {
       setDeleteTarget(null);
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || err?.message || "Failed to delete category. Please try again.");
+      toast.error(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to delete category. Please try again.",
+      );
     },
   });
 
@@ -63,7 +67,7 @@ export default function CategoryTreeTable() {
     <div className="flex items-center justify-end gap-2">
       <button
         onClick={() => handleEdit(cat)}
-        className="p-2 hover:bg-[#1325ec]/10 rounded-lg text-[#1325ec]"
+        className="p-2 hover:bg-primary/10 rounded-lg text-primary"
         title="Edit category"
       >
         <span className="material-symbols-outlined text-xl">edit</span>
@@ -80,7 +84,6 @@ export default function CategoryTreeTable() {
 
   return (
     <>
-
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -111,7 +114,7 @@ export default function CategoryTreeTable() {
                             onClick={() => hasChildren && toggle(cat.id)}
                             className={`material-symbols-outlined text-slate-400 transition-colors ${
                               hasChildren
-                                ? "group-hover:text-[#1325ec] cursor-pointer"
+                                ? "group-hover:text-primary cursor-pointer"
                                 : "opacity-50"
                             }`}
                           >
@@ -121,7 +124,7 @@ export default function CategoryTreeTable() {
                                 : "keyboard_arrow_right"
                               : "remove"}
                           </span>
-                          <div className="w-8 h-8 rounded bg-[#1325ec]/10 flex items-center justify-center text-[#1325ec] overflow-hidden">
+                          <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary overflow-hidden">
                             {cat.imageUrl ? (
                               <img
                                 src={cat.imageUrl}

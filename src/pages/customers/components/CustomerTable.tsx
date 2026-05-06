@@ -14,10 +14,8 @@ function getInitials(name: string) {
 
 function RoleBadge({ role }: { role: string }) {
   const styles: Record<string, string> = {
-    admin:
-      "bg-purple-100 text-purple-700 border border-purple-200",
-    customer:
-      "bg-blue-50 text-blue-600 border border-blue-200",
+    admin: "bg-purple-100 text-purple-700 border border-purple-200",
+    customer: "bg-blue-50 text-blue-600 border border-blue-200",
   };
   return (
     <span
@@ -37,7 +35,8 @@ export default function CustomerTable() {
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["admin-users", page, search],
-    queryFn: () => getAllUsers({ page, limit: 20, ...(search ? { search } : {}) }),
+    queryFn: () =>
+      getAllUsers({ page, limit: 20, ...(search ? { search } : {}) }),
   });
 
   const users: AdminUser[] = data?.data ?? [];
@@ -72,7 +71,7 @@ export default function CustomerTable() {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search by name or email…"
-            className="bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-4 py-2 text-sm w-full sm:w-72 focus:ring-2 focus:ring-[#1325ec]/20 focus:border-[#1325ec] outline-none"
+            className="bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-4 py-2 text-sm w-full sm:w-72 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
           />
         </form>
       </div>
@@ -154,7 +153,7 @@ export default function CustomerTable() {
                   {/* Name + email */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="size-10 rounded-full bg-[#1325ec]/10 flex items-center justify-center text-[#1325ec] font-bold text-sm flex-shrink-0">
+                      <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm flex-shrink-0">
                         {getInitials(user.fullName)}
                       </div>
                       <div>
@@ -211,7 +210,7 @@ export default function CustomerTable() {
           onPageChange={setPage}
           showingText={`Showing ${(page - 1) * meta.limit + 1}–${Math.min(
             page * meta.limit,
-            meta.total
+            meta.total,
           )} of ${meta.total} users`}
         />
       )}

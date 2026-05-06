@@ -29,7 +29,7 @@ export default function SeoSection({ seo, onSeoChange }: SeoSectionProps) {
               type="text"
               value={seo.metaTitle}
               onChange={(e) => handleChange("metaTitle", e.target.value)}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none text-slate-900"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-slate-900"
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -40,7 +40,7 @@ export default function SeoSection({ seo, onSeoChange }: SeoSectionProps) {
               rows={3}
               value={seo.metaDescription}
               onChange={(e) => handleChange("metaDescription", e.target.value)}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none text-slate-900 resize-none"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-slate-900 resize-none"
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -51,7 +51,7 @@ export default function SeoSection({ seo, onSeoChange }: SeoSectionProps) {
               type="text"
               value={seo.canonicalUrl}
               onChange={(e) => handleChange("canonicalUrl", e.target.value)}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none text-slate-900"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-slate-900"
             />
           </div>
         </div>

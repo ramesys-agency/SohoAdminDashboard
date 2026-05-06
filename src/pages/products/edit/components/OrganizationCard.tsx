@@ -43,7 +43,9 @@ export default function OrganizationCard({
 
   return (
     <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-      <h3 className="text-lg font-bold text-slate-900 mb-4">Category <span className="text-red-500">*</span></h3>
+      <h3 className="text-lg font-bold text-slate-900 mb-4">
+        Category <span className="text-red-500">*</span>
+      </h3>
       <div className="space-y-4">
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-slate-500 uppercase">
@@ -59,11 +61,13 @@ export default function OrganizationCard({
                   onClick={() => onCategoryIdChange(cat.id)}
                   className={`flex items-center px-3 py-2 rounded-lg border text-sm transition-all text-left ${
                     isSelected
-                      ? "bg-[#1325ec]/10 border-[#1325ec] text-[#1325ec] font-semibold"
+                      ? "bg-primary/10 border-primary text-primary font-semibold"
                       : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
                   }`}
                 >
-                  <span className={`material-symbols-outlined text-sm mr-2 ${isSelected ? "text-[#1325ec]" : "text-slate-400"}`}>
+                  <span
+                    className={`material-symbols-outlined text-sm mr-2 ${isSelected ? "text-primary" : "text-slate-400"}`}
+                  >
                     {isSelected ? "check_circle" : "circle"}
                   </span>
                   {cat.name}
@@ -72,7 +76,9 @@ export default function OrganizationCard({
             })}
           </div>
           {!categoryId && (
-            <p className="text-[10px] text-amber-600 font-medium italic">Category is required</p>
+            <p className="text-[10px] text-amber-600 font-medium italic">
+              Category is required
+            </p>
           )}
         </div>
 
@@ -87,7 +93,7 @@ export default function OrganizationCard({
                 onClick={() => toggleCollection(c)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                   collections.includes(c)
-                    ? "bg-[#1325ec] border-[#1325ec] text-white"
+                    ? "bg-primary border-primary text-white"
                     : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
                 }`}
               >

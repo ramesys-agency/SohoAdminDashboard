@@ -7,11 +7,13 @@ import Button from "../../../components/ui/Button";
 import Pagination from "../../../components/ui/Pagination";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import ProductFilters from "../../products/components/ProductFilters";
+import { getProducts, type ApiProduct } from "../../../api/products";
 import {
-  getProducts,
-  type ApiProduct,
-} from "../../../api/products";
-import { getCollections, type Collection, addProductsToCollection, removeProductsFromCollection } from "../../../api/collections";
+  getCollections,
+  type Collection,
+  addProductsToCollection,
+  removeProductsFromCollection,
+} from "../../../api/collections";
 import { getParentCategories } from "../../../api/categories";
 
 interface ParentCategory {
@@ -36,7 +38,9 @@ export default function AddProductsToCollection() {
   const [filterCollectionId, setFilterCollectionId] = useState("");
   const [sortBy, setSortBy] = useState("");
   const [page, setPage] = useState(1);
-  const [productFilter, setProductFilter] = useState<"All" | "Added" | "Not Added">("All");
+  const [productFilter, setProductFilter] = useState<
+    "All" | "Added" | "Not Added"
+  >("All");
 
   // Data state
   const [products, setProducts] = useState<ApiProduct[]>([]);
@@ -52,8 +56,12 @@ export default function AddProductsToCollection() {
   const [error, setError] = useState<string | null>(null);
 
   // Added Products state
-  const [selectedProductsMap, setSelectedProductsMap] = useState<Map<string, ApiProduct>>(new Map());
-  const [initialSelectedIds, setInitialSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedProductsMap, setSelectedProductsMap] = useState<
+    Map<string, ApiProduct>
+  >(new Map());
+  const [initialSelectedIds, setInitialSelectedIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   // Debounce search input
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -67,11 +75,26 @@ export default function AddProductsToCollection() {
   }, []);
 
   // Reset page when filters change
-  const handleGenderChange = (v: string) => { setGender(v); setPage(1); };
-  const handleIsPublishedChange = (v: string) => { setIsPublished(v); setPage(1); };
-  const handleCategoryChange = (v: string) => { setCategoryId(v); setPage(1); };
-  const handleCollectionChange = (v: string) => { setFilterCollectionId(v); setPage(1); };
-  const handleSortByChange = (v: string) => { setSortBy(v); setPage(1); };
+  const handleGenderChange = (v: string) => {
+    setGender(v);
+    setPage(1);
+  };
+  const handleIsPublishedChange = (v: string) => {
+    setIsPublished(v);
+    setPage(1);
+  };
+  const handleCategoryChange = (v: string) => {
+    setCategoryId(v);
+    setPage(1);
+  };
+  const handleCollectionChange = (v: string) => {
+    setFilterCollectionId(v);
+    setPage(1);
+  };
+  const handleSortByChange = (v: string) => {
+    setSortBy(v);
+    setPage(1);
+  };
 
   // Fetch categories & collections once on mount
   useEffect(() => {
@@ -103,7 +126,7 @@ export default function AddProductsToCollection() {
 
         const newMap = new Map();
         const initialSet = new Set<string>();
-        fetchedProducts.forEach(p => {
+        fetchedProducts.forEach((p) => {
           newMap.set(p.id, p);
           initialSet.add(p.id);
         });
@@ -203,8 +226,12 @@ export default function AddProductsToCollection() {
     if (!id) return;
     try {
       const currentSelectedIds = Array.from(selectedProductsMap.keys());
-      const toAdd = currentSelectedIds.filter(pid => !initialSelectedIds.has(pid));
-      const toRemove = Array.from(initialSelectedIds).filter(pid => !selectedProductsMap.has(pid));
+      const toAdd = currentSelectedIds.filter(
+        (pid) => !initialSelectedIds.has(pid),
+      );
+      const toRemove = Array.from(initialSelectedIds).filter(
+        (pid) => !selectedProductsMap.has(pid),
+      );
 
       if (toAdd.length > 0) {
         await addProductsToCollection(id, toAdd);
@@ -212,12 +239,16 @@ export default function AddProductsToCollection() {
       if (toRemove.length > 0) {
         await removeProductsFromCollection(id, toRemove);
       }
-      
+
       toast.success("Products saved to collection successfully.");
       navigate("/placements");
     } catch (err: any) {
       console.error(err);
-      toast.error(err?.response?.data?.message || err?.message || "Failed to save products to collection.");
+      toast.error(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to save products to collection.",
+      );
     }
   };
 
@@ -242,7 +273,7 @@ export default function AddProductsToCollection() {
   if (productFilter === "Added") {
     displayedProducts = Array.from(selectedProductsMap.values());
   } else if (productFilter === "Not Added") {
-    displayedProducts = products.filter(p => !selectedProductsMap.has(p.id));
+    displayedProducts = products.filter((p) => !selectedProductsMap.has(p.id));
   }
 
   const from = (page - 1) * LIMIT + 1;
@@ -272,9 +303,7 @@ export default function AddProductsToCollection() {
             <Button variant="outline" onClick={() => navigate("/placements")}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>
-              Save Changes
-            </Button>
+            <Button onClick={handleSave}>Save Changes</Button>
           </>
         }
       />
@@ -282,7 +311,7 @@ export default function AddProductsToCollection() {
       <div className="flex items-center justify-between gap-4 mb-4 mt-6">
         <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
           Products
-          <span className="px-2 py-0.5 rounded-full bg-[#1325ec]/10 text-[#1325ec] text-xs font-bold">
+          <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold">
             {selectedProductsMap.size} selected
           </span>
         </h3>
@@ -296,7 +325,7 @@ export default function AddProductsToCollection() {
               }}
               className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
                 productFilter === tab
-                  ? "bg-white text-[#1325ec] shadow-sm"
+                  ? "bg-white text-primary shadow-sm"
                   : "text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -343,7 +372,7 @@ export default function AddProductsToCollection() {
                   "Price",
                   "Variants",
                   "Status",
-                  "Created"
+                  "Created",
                 ].map((h) => (
                   <th
                     key={h}
@@ -358,9 +387,9 @@ export default function AddProductsToCollection() {
               {loading && productFilter !== "Added" ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                     <td colSpan={8} className="px-6 py-4">
-                        <div className="h-10 bg-slate-100 rounded w-full"></div>
-                     </td>
+                    <td colSpan={8} className="px-6 py-4">
+                      <div className="h-10 bg-slate-100 rounded w-full"></div>
+                    </td>
                   </tr>
                 ))
               ) : displayedProducts.length === 0 ? (
@@ -371,9 +400,7 @@ export default function AddProductsToCollection() {
                         inventory_2
                       </span>
                       <p className="text-sm font-medium">No products found</p>
-                      <p className="text-xs">
-                        Try adjusting your filters.
-                      </p>
+                      <p className="text-xs">Try adjusting your filters.</p>
                     </div>
                   </td>
                 </tr>
@@ -385,18 +412,18 @@ export default function AddProductsToCollection() {
                   >
                     {/* Checkbox */}
                     <td className="px-6 py-4">
-                       <input 
-                         type="checkbox" 
-                         className="size-4 rounded border-slate-300 text-[#1325ec] focus:ring-[#1325ec]" 
-                         checked={selectedProductsMap.has(p.id)}
-                         onChange={() => toggleProduct(p)}
-                       />
+                      <input
+                        type="checkbox"
+                        className="size-4 rounded border-slate-300 text-primary focus:ring-primary"
+                        checked={selectedProductsMap.has(p.id)}
+                        onChange={() => toggleProduct(p)}
+                      />
                     </td>
 
                     {/* Product */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
-                        <div className="size-11 rounded-xl bg-slate-50 border border-slate-100 flex-shrink-0 flex items-center justify-center group-hover:border-[#1325ec]/20 transition-colors overflow-hidden">
+                        <div className="size-11 rounded-xl bg-slate-50 border border-slate-100 flex-shrink-0 flex items-center justify-center group-hover:border-primary/20 transition-colors overflow-hidden">
                           {p.primaryImage ? (
                             <img
                               src={p.primaryImage}
@@ -404,15 +431,13 @@ export default function AddProductsToCollection() {
                               className="size-full object-cover rounded-xl"
                             />
                           ) : (
-                            <span className="material-symbols-outlined text-slate-300 group-hover:text-[#1325ec]/40">
+                            <span className="material-symbols-outlined text-slate-300 group-hover:text-primary/40">
                               inventory_2
                             </span>
                           )}
                         </div>
                         <div className="flex flex-col gap-0.5">
-                          <p
-                            className="text-sm font-bold text-slate-900"
-                          >
+                          <p className="text-sm font-bold text-slate-900">
                             {p.name}
                           </p>
                           {p.sku && (

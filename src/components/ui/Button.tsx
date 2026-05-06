@@ -20,14 +20,14 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-[#1325ec] text-white shadow-lg shadow-[#1325ec]/20 hover:opacity-90 active:scale-[0.98]",
+    "bg-primary text-white shadow-lg shadow-primary/20 hover:opacity-90 active:scale-[0.98]",
   secondary: "bg-slate-800 text-white hover:bg-slate-900 active:scale-[0.98]",
   outline:
     "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98]",
   ghost: "text-slate-600 hover:bg-slate-100 active:scale-[0.98]",
   danger:
     "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white active:scale-[0.98]",
-  link: "text-[#1325ec] hover:underline font-semibold p-0 h-auto",
+  link: "text-primary hover:underline font-semibold p-0 h-auto",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -50,7 +50,7 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    "inline-flex items-center justify-center rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#1325ec]/20 disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100";
+    "inline-flex items-center justify-center rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100";
   const widthStyle = fullWidth ? "w-full" : "";
 
   return (

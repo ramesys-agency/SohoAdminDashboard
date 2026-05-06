@@ -40,7 +40,7 @@ export default function Topbar({
           <input
             type="text"
             placeholder={searchPlaceholder}
-            className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-[#1325ec]/20 focus:border-[#1325ec] outline-none transition-all text-slate-900 placeholder:text-slate-400"
+            className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 placeholder:text-slate-400"
           />
         </div>
       </div>
@@ -75,7 +75,7 @@ export default function Topbar({
               {user?.role || "Admin"}
             </p>
           </div>
-          <div className="size-9 rounded-full bg-[#1325ec]/10 overflow-hidden border-2 border-[#1325ec]/20 flex items-center justify-center">
+          <div className="size-9 rounded-full bg-primary/10 overflow-hidden border-2 border-primary/20 flex items-center justify-center">
             {user?.avatar ? (
               <img
                 src={user.avatar}
@@ -89,9 +89,9 @@ export default function Topbar({
                 }}
               />
             ) : null}
-            {(user?.fullName || user?.name) ? (
+            {user?.fullName || user?.name ? (
               <span
-                className="text-[#1325ec] font-bold text-sm uppercase"
+                className="text-primary font-bold text-sm uppercase"
                 style={{
                   display: user?.avatar ? "none" : "flex",
                 }}
@@ -99,7 +99,7 @@ export default function Topbar({
                 {(user.fullName || user.name || "").charAt(0)}
               </span>
             ) : !user?.avatar ? (
-              <span className="material-symbols-outlined text-[#1325ec]">
+              <span className="material-symbols-outlined text-primary">
                 person
               </span>
             ) : null}

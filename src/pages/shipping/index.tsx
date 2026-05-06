@@ -97,7 +97,7 @@ export default function ShippingPage() {
                     setFormData({ ...formData, sender_name: e.target.value })
                   }
                   placeholder="e.g. Main Warehouse"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] outline-none"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary outline-none"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -112,7 +112,7 @@ export default function ShippingPage() {
                     setFormData({ ...formData, sender_phone: e.target.value })
                   }
                   placeholder="01xxxxxxxxx"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] outline-none"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary outline-none"
                 />
               </div>
               <div className="flex flex-col gap-1.5 md:col-span-2">
@@ -127,7 +127,7 @@ export default function ShippingPage() {
                     setFormData({ ...formData, sender_address: e.target.value })
                   }
                   placeholder="House #, Road #, Area"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] outline-none"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary outline-none"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -142,7 +142,7 @@ export default function ShippingPage() {
                     setFormData({ ...formData, division: e.target.value })
                   }
                   placeholder="e.g. Dhaka"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] outline-none"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary outline-none"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -157,7 +157,7 @@ export default function ShippingPage() {
                     setFormData({ ...formData, district: e.target.value })
                   }
                   placeholder="e.g. Dhaka"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] outline-none"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary outline-none"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -172,7 +172,7 @@ export default function ShippingPage() {
                     setFormData({ ...formData, thana: e.target.value })
                   }
                   placeholder="e.g. Gulshan"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] outline-none"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary outline-none"
                 />
               </div>
               <div className="md:col-span-2 flex justify-end gap-3 mt-4">
@@ -192,7 +192,7 @@ export default function ShippingPage() {
             </h3>
             {loadingPickups ? (
               <div className="h-32 flex items-center justify-center bg-white rounded-xl border border-dashed border-slate-300">
-                <div className="size-6 border-2 border-[#1325ec]/20 border-t-[#1325ec] rounded-full animate-spin"></div>
+                <div className="size-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
               </div>
             ) : pickupsError ? (
               <div className="p-8 text-center bg-red-50 rounded-xl border border-dashed border-red-200">
@@ -265,7 +265,7 @@ export default function ShippingPage() {
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
               {loadingAggregators ? (
                 <div className="p-12 flex justify-center">
-                  <div className="size-6 border-2 border-[#1325ec]/20 border-t-[#1325ec] rounded-full animate-spin"></div>
+                  <div className="size-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
                 </div>
               ) : aggregators?.length === 0 ? (
                 <div className="p-8 text-center">
@@ -282,7 +282,7 @@ export default function ShippingPage() {
                       className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center font-bold text-[#1325ec] uppercase">
+                        <div className="size-10 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center font-bold text-primary uppercase">
                           {partner.name.substring(0, 2)}
                         </div>
                         <div>

@@ -11,7 +11,9 @@ interface RecentOrdersTableProps {
   }[];
 }
 
-export default function RecentOrdersTable({ orders = [] }: RecentOrdersTableProps) {
+export default function RecentOrdersTable({
+  orders = [],
+}: RecentOrdersTableProps) {
   const navigate = useNavigate();
 
   const getInitials = (name: string) => {
@@ -29,7 +31,7 @@ export default function RecentOrdersTable({ orders = [] }: RecentOrdersTableProp
         <h3 className="text-lg font-bold text-slate-900">Recent Orders</h3>
         <button
           onClick={() => navigate("/orders")}
-          className="text-[#1325ec] text-sm font-bold hover:underline"
+          className="text-primary text-sm font-bold hover:underline"
         >
           View All
         </button>
@@ -48,7 +50,10 @@ export default function RecentOrdersTable({ orders = [] }: RecentOrdersTableProp
           <tbody className="divide-y divide-slate-100 text-sm">
             {orders.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-slate-400 italic">
+                <td
+                  colSpan={5}
+                  className="px-6 py-8 text-center text-slate-400 italic"
+                >
                   No orders found.
                 </td>
               </tr>
@@ -59,12 +64,12 @@ export default function RecentOrdersTable({ orders = [] }: RecentOrdersTableProp
                   onClick={() => navigate(`/orders/${order.id}`)}
                   className="hover:bg-slate-50 transition-colors cursor-pointer"
                 >
-                  <td className="px-6 py-4 font-bold text-[#1325ec] hover:underline">
+                  <td className="px-6 py-4 font-bold text-primary hover:underline">
                     #{order.id.split("-")[0].toUpperCase()}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <div className="size-7 rounded-full bg-[#1325ec]/10 flex items-center justify-center text-[#1325ec] text-[10px] font-bold">
+                      <div className="size-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold">
                         {getInitials(order.customer)}
                       </div>
                       <span className="text-slate-900">{order.customer}</span>

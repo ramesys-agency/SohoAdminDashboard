@@ -67,7 +67,7 @@ export default function UsageStats() {
           className="rounded-xl border border-slate-200 bg-white p-5"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="rounded-lg bg-[#1325ec]/10 p-2 text-[#1325ec]">
+            <div className="rounded-lg bg-primary/10 p-2 text-primary">
               <span className="material-symbols-outlined">{s.icon}</span>
             </div>
             <span

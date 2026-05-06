@@ -83,11 +83,12 @@ export default function PlacementForm({
           Placement Configuration
         </h3>
         <div className="space-y-4">
-
           {/* Collection selector */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold text-slate-700">
-              {collectionMode === "new" ? "New Collection Name" : "Select Collection"}{" "}
+              {collectionMode === "new"
+                ? "New Collection Name"
+                : "Select Collection"}{" "}
               <span className="text-red-500">*</span>
             </label>
             {collectionMode === "new" ? (
@@ -96,17 +97,19 @@ export default function PlacementForm({
                 value={collectionId}
                 onChange={(e) => setCollectionId(e.target.value)}
                 placeholder="e.g. Summer Sale 2025"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
               />
             ) : (
               <select
                 value={collectionId}
                 onChange={(e) => setCollectionId(e.target.value)}
                 disabled={isLoadingCollections}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none disabled:bg-slate-50 disabled:text-slate-400"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none disabled:bg-slate-50 disabled:text-slate-400"
               >
                 <option value="">
-                  {isLoadingCollections ? "Loading..." : "-- Choose a Collection --"}
+                  {isLoadingCollections
+                    ? "Loading..."
+                    : "-- Choose a Collection --"}
                 </option>
                 {collections.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -129,7 +132,7 @@ export default function PlacementForm({
                   setPageName(e.target.value);
                   setShowPreview(false);
                 }}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
               >
                 <option value="">-- Choose a Page --</option>
                 {Object.values(AppPage).map((p) => (
@@ -143,21 +146,25 @@ export default function PlacementForm({
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-semibold text-slate-700">
-                  Page Section {availableSections.length > 0 && <span className="text-red-500">*</span>}
+                  Page Section{" "}
+                  {availableSections.length > 0 && (
+                    <span className="text-red-500">*</span>
+                  )}
                 </label>
-                {sectionName && SECTION_PREVIEW_MAP[sectionName as PageSection] && (
-                  <button
-                    type="button"
-                    onClick={() => setShowPreview(!showPreview)}
-                    className="text-slate-400 hover:text-[#1325ec] transition-colors flex items-center gap-1 text-xs"
-                    title="Toggle Layout Preview"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">
-                      {showPreview ? "visibility_off" : "visibility"}
-                    </span>
-                    {showPreview ? "Hide" : "View"}
-                  </button>
-                )}
+                {sectionName &&
+                  SECTION_PREVIEW_MAP[sectionName as PageSection] && (
+                    <button
+                      type="button"
+                      onClick={() => setShowPreview(!showPreview)}
+                      className="text-slate-400 hover:text-primary transition-colors flex items-center gap-1 text-xs"
+                      title="Toggle Layout Preview"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">
+                        {showPreview ? "visibility_off" : "visibility"}
+                      </span>
+                      {showPreview ? "Hide" : "View"}
+                    </button>
+                  )}
               </div>
               <select
                 value={sectionName}
@@ -166,7 +173,7 @@ export default function PlacementForm({
                   setShowPreview(false);
                 }}
                 disabled={!pageName || availableSections.length === 0}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none disabled:bg-slate-50 disabled:text-slate-400"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none disabled:bg-slate-50 disabled:text-slate-400"
               >
                 {availableSections.length === 0 ? (
                   <option value="">No sections available</option>
@@ -183,16 +190,18 @@ export default function PlacementForm({
               </select>
 
               {/* Section Preview Helper */}
-              {showPreview && sectionName && SECTION_PREVIEW_MAP[sectionName as PageSection] && (
-                <div className="mt-2 text-center text-slate-500 text-xs animate-in fade-in slide-in-from-top-1 duration-200">
-                  Section Layout Reference
-                  <img
-                    src={SECTION_PREVIEW_MAP[sectionName as PageSection]}
-                    alt="Section Preview"
-                    className="mt-1 w-full rounded border border-slate-200 shadow-sm"
-                  />
-                </div>
-              )}
+              {showPreview &&
+                sectionName &&
+                SECTION_PREVIEW_MAP[sectionName as PageSection] && (
+                  <div className="mt-2 text-center text-slate-500 text-xs animate-in fade-in slide-in-from-top-1 duration-200">
+                    Section Layout Reference
+                    <img
+                      src={SECTION_PREVIEW_MAP[sectionName as PageSection]}
+                      alt="Section Preview"
+                      className="mt-1 w-full rounded border border-slate-200 shadow-sm"
+                    />
+                  </div>
+                )}
             </div>
           </div>
 
@@ -224,9 +233,12 @@ export default function PlacementForm({
               id="isActive"
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
-              className="w-4 h-4 text-[#1325ec] rounded border-slate-300 focus:ring-[#1325ec]"
+              className="w-4 h-4 text-primary rounded border-slate-300 focus:ring-primary"
             />
-            <label htmlFor="isActive" className="text-sm font-semibold text-slate-700 cursor-pointer">
+            <label
+              htmlFor="isActive"
+              className="text-sm font-semibold text-slate-700 cursor-pointer"
+            >
               Active
             </label>
           </div>
@@ -237,18 +249,29 @@ export default function PlacementForm({
               Placement Image
             </label>
             <div className="flex items-center gap-4">
-              <label className="size-24 rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 hover:border-[#1325ec] transition-colors cursor-pointer bg-slate-50 group flex-shrink-0 overflow-hidden relative">
+              <label className="size-24 rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 hover:border-primary transition-colors cursor-pointer bg-slate-50 group flex-shrink-0 overflow-hidden relative">
                 {imageUrl ? (
-                  <img src={imageUrl} alt="preview" className="w-full h-full object-cover" />
+                  <img
+                    src={imageUrl}
+                    alt="preview"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
-                  <span className="material-symbols-outlined text-slate-400 group-hover:text-[#1325ec]">
+                  <span className="material-symbols-outlined text-slate-400 group-hover:text-primary">
                     add_photo_alternate
                   </span>
                 )}
-                <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                />
               </label>
               <div className="flex flex-col gap-0.5">
-                <p className="text-xs font-semibold text-slate-700">Upload Image</p>
+                <p className="text-xs font-semibold text-slate-700">
+                  Upload Image
+                </p>
                 <p className="text-[10px] text-slate-400 font-medium">
                   {autoBanner
                     ? "Recommended size: 1200x630px (Landscape)."
@@ -257,7 +280,6 @@ export default function PlacementForm({
               </div>
             </div>
           </div>
-
         </div>
       </section>
     </div>

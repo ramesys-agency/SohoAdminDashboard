@@ -32,10 +32,7 @@ function ColorGroupCard({
   isOnly,
 }: {
   group: ColorGroupData;
-  onUpdate: (
-    field: keyof ColorGroupData,
-    value: any
-  ) => void;
+  onUpdate: (field: keyof ColorGroupData, value: any) => void;
   onRemove: () => void;
   isOnly: boolean;
 }) {
@@ -84,17 +81,21 @@ function ColorGroupCard({
     ]);
   };
 
-  const updateSize = (sizeId: string, field: keyof SizeVariantData, value: any) => {
+  const updateSize = (
+    sizeId: string,
+    field: keyof SizeVariantData,
+    value: any,
+  ) => {
     onUpdate(
       "sizes",
-      group.sizes.map((s) => (s.id === sizeId ? { ...s, [field]: value } : s))
+      group.sizes.map((s) => (s.id === sizeId ? { ...s, [field]: value } : s)),
     );
   };
 
   const removeSize = (sizeId: string) => {
     onUpdate(
       "sizes",
-      group.sizes.filter((s) => s.id !== sizeId)
+      group.sizes.filter((s) => s.id !== sizeId),
     );
   };
 
@@ -114,10 +115,10 @@ function ColorGroupCard({
             value={group.colorName}
             onChange={(e) => onUpdate("colorName", e.target.value)}
             placeholder="Color Name (e.g. Navy Blue)"
-            className="rounded-lg border border-slate-200 px-3 py-1 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none text-slate-900 min-w-[200px]"
+            className="rounded-lg border border-slate-200 px-3 py-1 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-slate-900 min-w-[200px]"
           />
           {group.isDefault && (
-            <span className="text-[10px] bg-[#1325ec]/10 text-[#1325ec] font-bold px-2 py-0.5 rounded-full">
+            <span className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full">
               Default
             </span>
           )}
@@ -126,7 +127,7 @@ function ColorGroupCard({
           {!group.isDefault && (
             <button
               onClick={() => onUpdate("isDefault", true)}
-              className="text-xs text-slate-500 hover:text-[#1325ec] font-medium"
+              className="text-xs text-slate-500 hover:text-primary font-medium"
               title="Set as default color"
             >
               Set Default
@@ -149,85 +150,127 @@ function ColorGroupCard({
       <div className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-4 border-r border-slate-100 pr-4">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-semibold text-slate-700">Sizes & Pricing</h4>
+            <h4 className="text-sm font-semibold text-slate-700">
+              Sizes & Pricing
+            </h4>
             <button
               onClick={addSize}
-              className="text-xs text-[#1325ec] font-semibold hover:underline flex items-center gap-1"
+              className="text-xs text-primary font-semibold hover:underline flex items-center gap-1"
             >
-              <span className="material-symbols-outlined text-sm">add</span> Add Size
+              <span className="material-symbols-outlined text-sm">add</span> Add
+              Size
             </button>
           </div>
-          
+
           <div className="space-y-3">
             {group.sizes.map((sz) => (
-              <div key={sz.id} className="p-3 bg-slate-50 rounded-lg border border-slate-200 relative group">
+              <div
+                key={sz.id}
+                className="p-3 bg-slate-50 rounded-lg border border-slate-200 relative group"
+              >
                 <button
-                   onClick={() => removeSize(sz.id)}
-                   className="absolute -top-2 -right-2 bg-white text-slate-400 hover:text-red-500 border border-slate-200 rounded-full w-5 h-5 flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => removeSize(sz.id)}
+                  className="absolute -top-2 -right-2 bg-white text-slate-400 hover:text-red-500 border border-slate-200 rounded-full w-5 h-5 flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                   <span className="material-symbols-outlined text-[12px]">close</span>
+                  <span className="material-symbols-outlined text-[12px]">
+                    close
+                  </span>
                 </button>
                 <div className="grid grid-cols-2 gap-2 mb-2">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">Size</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">
+                      Size
+                    </label>
                     <select
                       value={sz.size}
-                      onChange={(e) => updateSize(sz.id, "size", e.target.value)}
-                      className="w-full rounded text-xs border border-slate-200 px-2 py-1.5 focus:border-[#1325ec] outline-none"
+                      onChange={(e) =>
+                        updateSize(sz.id, "size", e.target.value)
+                      }
+                      className="w-full rounded text-xs border border-slate-200 px-2 py-1.5 focus:border-primary outline-none"
                     >
                       <option value="">Select</option>
                       {["XS", "S", "M", "L", "XL", "XXL", "XXXL"].map((s) => (
-                        <option key={s} value={s}>{s}</option>
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">SKU</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">
+                      SKU
+                    </label>
                     <input
                       type="text"
                       value={sz.sku}
                       onChange={(e) => updateSize(sz.id, "sku", e.target.value)}
                       placeholder="SKU"
-                      className="w-full rounded text-xs border border-slate-200 px-2 py-1.5 focus:border-[#1325ec] outline-none"
+                      className="w-full rounded text-xs border border-slate-200 px-2 py-1.5 focus:border-primary outline-none"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">Price</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">
+                      Price
+                    </label>
                     <input
                       type="number"
-                      value={sz.basePrice === "0.00" || sz.basePrice === "0" ? "" : sz.basePrice}
-                      onChange={(e) => updateSize(sz.id, "basePrice", e.target.value)}
+                      value={
+                        sz.basePrice === "0.00" || sz.basePrice === "0"
+                          ? ""
+                          : sz.basePrice
+                      }
+                      onChange={(e) =>
+                        updateSize(sz.id, "basePrice", e.target.value)
+                      }
                       placeholder="0.00"
-                      className="w-full rounded text-xs border border-slate-200 px-2 py-1.5 focus:border-[#1325ec] outline-none"
+                      className="w-full rounded text-xs border border-slate-200 px-2 py-1.5 focus:border-primary outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">MRP</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">
+                      MRP
+                    </label>
                     <input
                       type="number"
-                      value={sz.originalPrice === "0.00" || sz.originalPrice === "0" ? "" : sz.originalPrice}
-                      onChange={(e) => updateSize(sz.id, "originalPrice", e.target.value)}
+                      value={
+                        sz.originalPrice === "0.00" || sz.originalPrice === "0"
+                          ? ""
+                          : sz.originalPrice
+                      }
+                      onChange={(e) =>
+                        updateSize(sz.id, "originalPrice", e.target.value)
+                      }
                       placeholder="0.00"
-                      className="w-full rounded text-xs border border-slate-200 px-2 py-1.5 focus:border-[#1325ec] outline-none"
+                      className="w-full rounded text-xs border border-slate-200 px-2 py-1.5 focus:border-primary outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">Stock</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">
+                      Stock
+                    </label>
                     <input
                       type="number"
                       value={sz.stockQty === 0 ? "" : sz.stockQty}
-                      onChange={(e) => updateSize(sz.id, "stockQty", parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        updateSize(
+                          sz.id,
+                          "stockQty",
+                          parseInt(e.target.value) || 0,
+                        )
+                      }
                       placeholder="0"
-                      className="w-full rounded text-xs border border-slate-200 px-2 py-1.5 focus:border-[#1325ec] outline-none"
+                      className="w-full rounded text-xs border border-slate-200 px-2 py-1.5 focus:border-primary outline-none"
                     />
                   </div>
                 </div>
               </div>
             ))}
             {group.sizes.length === 0 && (
-              <p className="text-xs text-slate-400 italic text-center py-2">No sizes added yet.</p>
+              <p className="text-xs text-slate-400 italic text-center py-2">
+                No sizes added yet.
+              </p>
             )}
           </div>
         </div>
@@ -236,7 +279,9 @@ function ColorGroupCard({
           <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
             Color Images <span className="text-red-500">*</span>
           </label>
-          <p className="text-[10px] text-slate-400 -mt-1 mb-1">These images apply to all sizes in this color.</p>
+          <p className="text-[10px] text-slate-400 -mt-1 mb-1">
+            These images apply to all sizes in this color.
+          </p>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {group.images.map((img) => (
               <div
@@ -257,7 +302,7 @@ function ColorGroupCard({
                   {!img.isPrimary && (
                     <button
                       onClick={() => setPrimary(img.id)}
-                      className="bg-white rounded-full p-1 text-[#1325ec] shadow-md hover:scale-110 transition-transform"
+                      className="bg-white rounded-full p-1 text-primary shadow-md hover:scale-110 transition-transform"
                       title="Set as primary"
                     >
                       <span className="material-symbols-outlined text-[14px]">
@@ -279,7 +324,7 @@ function ColorGroupCard({
             ))}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="aspect-square rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 hover:border-[#1325ec] hover:bg-[#1325ec]/5 transition-colors group text-slate-400 hover:text-[#1325ec]"
+              className="aspect-square rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 hover:border-primary hover:bg-primary/5 transition-colors group text-slate-400 hover:text-primary"
             >
               <span className="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">
                 add_a_photo
@@ -322,8 +367,8 @@ export default function VariantsTable({
           stockQty: 0,
           basePrice: "",
           originalPrice: "",
-        }
-      ]
+        },
+      ],
     };
     onColorGroupsChange([...colorGroups, newGroup]);
   };
@@ -361,7 +406,7 @@ export default function VariantsTable({
         </div>
         <button
           onClick={addColorGroup}
-          className="flex items-center gap-1.5 bg-[#1325ec] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#1325ec]/90 transition-colors shadow-sm"
+          className="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm"
         >
           <span className="material-symbols-outlined text-sm">add</span>
           Add Color

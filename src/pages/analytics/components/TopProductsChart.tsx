@@ -10,7 +10,7 @@ export default function TopProductsChart() {
     <div className="bg-white p-6 rounded-xl border border-slate-200">
       <div className="flex items-center justify-between mb-6">
         <h3 className="font-bold text-lg text-slate-900">Top Products</h3>
-        <button className="text-[#1325ec] text-sm font-bold">View All</button>
+        <button className="text-primary text-sm font-bold">View All</button>
       </div>
       <div className="space-y-6">
         {products.map((p) => (
@@ -21,7 +21,7 @@ export default function TopProductsChart() {
             </div>
             <div className="w-full bg-slate-100 rounded-full h-2">
               <div
-                className="bg-[#1325ec] h-2 rounded-full"
+                className="bg-primary h-2 rounded-full"
                 style={{ width: `${p.pct}%` }}
               ></div>
             </div>

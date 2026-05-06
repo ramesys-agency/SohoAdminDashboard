@@ -119,7 +119,7 @@ export default function LoginPage() {
                     if (errors.password)
                       setErrors({ ...errors, password: undefined });
                   }}
-                  className={`block w-full appearance-none rounded-xl border ${errors.password ? "border-red-500 focus:border-red-500 focus:ring-red-500/10" : "border-slate-200 focus:border-[#1325ec] focus:ring-[#1325ec]/10"} bg-white px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-4 sm:text-sm transition-all duration-200`}
+                  className={`block w-full appearance-none rounded-xl border ${errors.password ? "border-red-500 focus:border-red-500 focus:ring-red-500/10" : "border-slate-200 focus:border-primary focus:ring-primary/10"} bg-white px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-4 sm:text-sm transition-all duration-200`}
                   placeholder="••••••••"
                 />
                 {errors.password && (
@@ -134,7 +134,7 @@ export default function LoginPage() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="size-4 rounded border-slate-300 text-[#1325ec] focus:ring-[#1325ec]"
+                  className="size-4 rounded border-slate-300 text-primary focus:ring-primary"
                 />
                 <label
                   htmlFor="remember-me"
@@ -147,7 +147,7 @@ export default function LoginPage() {
               <div className="text-sm">
                 <a
                   href="#"
-                  className="font-semibold text-[#1325ec] hover:text-[#1325ec]/80 transition-colors"
+                  className="font-semibold text-primary hover:text-primary/80 transition-colors"
                 >
                   Forgot your password?
                 </a>

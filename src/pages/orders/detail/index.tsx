@@ -48,7 +48,11 @@ export default function OrderDetail() {
       await fetchOrder(); // Refresh
     } catch (error: any) {
       console.error("Failed to update status:", error);
-      toast.error(error?.response?.data?.message || error?.message || "Failed to update status");
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to update status",
+      );
     }
   };
 
@@ -60,7 +64,11 @@ export default function OrderDetail() {
       await fetchOrder(); // Refresh
     } catch (error: any) {
       console.error("Failed to update payment status:", error);
-      toast.error(error?.response?.data?.message || error?.message || "Failed to update payment status");
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to update payment status",
+      );
     }
   };
 
@@ -72,7 +80,9 @@ export default function OrderDetail() {
       await fetchOrder();
     } catch (error: any) {
       console.error("Failed to sync with RoadRush:", error);
-      toast.error(error?.response?.data?.message || "Failed to sync with RoadRush");
+      toast.error(
+        error?.response?.data?.message || "Failed to sync with RoadRush",
+      );
     }
   };
 
@@ -92,7 +102,7 @@ export default function OrderDetail() {
     return (
       <PageWrapper>
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1325ec]"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </PageWrapper>
     );
@@ -105,7 +115,7 @@ export default function OrderDetail() {
           <h2 className="text-xl font-bold text-slate-900">Order not found</h2>
           <button
             onClick={() => navigate("/orders")}
-            className="mt-4 text-[#1325ec] hover:underline"
+            className="mt-4 text-primary hover:underline"
           >
             Back to Orders
           </button>
@@ -121,7 +131,7 @@ export default function OrderDetail() {
         description={
           <button
             onClick={() => navigate("/orders")}
-            className="inline-flex items-center gap-1 text-[#1325ec] text-sm font-semibold hover:underline"
+            className="inline-flex items-center gap-1 text-primary text-sm font-semibold hover:underline"
           >
             <span className="material-symbols-outlined text-sm">
               arrow_back
@@ -141,7 +151,7 @@ export default function OrderDetail() {
               {order.orderCode ? (
                 <button
                   onClick={handleRefreshStatus}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1325ec]/5 text-[#1325ec] text-sm font-bold rounded-xl border border-[#1325ec]/20 hover:bg-[#1325ec] hover:text-white transition-all shadow-sm"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary/5 text-primary text-sm font-bold rounded-xl border border-primary/20 hover:bg-primary hover:text-white transition-all shadow-sm"
                 >
                   <span className="material-symbols-outlined text-lg">
                     refresh

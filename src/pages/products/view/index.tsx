@@ -6,7 +6,11 @@ import PageHeader from "../../../components/ui/PageHeader";
 import ProductGallery from "./components/ProductGallery";
 import ProductInfo from "./components/ProductInfo";
 import ReviewsSection from "./components/ReviewsSection";
-import { getProductById, deleteProduct, type ApiProduct } from "../../../api/products";
+import {
+  getProductById,
+  deleteProduct,
+  type ApiProduct,
+} from "../../../api/products";
 
 export default function ViewProduct() {
   const navigate = useNavigate();
@@ -28,11 +32,12 @@ export default function ViewProduct() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data = (res as any).data || res;
         setProduct(data);
-        
+
         // Auto-select the first variant by default
         if (data?.variants?.length > 0) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const defaultVar = data.variants.find((v: any) => v.isDefault) || data.variants[0];
+          const defaultVar =
+            data.variants.find((v: any) => v.isDefault) || data.variants[0];
           setSelectedVariantId(defaultVar.id);
         } else if (data?.availableColors?.length > 0) {
           setSelectedVariantId("var-0");
@@ -49,7 +54,8 @@ export default function ViewProduct() {
 
   const handleDelete = async () => {
     if (!product) return;
-    if (!window.confirm(`Are you sure you want to delete "${product.name}"?`)) return;
+    if (!window.confirm(`Are you sure you want to delete "${product.name}"?`))
+      return;
 
     try {
       await deleteProduct(product.id);
@@ -57,7 +63,11 @@ export default function ViewProduct() {
       navigate("/products");
     } catch (err: any) {
       console.error("Failed to delete product:", err);
-      toast.error(err?.response?.data?.message || err?.message || "Failed to delete product. Please try again.");
+      toast.error(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to delete product. Please try again.",
+      );
     }
   };
 
@@ -113,8 +123,8 @@ export default function ViewProduct() {
     gender: productData.gender || [],
     collections: productData.collections || [],
     variants: productData.variants?.length
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ? productData.variants.map((v: any, i: number) => ({
+      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        productData.variants.map((v: any, i: number) => ({
           ...v,
           basePrice: (v.basePrice ?? safePrice).toString(),
           originalPrice: (v.originalPrice ?? safeOriginalPrice).toString(),
@@ -122,10 +132,12 @@ export default function ViewProduct() {
           isDefault: i === 0,
         }))
       : productData.availableColors?.length
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ? productData.availableColors.map((c: any, i: number) => ({
+        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          productData.availableColors.map((c: any, i: number) => ({
             id: `var-${i}`,
-            sku: productData.sku || `${productData.id?.slice(0, 8) || "sku"}-${c.colorName.substring(0, 3).toUpperCase()}`,
+            sku:
+              productData.sku ||
+              `${productData.id?.slice(0, 8) || "sku"}-${c.colorName.substring(0, 3).toUpperCase()}`,
             size: "One Size",
             colorName: c.colorName,
             colorValue: c.colorValue,
@@ -169,7 +181,7 @@ export default function ViewProduct() {
         description={
           <button
             onClick={() => navigate("/products")}
-            className="inline-flex items-center gap-1 text-[#1325ec] text-sm font-semibold hover:underline"
+            className="inline-flex items-center gap-1 text-primary text-sm font-semibold hover:underline"
           >
             <span className="material-symbols-outlined text-sm">
               arrow_back
@@ -199,21 +211,25 @@ export default function ViewProduct() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
-          <ProductGallery 
+          <ProductGallery
             images={
-              selectedVariantId 
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ? mappedProduct.variants.find((v: any) => v.id === selectedVariantId)?.images.length 
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  ? mappedProduct.variants.find((v: any) => v.id === selectedVariantId)?.images 
-                  : mappedProduct.images 
+              selectedVariantId
+                ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  mappedProduct.variants.find(
+                    (v: any) => v.id === selectedVariantId,
+                  )?.images.length
+                  ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    mappedProduct.variants.find(
+                      (v: any) => v.id === selectedVariantId,
+                    )?.images
+                  : mappedProduct.images
                 : mappedProduct.images
-            } 
+            }
           />
         </div>
         <div className="lg:col-span-2 space-y-6">
-          <ProductInfo 
-            product={mappedProduct} 
+          <ProductInfo
+            product={mappedProduct}
             selectedVariantId={selectedVariantId || undefined}
             onVariantSelect={setSelectedVariantId}
           />

@@ -35,7 +35,7 @@ export default function CalendarWidget() {
               key={i}
               className={`h-8 flex items-center justify-center text-xs font-bold rounded-full cursor-pointer transition-colors ${
                 day === 3
-                  ? "bg-[#1325ec]/10 text-[#1325ec]"
+                  ? "bg-primary/10 text-primary"
                   : i < 7
                     ? "text-slate-400"
                     : "text-slate-900 hover:bg-slate-100"

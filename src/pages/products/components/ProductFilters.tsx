@@ -51,7 +51,7 @@ export default function ProductFilters({
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search products..."
-            className="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 bg-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1325ec]/20 text-slate-900"
+            className="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 bg-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-slate-900"
           />
         </div>
       </div>

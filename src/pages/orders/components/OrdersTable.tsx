@@ -41,7 +41,7 @@ export default function OrdersTable() {
   if (loading) {
     return (
       <div className="bg-white rounded-xl border border-slate-200 p-12 flex justify-center items-center shadow-sm">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1325ec]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -67,7 +67,10 @@ export default function OrdersTable() {
           <tbody className="divide-y divide-slate-100">
             {orders.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-slate-500 font-medium">
+                <td
+                  colSpan={7}
+                  className="px-6 py-12 text-center text-slate-500 font-medium"
+                >
                   No orders found.
                 </td>
               </tr>
@@ -80,7 +83,7 @@ export default function OrdersTable() {
                       .join("")
                       .toUpperCase()
                   : "U";
-                
+
                 const latestPayment = order.payments?.[0];
 
                 return (
@@ -90,7 +93,7 @@ export default function OrdersTable() {
                     className="hover:bg-slate-50 transition-colors cursor-pointer"
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-bold text-[#1325ec] hover:underline">
+                      <span className="text-sm font-bold text-primary hover:underline">
                         {order.orderCode || order.id.slice(0, 8).toUpperCase()}
                       </span>
                     </td>
@@ -103,7 +106,9 @@ export default function OrdersTable() {
                           <p className="text-sm font-bold text-slate-900">
                             {order.user?.fullName || "Guest User"}
                           </p>
-                          <p className="text-xs text-slate-500">{order.user?.email}</p>
+                          <p className="text-xs text-slate-500">
+                            {order.user?.email}
+                          </p>
                         </div>
                       </div>
                     </td>
@@ -114,7 +119,9 @@ export default function OrdersTable() {
                       ৳{parseFloat(order.totalAmount).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusBadge status={latestPayment?.status || "pending"} />
+                      <StatusBadge
+                        status={latestPayment?.status || "pending"}
+                      />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <StatusBadge status={order.status} />

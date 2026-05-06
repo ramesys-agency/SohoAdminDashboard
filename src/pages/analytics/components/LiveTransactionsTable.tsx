@@ -4,7 +4,7 @@ const transactions = [
   {
     initials: "JS",
     name: "Jordan Smith",
-    color: "bg-[#1325ec]/20 text-[#1325ec]",
+    color: "bg-primary/20 text-primary",
     status: "Completed",
     date: "Oct 24, 14:20",
     amount: "৳1,240.00",

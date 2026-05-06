@@ -95,7 +95,10 @@ export default function CategoryForm() {
   }, [categoryData]);
 
   const addAttribute = () => {
-    setAttributes([...attributes, { key: "", label: "", type: "text", isFilterable: false }]);
+    setAttributes([
+      ...attributes,
+      { key: "", label: "", type: "text", isFilterable: false },
+    ]);
   };
 
   const removeAttribute = (index: number) => {
@@ -104,7 +107,11 @@ export default function CategoryForm() {
     setAttributes(newAttributes);
   };
 
-  const updateAttribute = (index: number, field: keyof AttributeData, value: any) => {
+  const updateAttribute = (
+    index: number,
+    field: keyof AttributeData,
+    value: any,
+  ) => {
     const newAttributes = [...attributes];
     newAttributes[index] = { ...newAttributes[index], [field]: value };
     setAttributes(newAttributes);
@@ -244,7 +251,7 @@ export default function CategoryForm() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Electronics, Apparel..."
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
               />
             </div>
 
@@ -258,7 +265,7 @@ export default function CategoryForm() {
                   onClick={() =>
                     document.getElementById("category-image")?.click()
                   }
-                  className="size-24 rounded-full border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 hover:border-[#1325ec] transition-colors cursor-pointer bg-slate-50 group flex-shrink-0 overflow-hidden"
+                  className="size-24 rounded-full border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 hover:border-primary transition-colors cursor-pointer bg-slate-50 group shrink-0 overflow-hidden"
                 >
                   {imagePreview ? (
                     <img
@@ -267,7 +274,7 @@ export default function CategoryForm() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="material-symbols-outlined text-slate-400 group-hover:text-[#1325ec]">
+                    <span className="material-symbols-outlined text-slate-400 group-hover:text-primary">
                       add_photo_alternate
                     </span>
                   )}
@@ -327,7 +334,7 @@ export default function CategoryForm() {
                     onClick={() =>
                       document.getElementById("men-image")?.click()
                     }
-                    className="size-20 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-[#1325ec] bg-slate-50 overflow-hidden relative group shadow-sm"
+                    className="size-20 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary bg-slate-50 overflow-hidden relative group shadow-sm"
                   >
                     {menImagePreview ? (
                       <img
@@ -363,7 +370,7 @@ export default function CategoryForm() {
                     onClick={() =>
                       document.getElementById("women-image")?.click()
                     }
-                    className="size-20 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-[#1325ec] bg-slate-50 overflow-hidden relative group shadow-sm"
+                    className="size-20 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary bg-slate-50 overflow-hidden relative group shadow-sm"
                   >
                     {womenImagePreview ? (
                       <img
@@ -399,7 +406,7 @@ export default function CategoryForm() {
                     onClick={() =>
                       document.getElementById("kids-image")?.click()
                     }
-                    className="size-20 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-[#1325ec] bg-slate-50 overflow-hidden relative group shadow-sm"
+                    className="size-20 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary bg-slate-50 overflow-hidden relative group shadow-sm"
                   >
                     {kidsImagePreview ? (
                       <img
@@ -449,7 +456,10 @@ export default function CategoryForm() {
               </div>
               <div className="space-y-4">
                 {attributes.map((attr, index) => (
-                  <div key={index} className="flex flex-col gap-3 bg-slate-50 p-4 rounded-lg border border-slate-200 relative group">
+                  <div
+                    key={index}
+                    className="flex flex-col gap-3 bg-slate-50 p-4 rounded-lg border border-slate-200 relative group"
+                  >
                     <Button
                       type="button"
                       variant="ghost"
@@ -457,39 +467,53 @@ export default function CategoryForm() {
                       onClick={() => removeAttribute(index)}
                       className="absolute top-2 right-2 text-slate-400 hover:text-red-500 h-8 w-8"
                     >
-                      <span className="material-symbols-outlined text-[18px]">close</span>
+                      <span className="material-symbols-outlined text-[18px]">
+                        close
+                      </span>
                     </Button>
-                    
+
                     <div className="grid grid-cols-2 gap-3 pr-8">
                       <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1 block">Key <span className="text-red-500">*</span></label>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1 block">
+                          Key <span className="text-red-500">*</span>
+                        </label>
                         <input
                           type="text"
                           placeholder="e.g. fabric_type"
                           value={attr.key}
-                          onChange={(e) => updateAttribute(index, "key", e.target.value)}
-                          className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:border-[#1325ec] outline-none"
+                          onChange={(e) =>
+                            updateAttribute(index, "key", e.target.value)
+                          }
+                          className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:border-primary outline-none"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1 block">Label <span className="text-red-500">*</span></label>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1 block">
+                          Label <span className="text-red-500">*</span>
+                        </label>
                         <input
                           type="text"
                           placeholder="e.g. Fabric Type"
                           value={attr.label}
-                          onChange={(e) => updateAttribute(index, "label", e.target.value)}
-                          className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:border-[#1325ec] outline-none"
+                          onChange={(e) =>
+                            updateAttribute(index, "label", e.target.value)
+                          }
+                          className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:border-primary outline-none"
                         />
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1 block">Type</label>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1 block">
+                          Type
+                        </label>
                         <select
                           value={attr.type}
-                          onChange={(e) => updateAttribute(index, "type", e.target.value)}
-                          className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:border-[#1325ec] outline-none"
+                          onChange={(e) =>
+                            updateAttribute(index, "type", e.target.value)
+                          }
+                          className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:border-primary outline-none"
                         >
                           <option value="text">Text</option>
                           <option value="number">Number</option>
@@ -499,34 +523,58 @@ export default function CategoryForm() {
                       </div>
                       <div className="flex items-end pb-2">
                         <label className="flex items-center gap-2 cursor-pointer">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             checked={attr.isFilterable}
-                            onChange={(e) => updateAttribute(index, "isFilterable", e.target.checked)}
-                            className="rounded text-[#1325ec] focus:ring-[#1325ec]" 
+                            onChange={(e) =>
+                              updateAttribute(
+                                index,
+                                "isFilterable",
+                                e.target.checked,
+                              )
+                            }
+                            className="rounded text-primary focus:ring-primary"
                           />
-                          <span className="text-sm font-medium text-slate-700">Use for Filtering</span>
+                          <span className="text-sm font-medium text-slate-700">
+                            Use for Filtering
+                          </span>
                         </label>
                       </div>
                     </div>
 
                     {attr.type === "select" && (
                       <div>
-                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1 block">Options (comma separated)</label>
-                         <input
-                           type="text"
-                           placeholder="e.g. Cotton, Polyester, Wool"
-                           value={Array.isArray(attr.options) ? attr.options.join(", ") : (attr.options || "")}
-                           onChange={(e) => updateAttribute(index, "options", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
-                           className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:border-[#1325ec] outline-none"
-                         />
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1 block">
+                          Options (comma separated)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Cotton, Polyester, Wool"
+                          value={
+                            Array.isArray(attr.options)
+                              ? attr.options.join(", ")
+                              : attr.options || ""
+                          }
+                          onChange={(e) =>
+                            updateAttribute(
+                              index,
+                              "options",
+                              e.target.value
+                                .split(",")
+                                .map((s) => s.trim())
+                                .filter(Boolean),
+                            )
+                          }
+                          className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:border-primary outline-none"
+                        />
                       </div>
                     )}
                   </div>
                 ))}
                 {attributes.length === 0 && (
                   <p className="text-xs text-slate-400 italic text-center py-4 bg-slate-50 rounded-lg border border-dashed border-slate-200">
-                    No attributes added yet. Click "Add Attribute" to define custom fields.
+                    No attributes added yet. Click "Add Attribute" to define
+                    custom fields.
                   </p>
                 )}
               </div>
@@ -544,7 +592,7 @@ export default function CategoryForm() {
             <select
               value={parentId}
               onChange={(e) => setParentId(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] outline-none"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary outline-none"
             >
               <option value="">None (Top-level)</option>
               {parentOptions.map((cat: Category) => (
@@ -568,7 +616,7 @@ export default function CategoryForm() {
           <select
             value={isActive ? "active" : "inactive"}
             onChange={(e) => setIsActive(e.target.value === "active")}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] outline-none font-medium"
+            className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary outline-none font-medium"
           >
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>

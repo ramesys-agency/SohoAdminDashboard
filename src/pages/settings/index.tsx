@@ -1,21 +1,25 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
-import { getUserById, updateUserProfile, updateUserAvatar } from "../../api/user";
+import {
+  getUserById,
+  updateUserProfile,
+  updateUserAvatar,
+} from "../../api/user";
 import type { AuthResponse } from "../auth/auth.interface";
 import { toast } from "sonner";
 import PasswordModal from "./components/PasswordModal";
 
 type User = AuthResponse["data"]["user"];
 
-function ProfileSettings({ 
-  user, 
+function ProfileSettings({
+  user,
   onDataChange,
-  onPasswordClick
-}: { 
-  user?: User, 
-  onDataChange: (data: any) => void,
-  onPasswordClick: () => void
+  onPasswordClick,
+}: {
+  user?: User;
+  onDataChange: (data: any) => void;
+  onPasswordClick: () => void;
 }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -44,10 +48,15 @@ function ProfileSettings({
     if (field === "firstName") setFirstName(value);
     if (field === "lastName") setLastName(value);
     if (field === "phone") setPhone(value);
-    
-    onDataChange({ 
-      fullName: field === "firstName" ? `${value} ${lastName}` : field === "lastName" ? `${firstName} ${value}` : `${firstName} ${lastName}`,
-      phone: field === "phone" ? value : phone 
+
+    onDataChange({
+      fullName:
+        field === "firstName"
+          ? `${value} ${lastName}`
+          : field === "lastName"
+            ? `${firstName} ${value}`
+            : `${firstName} ${lastName}`,
+      phone: field === "phone" ? value : phone,
     });
   };
 
@@ -58,7 +67,7 @@ function ProfileSettings({
           Personal Information
         </h3>
         <div className="flex items-center gap-6 mb-6 pb-6 border-b border-slate-100">
-          <div className="size-20 rounded-full bg-[#1325ec]/10 flex items-center justify-center text-[#1325ec] text-3xl font-bold overflow-hidden border border-slate-100">
+          <div className="size-20 rounded-full bg-primary/10 flex items-center justify-center text-primary text-3xl font-bold overflow-hidden border border-slate-100">
             {avatarPreview || user?.avatar ? (
               <img
                 src={avatarPreview || user?.avatar}
@@ -76,16 +85,16 @@ function ProfileSettings({
             <p className="text-sm text-slate-500 mb-3">
               {user?.email || "admin@soho.com"}
             </p>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleFileChange} 
-              className="hidden" 
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
               accept="image/*"
             />
-            <button 
+            <button
               onClick={() => fileInputRef.current?.click()}
-              className="px-3 py-1.5 text-xs font-bold bg-[#1325ec]/10 text-[#1325ec] rounded-lg hover:bg-[#1325ec]/20 transition-colors"
+              className="px-3 py-1.5 text-xs font-bold bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
             >
               Change Avatar
             </button>
@@ -101,7 +110,7 @@ function ProfileSettings({
               value={firstName}
               onChange={(e) => handleInputChange("firstName", e.target.value)}
               placeholder="First Name"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none placeholder:text-slate-400"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none placeholder:text-slate-400"
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -113,7 +122,7 @@ function ProfileSettings({
               value={lastName}
               onChange={(e) => handleInputChange("lastName", e.target.value)}
               placeholder="Last Name"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none placeholder:text-slate-400"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none placeholder:text-slate-400"
             />
           </div>
           <div className="flex flex-col gap-1.5 md:col-span-2">
@@ -136,14 +145,14 @@ function ProfileSettings({
               value={phone}
               onChange={(e) => handleInputChange("phone", e.target.value)}
               placeholder="+1 (555) 000-0000"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none placeholder:text-slate-400"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none placeholder:text-slate-400"
             />
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold text-slate-700">
               Time Zone
             </label>
-            <select className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] outline-none bg-white">
+            <select className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary outline-none bg-white">
               <option>UTC+06:00 (Bangladesh Standard Time)</option>
               <option>UTC+05:30 (India Standard Time)</option>
               <option>UTC+00:00 (GMT)</option>
@@ -161,7 +170,7 @@ function ProfileSettings({
               Update your account password to keep your account secure.
             </p>
           </div>
-          <button 
+          <button
             onClick={() => onPasswordClick()}
             className="px-4 py-2 text-sm font-bold bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
           >
@@ -189,7 +198,7 @@ export default function Settings() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      
+
       // 1. Handle Avatar Upload if changed
       if (formData.avatarFile) {
         await updateUserAvatar(formData.avatarFile);
@@ -228,23 +237,25 @@ export default function Settings() {
       <div className="space-y-6">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="size-8 border-4 border-[#1325ec]/20 border-t-[#1325ec] rounded-full animate-spin"></div>
+            <div className="size-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
           </div>
         ) : (
           <>
-            <ProfileSettings 
-              user={userProfile} 
-              onDataChange={(data) => setFormData((prev: any) => ({ ...prev, ...data }))} 
+            <ProfileSettings
+              user={userProfile}
+              onDataChange={(data) =>
+                setFormData((prev: any) => ({ ...prev, ...data }))
+              }
               onPasswordClick={() => setIsPasswordModalOpen(true)}
             />
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
               <button className="px-5 py-2.5 text-sm font-bold border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700">
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-5 py-2.5 text-sm font-bold bg-[#1325ec] text-white rounded-lg shadow-lg shadow-[#1325ec]/20 hover:opacity-90 transition-all disabled:opacity-50"
+                className="px-5 py-2.5 text-sm font-bold bg-primary text-white rounded-lg shadow-lg shadow-primary/20 hover:opacity-90 transition-all disabled:opacity-50"
               >
                 {saving ? "Saving..." : "Save Changes"}
               </button>
@@ -252,9 +263,9 @@ export default function Settings() {
           </>
         )}
       </div>
-      <PasswordModal 
-        isOpen={isPasswordModalOpen} 
-        onClose={() => setIsPasswordModalOpen(false)} 
+      <PasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
       />
     </div>
   );

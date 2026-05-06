@@ -10,7 +10,10 @@ interface CouponsTableProps {
   isLoading?: boolean;
 }
 
-export default function CouponsTable({ coupons, isLoading }: CouponsTableProps) {
+export default function CouponsTable({
+  coupons,
+  isLoading,
+}: CouponsTableProps) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -32,7 +35,7 @@ export default function CouponsTable({ coupons, isLoading }: CouponsTableProps) 
     return (
       <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500">
         <div className="flex flex-col items-center gap-2">
-          <div className="w-8 h-8 rounded-full border-2 border-[#1325ec] border-t-transparent animate-spin" />
+          <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
           <p>Loading coupons...</p>
         </div>
       </div>
@@ -89,7 +92,7 @@ export default function CouponsTable({ coupons, isLoading }: CouponsTableProps) 
               const pct = coupon.usageLimit
                 ? (coupon.usageCount / coupon.usageLimit) * 100
                 : null;
-              const barColor = pct && pct > 80 ? "bg-amber-500" : "bg-[#1325ec]";
+              const barColor = pct && pct > 80 ? "bg-amber-500" : "bg-primary";
 
               return (
                 <tr
@@ -170,7 +173,7 @@ export default function CouponsTable({ coupons, isLoading }: CouponsTableProps) 
                       </button>
                       <button
                         title="View Details"
-                        className="text-slate-400 hover:text-[#1325ec] transition-colors"
+                        className="text-slate-400 hover:text-primary transition-colors"
                         onClick={() => navigate(`/offers/view/${coupon.id}`)}
                       >
                         <span className="material-symbols-outlined">
@@ -179,7 +182,7 @@ export default function CouponsTable({ coupons, isLoading }: CouponsTableProps) 
                       </button>
                       <button
                         title="Edit"
-                        className="text-slate-400 hover:text-[#1325ec] transition-colors"
+                        className="text-slate-400 hover:text-primary transition-colors"
                         onClick={() =>
                           navigate("/offers/create", {
                             state: { editCoupon: coupon },
@@ -195,7 +198,10 @@ export default function CouponsTable({ coupons, isLoading }: CouponsTableProps) 
             })}
             {coupons.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                <td
+                  colSpan={6}
+                  className="px-6 py-8 text-center text-slate-500"
+                >
                   No coupons found.
                 </td>
               </tr>
@@ -212,5 +218,3 @@ export default function CouponsTable({ coupons, isLoading }: CouponsTableProps) 
     </div>
   );
 }
-
-

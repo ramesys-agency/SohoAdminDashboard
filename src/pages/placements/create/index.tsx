@@ -30,13 +30,24 @@ export default function CreatePlacements() {
   const passedPlacement = passedCollection?.collectionPlacements?.[0];
 
   // Initialise form state directly from router state (no fetch needed)
-  const [collectionMode, setCollectionMode] = useState<CollectionMode>("existing");
-  const [collectionId, setCollectionId] = useState<string>(passedCollection?.id ?? "");
+  const [collectionMode, setCollectionMode] =
+    useState<CollectionMode>("existing");
+  const [collectionId, setCollectionId] = useState<string>(
+    passedCollection?.id ?? "",
+  );
   const [pageName, setPageName] = useState<string>(passedPlacement?.page ?? "");
-  const [sectionName, setSectionName] = useState<string>(passedPlacement?.section ?? "");
-  const [isBanner, setIsBanner] = useState<boolean>(passedPlacement?.isBanner ?? true);
-  const [isActive, setIsActive] = useState<boolean>(passedPlacement?.isActive ?? true);
-  const [imageUrl, setImageUrl] = useState<string>(passedPlacement?.imageUrl ?? "");
+  const [sectionName, setSectionName] = useState<string>(
+    passedPlacement?.section ?? "",
+  );
+  const [isBanner, setIsBanner] = useState<boolean>(
+    passedPlacement?.isBanner ?? true,
+  );
+  const [isActive, setIsActive] = useState<boolean>(
+    passedPlacement?.isActive ?? true,
+  );
+  const [imageUrl, setImageUrl] = useState<string>(
+    passedPlacement?.imageUrl ?? "",
+  );
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -63,7 +74,9 @@ export default function CreatePlacements() {
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message ?? "Failed to create placement.");
+      toast.error(
+        error?.response?.data?.message ?? "Failed to create placement.",
+      );
     },
   });
 
@@ -83,7 +96,9 @@ export default function CreatePlacements() {
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message ?? "Failed to update placement.");
+      toast.error(
+        error?.response?.data?.message ?? "Failed to update placement.",
+      );
     },
   });
 
@@ -113,7 +128,8 @@ export default function CreatePlacements() {
         });
       } else {
         createMutation.mutate({
-          collectionId: collectionMode === "existing" ? collectionId : undefined,
+          collectionId:
+            collectionMode === "existing" ? collectionId : undefined,
           collectionName: collectionMode === "new" ? collectionId : undefined,
           page: pageName,
           section: sectionName || undefined,
@@ -124,13 +140,18 @@ export default function CreatePlacements() {
       }
     } catch (err: any) {
       console.error(err);
-      toast.error(err?.response?.data?.message || err?.message || "Failed to create placement.");
+      toast.error(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to create placement.",
+      );
     } finally {
       setIsSaving(false);
     }
   };
 
-  const isPending = createMutation.isPending || updateMutation.isPending || isSaving;
+  const isPending =
+    createMutation.isPending || updateMutation.isPending || isSaving;
 
   return (
     <PageWrapper>
@@ -149,8 +170,8 @@ export default function CreatePlacements() {
               {isPending
                 ? "Saving..."
                 : isEdit
-                ? "Update Placement"
-                : "Save Placement"}
+                  ? "Update Placement"
+                  : "Save Placement"}
             </Button>
           </div>
         }
@@ -167,7 +188,7 @@ export default function CreatePlacements() {
             }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
               collectionMode === "existing"
-                ? "bg-white text-[#1325ec] shadow-sm border border-slate-200"
+                ? "bg-white text-primary shadow-sm border border-slate-200"
                 : "text-slate-500 hover:text-slate-700"
             }`}
           >
@@ -184,7 +205,7 @@ export default function CreatePlacements() {
             }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
               collectionMode === "new"
-                ? "bg-white text-[#1325ec] shadow-sm border border-slate-200"
+                ? "bg-white text-primary shadow-sm border border-slate-200"
                 : "text-slate-500 hover:text-slate-700"
             }`}
           >

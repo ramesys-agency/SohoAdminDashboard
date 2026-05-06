@@ -46,17 +46,19 @@ export default function PasswordModal({ isOpen, onClose }: PasswordModalProps) {
       <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
           <h3 className="text-lg font-bold text-slate-900">Change Password</h3>
-          <button 
+          <button
             onClick={onClose}
             className="size-8 flex items-center justify-center rounded-lg hover:bg-slate-200 text-slate-500 transition-colors"
           >
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-slate-700">Current Password</label>
+            <label className="text-sm font-semibold text-slate-700">
+              Current Password
+            </label>
             <div className="relative">
               <input
                 type={showCurrent ? "text" : "password"}
@@ -64,7 +66,7 @@ export default function PasswordModal({ isOpen, onClose }: PasswordModalProps) {
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="current password"
                 required
-                className="w-full rounded-xl border border-slate-200 pl-4 pr-10 py-3 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none transition-all"
+                className="w-full rounded-xl border border-slate-200 pl-4 pr-10 py-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
               />
               <button
                 type="button"
@@ -79,7 +81,9 @@ export default function PasswordModal({ isOpen, onClose }: PasswordModalProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-slate-700">New Password</label>
+            <label className="text-sm font-semibold text-slate-700">
+              New Password
+            </label>
             <div className="relative">
               <input
                 type={showNew ? "text" : "password"}
@@ -87,7 +91,7 @@ export default function PasswordModal({ isOpen, onClose }: PasswordModalProps) {
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="enter new password"
                 required
-                className="w-full rounded-xl border border-slate-200 pl-4 pr-10 py-3 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none transition-all"
+                className="w-full rounded-xl border border-slate-200 pl-4 pr-10 py-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
               />
               <button
                 type="button"
@@ -102,7 +106,9 @@ export default function PasswordModal({ isOpen, onClose }: PasswordModalProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-slate-700">Confirm New Password</label>
+            <label className="text-sm font-semibold text-slate-700">
+              Confirm New Password
+            </label>
             <div className="relative">
               <input
                 type={showConfirm ? "text" : "password"}
@@ -110,7 +116,7 @@ export default function PasswordModal({ isOpen, onClose }: PasswordModalProps) {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="reenter password"
                 required
-                className="w-full rounded-xl border border-slate-200 pl-4 pr-10 py-3 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none transition-all"
+                className="w-full rounded-xl border border-slate-200 pl-4 pr-10 py-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
               />
               <button
                 type="button"
@@ -135,7 +141,7 @@ export default function PasswordModal({ isOpen, onClose }: PasswordModalProps) {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-3 text-sm font-bold bg-[#1325ec] text-white rounded-xl shadow-lg shadow-[#1325ec]/20 hover:opacity-90 transition-all disabled:opacity-50"
+              className="flex-1 py-3 text-sm font-bold bg-primary text-white rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all disabled:opacity-50"
             >
               {loading ? "Updating..." : "Update Password"}
             </button>

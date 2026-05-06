@@ -6,14 +6,18 @@ interface MetricCardsProps {
   totalCustomers?: number;
 }
 
-export default function MetricCards({ totalSales = 0, totalOrders = 0, totalCustomers = 0 }: MetricCardsProps) {
+export default function MetricCards({
+  totalSales = 0,
+  totalOrders = 0,
+  totalCustomers = 0,
+}: MetricCardsProps) {
   const metrics = [
     {
       title: "Total Revenue",
       value: `৳${totalSales.toLocaleString()}`,
       icon: "payments",
-      iconBg: "bg-[#1325ec]/10",
-      iconColor: "text-[#1325ec]",
+      iconBg: "bg-primary/10",
+      iconColor: "text-primary",
       trend: "up" as const,
       trendValue: "12.5%",
       sparklinePath: "M0 25 Q10 15, 20 20 T40 10 T60 15 T80 5 T100 12",

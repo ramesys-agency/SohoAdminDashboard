@@ -13,9 +13,18 @@ import { AppPage, PAGE_DISPLAY_LABEL } from "../types";
 const PAGE_OPTIONS = [
   { label: "All Pages", value: "" },
   { label: PAGE_DISPLAY_LABEL[AppPage.HOME], value: AppPage.HOME },
-  { label: PAGE_DISPLAY_LABEL[AppPage.CATALOG_MEN], value: AppPage.CATALOG_MEN },
-  { label: PAGE_DISPLAY_LABEL[AppPage.CATALOG_WOMEN], value: AppPage.CATALOG_WOMEN },
-  { label: PAGE_DISPLAY_LABEL[AppPage.CATALOG_KIDS], value: AppPage.CATALOG_KIDS },
+  {
+    label: PAGE_DISPLAY_LABEL[AppPage.CATALOG_MEN],
+    value: AppPage.CATALOG_MEN,
+  },
+  {
+    label: PAGE_DISPLAY_LABEL[AppPage.CATALOG_WOMEN],
+    value: AppPage.CATALOG_WOMEN,
+  },
+  {
+    label: PAGE_DISPLAY_LABEL[AppPage.CATALOG_KIDS],
+    value: AppPage.CATALOG_KIDS,
+  },
   { label: PAGE_DISPLAY_LABEL[AppPage.OFFERS], value: AppPage.OFFERS },
 ];
 
@@ -61,7 +70,9 @@ export default function CollectionsTable() {
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message ?? "Failed to delete placement.");
+      toast.error(
+        error?.response?.data?.message ?? "Failed to delete placement.",
+      );
       setDeletingId(null);
     },
   });
@@ -72,7 +83,12 @@ export default function CollectionsTable() {
       toast.error("No placement found for this collection.");
       return;
     }
-    if (!window.confirm(`Delete placement for "${col.name}"? This cannot be undone.`)) return;
+    if (
+      !window.confirm(
+        `Delete placement for "${col.name}"? This cannot be undone.`,
+      )
+    )
+      return;
     setDeletingId(placementId);
     deleteMutation.mutate(placementId);
   };
@@ -113,14 +129,14 @@ export default function CollectionsTable() {
             placeholder="Search collections..."
             value={search}
             onChange={handleSearchChange}
-            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1325ec]/20 focus:border-[#1325ec] transition-all text-sm"
+            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
           />
         </div>
         <div className="w-full sm:w-48">
           <select
             value={placementPage}
             onChange={handlePageFilterChange}
-            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1325ec]/20 focus:border-[#1325ec] transition-all text-sm bg-white"
+            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-white"
           >
             {PAGE_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -218,17 +234,21 @@ export default function CollectionsTable() {
                         onClick={() =>
                           navigate(
                             `/placements/collection/${col.id}/add-products`,
-                            { state: { collectionName: col.name } }
+                            { state: { collectionName: col.name } },
                           )
                         }
-                        className="px-3 py-1 text-sm font-medium text-[#1325ec] hover:bg-[#1325ec]/10 rounded-lg transition-colors"
+                        className="px-3 py-1 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
                         title="Products"
                       >
                         Products
                       </button>
                       <button
-                        onClick={() => navigate(`/placements/edit/${col.id}`, { state: { collection: col } })}
-                        className="p-2 text-slate-400 hover:text-[#1325ec] transition-colors"
+                        onClick={() =>
+                          navigate(`/placements/edit/${col.id}`, {
+                            state: { collection: col },
+                          })
+                        }
+                        className="p-2 text-slate-400 hover:text-primary transition-colors"
                         title="Edit"
                       >
                         <span className="material-symbols-outlined text-lg">
@@ -237,12 +257,16 @@ export default function CollectionsTable() {
                       </button>
                       <button
                         onClick={() => handleDelete(col)}
-                        disabled={deletingId === col.collectionPlacements?.[0]?.id && deleteMutation.isPending}
+                        disabled={
+                          deletingId === col.collectionPlacements?.[0]?.id &&
+                          deleteMutation.isPending
+                        }
                         className="p-2 text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50"
                         title="Delete"
                       >
                         <span className="material-symbols-outlined text-lg">
-                          {deletingId === col.collectionPlacements?.[0]?.id && deleteMutation.isPending
+                          {deletingId === col.collectionPlacements?.[0]?.id &&
+                          deleteMutation.isPending
                             ? "hourglass_empty"
                             : "delete"}
                         </span>

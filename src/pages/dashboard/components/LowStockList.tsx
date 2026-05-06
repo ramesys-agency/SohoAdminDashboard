@@ -27,7 +27,7 @@ export default function LowStockList() {
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
       <div className="p-6 border-b border-slate-200 flex justify-between items-center">
         <h3 className="text-lg font-bold text-slate-900">Low Stock</h3>
-        <button className="text-[#1325ec] text-sm font-bold hover:underline">
+        <button className="text-primary text-sm font-bold hover:underline">
           Restock
         </button>
       </div>

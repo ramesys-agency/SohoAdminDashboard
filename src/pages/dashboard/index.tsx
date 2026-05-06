@@ -17,7 +17,7 @@ export default function Dashboard() {
     return (
       <PageWrapper>
         <div className="flex items-center justify-center h-screen">
-          <div className="size-8 border-4 border-[#1325ec]/20 border-t-[#1325ec] rounded-full animate-spin"></div>
+          <div className="size-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
         </div>
       </PageWrapper>
     );
@@ -30,10 +30,10 @@ export default function Dashboard() {
         description="Welcome back! Here's what's happening today."
       />
       <div className="space-y-6">
-        <MetricCards 
-          totalSales={stats?.totalSales} 
-          totalOrders={stats?.totalOrders} 
-          totalCustomers={stats?.totalCustomers} 
+        <MetricCards
+          totalSales={stats?.totalSales}
+          totalOrders={stats?.totalOrders}
+          totalCustomers={stats?.totalCustomers}
         />
         <SalesChart trend={stats?.salesTrend} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

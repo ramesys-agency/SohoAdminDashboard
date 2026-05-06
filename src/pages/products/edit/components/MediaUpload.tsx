@@ -40,7 +40,7 @@ export default function MediaUpload({
         <h3 className="text-sm font-bold text-slate-900">Variant Images</h3>
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="text-[#1325ec] text-xs font-bold flex items-center gap-1 hover:underline"
+          className="text-primary text-xs font-bold flex items-center gap-1 hover:underline"
         >
           <span className="material-symbols-outlined text-sm">add</span>
           Add Item
@@ -98,7 +98,7 @@ export default function MediaUpload({
         />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="aspect-[3/4] rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-2 hover:border-[#1325ec] hover:bg-slate-50 transition-colors cursor-pointer group text-slate-500 hover:text-[#1325ec]"
+          className="aspect-[3/4] rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-slate-50 transition-colors cursor-pointer group text-slate-500 hover:text-primary"
         >
           <span className="material-symbols-outlined transition-transform group-hover:scale-110">
             add_a_photo

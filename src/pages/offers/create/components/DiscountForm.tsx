@@ -3,7 +3,11 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { getCollections, type Collection } from "../../../../api/collections";
-import { createCoupon, updateCoupon, type Coupon } from "../../../../api/coupons";
+import {
+  createCoupon,
+  updateCoupon,
+  type Coupon,
+} from "../../../../api/coupons";
 
 interface DiscountFormProps {
   initialData?: Coupon;
@@ -66,7 +70,9 @@ export default function DiscountForm({ initialData }: DiscountFormProps) {
       navigate("/offers");
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || err?.message || "Failed to save coupon");
+      toast.error(
+        err?.response?.data?.message || err?.message || "Failed to save coupon",
+      );
     },
   });
 
@@ -138,7 +144,7 @@ export default function DiscountForm({ initialData }: DiscountFormProps) {
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               placeholder="e.g. SUMMER24"
-              className="flex-1 rounded-lg border border-slate-200 px-3 py-2.5 font-mono font-bold uppercase tracking-wider text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none"
+              className="flex-1 rounded-lg border border-slate-200 px-3 py-2.5 font-mono font-bold uppercase tracking-wider text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
             />
             <button
               onClick={handleGenerateCode}
@@ -169,7 +175,7 @@ export default function DiscountForm({ initialData }: DiscountFormProps) {
                 key={val}
                 type="button"
                 onClick={() => setDiscountType(val)}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold border transition-colors ${discountType === val ? "bg-[#1325ec] border-[#1325ec] text-white" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`}
+                className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold border transition-colors ${discountType === val ? "bg-primary border-primary text-white" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`}
               >
                 {label}
               </button>
@@ -190,7 +196,7 @@ export default function DiscountForm({ initialData }: DiscountFormProps) {
                 value={discountValue}
                 onChange={(e) => setDiscountValue(e.target.value)}
                 placeholder={discountType === "percentage" ? "20" : "10.00"}
-                className="w-full pl-8 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-bold focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none"
+                className="w-full pl-8 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-bold focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
               />
             </div>
 
@@ -211,7 +217,7 @@ export default function DiscountForm({ initialData }: DiscountFormProps) {
                     onClick={() => setAppliesTo(val)}
                     className={`flex-1 py-2 px-4 rounded-lg text-sm font-bold border transition-all ${
                       appliesTo === val
-                        ? "bg-[#1325ec]/10 border-[#1325ec] text-[#1325ec]"
+                        ? "bg-primary/10 border-primary text-primary"
                         : "border-slate-200 text-slate-500 hover:bg-slate-50"
                     }`}
                   >
@@ -230,8 +236,8 @@ export default function DiscountForm({ initialData }: DiscountFormProps) {
                         onClick={() => toggleCollection(coll.id)}
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all ${
                           selectedCollections.includes(coll.id)
-                            ? "bg-[#1325ec] border-[#1325ec] text-white shadow-md shadow-[#1325ec]/10"
-                            : "bg-white border-slate-200 text-slate-600 hover:border-[#1325ec]/30"
+                            ? "bg-primary border-primary text-white shadow-md shadow-primary/10"
+                            : "bg-white border-slate-200 text-slate-600 hover:border-primary/30"
                         }`}
                       >
                         <span className="material-symbols-outlined text-sm">
@@ -274,7 +280,7 @@ export default function DiscountForm({ initialData }: DiscountFormProps) {
                     name="minReq"
                     checked={minReq === val}
                     onChange={() => setMinReq(val)}
-                    className="size-4 text-[#1325ec] focus:ring-[#1325ec]"
+                    className="size-4 text-primary focus:ring-primary"
                   />
                   <span
                     className={`text-sm font-medium transition-colors ${minReq === val ? "text-slate-900" : "text-slate-500 group-hover:text-slate-700"}`}
@@ -290,7 +296,7 @@ export default function DiscountForm({ initialData }: DiscountFormProps) {
                       value={minReqValue}
                       onChange={(e) => setMinReqValue(e.target.value)}
                       placeholder={val === "amount" ? "0.00" : "1"}
-                      className="w-full max-w-[200px] rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#1325ec] outline-none"
+                      className="w-full max-w-[200px] rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary outline-none"
                     />
                   </div>
                 )}
@@ -308,7 +314,7 @@ export default function DiscountForm({ initialData }: DiscountFormProps) {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] outline-none font-medium"
+            className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary outline-none font-medium"
           >
             <option>Active</option>
             <option>Scheduled</option>
@@ -331,7 +337,7 @@ export default function DiscountForm({ initialData }: DiscountFormProps) {
                 value={usageLimit}
                 onChange={(e) => setUsageLimit(e.target.value)}
                 placeholder="Unlimited"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] focus:ring-2 focus:ring-[#1325ec]/20 outline-none"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
               />
             </div>
             <label className="flex items-center gap-2 cursor-pointer">
@@ -339,7 +345,7 @@ export default function DiscountForm({ initialData }: DiscountFormProps) {
                 type="checkbox"
                 checked={isOnePerCustomer}
                 onChange={(e) => setIsOnePerCustomer(e.target.checked)}
-                className="rounded border-slate-300 text-[#1325ec]"
+                className="rounded border-slate-300 text-primary"
               />
               <span className="text-sm text-slate-600">
                 Limit to one per customer
@@ -362,7 +368,7 @@ export default function DiscountForm({ initialData }: DiscountFormProps) {
                 type="datetime-local"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] outline-none"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary outline-none"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -373,7 +379,7 @@ export default function DiscountForm({ initialData }: DiscountFormProps) {
                 type="datetime-local"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1325ec] outline-none"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary outline-none"
               />
               <p className="text-xs text-slate-400">
                 Leave empty for no expiry.
