@@ -155,7 +155,7 @@ function ColorGroupCard({
             </h4>
             <button
               onClick={addSize}
-              className="text-xs text-primary font-semibold hover:underline flex items-center gap-1"
+              className="text-xs text-primary px-2 py-1 hover:bg-primary/10 rounded transition-colors duration-200 font-semibold flex items-center gap-1"
             >
               <span className="material-symbols-outlined text-sm">add</span> Add
               Size
@@ -198,7 +198,7 @@ function ColorGroupCard({
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 uppercase">
-                      SKU
+                      SKU <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -212,7 +212,7 @@ function ColorGroupCard({
                 <div className="grid grid-cols-3 gap-2">
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 uppercase">
-                      Price
+                      Price <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -230,7 +230,7 @@ function ColorGroupCard({
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 uppercase">
-                      MRP
+                      MRP <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -248,7 +248,7 @@ function ColorGroupCard({
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 uppercase">
-                      Stock
+                      Stock <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -399,7 +399,7 @@ export default function VariantsTable({
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold text-slate-900">Color Variants</h3>
+          <h3 className="text-lg font-bold text-slate-900">Product Variants</h3>
           <p className="text-xs text-slate-500 mt-0.5">
             Group your product sizes by color, and assign images to each color.
           </p>
@@ -409,7 +409,7 @@ export default function VariantsTable({
           className="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm"
         >
           <span className="material-symbols-outlined text-sm">add</span>
-          Add Color
+          Add Variant
         </button>
       </div>
 

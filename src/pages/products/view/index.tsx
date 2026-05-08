@@ -11,13 +11,14 @@ import {
   deleteProduct,
   type ApiProduct,
 } from "../../../api/products";
+import Button from "../../../components/ui/Button";
 
 export default function ViewProduct() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
   const [product, setProduct] = useState<ApiProduct | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(id));
   const [error, setError] = useState<string | null>(null);
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
     null,
@@ -26,16 +27,20 @@ export default function ViewProduct() {
   useEffect(() => {
     if (!id) return;
 
+    let isMounted = true;
+
+    // Only set loading to true if it's currently false (e.g. when id changes)
+    // This avoids the synchronous call on initial mount where loading is already true.
     setLoading(true);
+
     getProductById(id)
       .then((res) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (!isMounted) return;
         const data = (res as any).data || res;
         setProduct(data);
 
         // Auto-select the first variant by default
         if (data?.variants?.length > 0) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const defaultVar =
             data.variants.find((v: any) => v.isDefault) || data.variants[0];
           setSelectedVariantId(defaultVar.id);
@@ -46,10 +51,17 @@ export default function ViewProduct() {
         }
       })
       .catch((err) => {
+        if (!isMounted) return;
         console.error("Failed to fetch product:", err);
         setError("Failed to load product details.");
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   const handleDelete = async () => {
@@ -107,7 +119,6 @@ export default function ViewProduct() {
 
   // Transform ApiProduct into the shape expected by the child components.
   // We handle missing standard fields defensively.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const productData = product as any;
   const safePrice = productData.price ?? 0;
   const safeOriginalPrice = productData.originalPrice ?? safePrice;
@@ -123,8 +134,7 @@ export default function ViewProduct() {
     gender: productData.gender || [],
     collections: productData.collections || [],
     variants: productData.variants?.length
-      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        productData.variants.map((v: any, i: number) => ({
+      ? productData.variants.map((v: any, i: number) => ({
           ...v,
           basePrice: (v.basePrice ?? safePrice).toString(),
           originalPrice: (v.originalPrice ?? safeOriginalPrice).toString(),
@@ -132,8 +142,7 @@ export default function ViewProduct() {
           isDefault: i === 0,
         }))
       : productData.availableColors?.length
-        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          productData.availableColors.map((c: any, i: number) => ({
+        ? productData.availableColors.map((c: any, i: number) => ({
             id: `var-${i}`,
             sku:
               productData.sku ||
@@ -177,17 +186,18 @@ export default function ViewProduct() {
   return (
     <PageWrapper>
       <PageHeader
-        title="View Product"
+        title="Product Details"
         description={
-          <button
+          <Button
             onClick={() => navigate("/products")}
-            className="inline-flex items-center gap-1 text-primary text-sm font-semibold hover:underline"
+            variant="ghost"
+            size="sm"
           >
             <span className="material-symbols-outlined text-sm">
               arrow_back
             </span>
             Back to Products
-          </button>
+          </Button>
         }
         actions={
           <>
@@ -200,7 +210,7 @@ export default function ViewProduct() {
             </button>
             <button
               onClick={handleDelete}
-              className="flex items-center gap-1.5 px-4 py-2 bg-rose-50 text-rose-600 font-bold text-sm rounded-lg border border-rose-200 hover:bg-rose-100"
+              className="flex items-center gap-1.5 px-4 py-2 border border-rose-500 text-rose-600 font-bold text-sm rounded-lg hover:bg-rose-50"
             >
               <span className="material-symbols-outlined text-sm">delete</span>
               Delete
@@ -214,12 +224,10 @@ export default function ViewProduct() {
           <ProductGallery
             images={
               selectedVariantId
-                ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  mappedProduct.variants.find(
+                ? mappedProduct.variants.find(
                     (v: any) => v.id === selectedVariantId,
                   )?.images.length
-                  ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    mappedProduct.variants.find(
+                  ? mappedProduct.variants.find(
                       (v: any) => v.id === selectedVariantId,
                     )?.images
                   : mappedProduct.images

@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import PageWrapper from "../../../components/ui/PageWrapper";
 import PageHeader from "../../../components/ui/PageHeader";
 import DiscountForm from "./components/DiscountForm";
+import Button from "../../../components/ui/Button";
 
 export default function CreateOffer() {
   const navigate = useNavigate();
@@ -14,31 +15,21 @@ export default function CreateOffer() {
       <PageHeader
         title={isEditMode ? "Edit Discount" : "Create Discount"}
         description={
-          <button
-            onClick={() => navigate("/offers")}
-            className="inline-flex items-center gap-1 text-primary text-sm font-semibold hover:underline"
-          >
+          <Button onClick={() => navigate("/offers")} variant="ghost" size="sm">
             <span className="material-symbols-outlined text-sm">
               arrow_back
             </span>
             Back to Offers
-          </button>
+          </Button>
         }
         actions={
           <>
-            <button
-              onClick={() => navigate("/offers")}
-              className="px-4 py-2 text-sm font-bold bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50"
-            >
+            <Button onClick={() => navigate("/offers")} variant="outline">
               Discard
-            </button>
-            <button
-              form="create-offer-form"
-              type="submit"
-              className="px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg shadow-lg shadow-primary/20 hover:opacity-90"
-            >
+            </Button>
+            <Button form="create-offer-form" type="submit">
               {isEditMode ? "Update Discount" : "Save Discount"}
-            </button>
+            </Button>
           </>
         }
       />

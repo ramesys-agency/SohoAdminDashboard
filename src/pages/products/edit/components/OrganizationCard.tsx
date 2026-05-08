@@ -51,29 +51,24 @@ export default function OrganizationCard({
           <label className="text-xs font-semibold text-slate-500 uppercase">
             Select a category
           </label>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-1 border border-slate-100 rounded-lg">
-            {categories.map((cat) => {
-              const isSelected = categoryId === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => onCategoryIdChange(cat.id)}
-                  className={`flex items-center px-3 py-2 rounded-lg border text-sm transition-all text-left ${
-                    isSelected
-                      ? "bg-primary/10 border-primary text-primary font-semibold"
-                      : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
-                  }`}
-                >
-                  <span
-                    className={`material-symbols-outlined text-sm mr-2 ${isSelected ? "text-primary" : "text-slate-400"}`}
-                  >
-                    {isSelected ? "check_circle" : "circle"}
-                  </span>
+          <div className="relative">
+            <select
+              value={categoryId}
+              onChange={(e) => onCategoryIdChange(e.target.value)}
+              className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer"
+            >
+              <option value="">Select a category</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
                   {cat.name}
-                </button>
-              );
-            })}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <span className="material-symbols-outlined text-slate-400 text-lg">
+                expand_more
+              </span>
+            </div>
           </div>
           {!categoryId && (
             <p className="text-[10px] text-amber-600 font-medium italic">

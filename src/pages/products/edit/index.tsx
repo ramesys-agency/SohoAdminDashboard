@@ -4,14 +4,16 @@ import { toast } from "sonner";
 import PageWrapper from "../../../components/ui/PageWrapper";
 import PageHeader from "../../../components/ui/PageHeader";
 import BasicInfoForm from "./components/BasicInfoForm";
-import VariantsTable, {
-  type ColorGroupData,
-} from "./components/VariantsTable";
+import VariantsTable, { type ColorGroupData } from "./components/VariantsTable";
 // import SeoSection from "./components/SeoSection";
 import StatusCard from "./components/StatusCard";
 import OrganizationCard from "./components/OrganizationCard";
 import Button from "../../../components/ui/Button";
-import { createProduct, getProductById, updateProduct } from "../../../api/products";
+import {
+  createProduct,
+  getProductById,
+  updateProduct,
+} from "../../../api/products";
 import { getCategoryById } from "../../../api/categories";
 import { uploadFile } from "../../../api/upload";
 import { generateUUID } from "../../../utils/uuid";
@@ -57,10 +59,15 @@ export default function ProductEditor() {
           } else if (product.categoryId) {
             setCategoryId(product.categoryId);
           }
-          
+
           // Assuming collections is populated later or handle if present
           if (product.collections) {
-             setCollections(product.collections.map((c: { id?: string; [key: string]: unknown }) => c.id || c as unknown as string));
+            setCollections(
+              product.collections.map(
+                (c: { id?: string; [key: string]: unknown }) =>
+                  c.id || (c as unknown as string),
+              ),
+            );
           }
 
           if (product.variants && product.variants.length > 0) {
@@ -75,13 +82,16 @@ export default function ProductEditor() {
                   colorName: colorNm,
                   colorValue: colorVal,
                   isDefault: false,
-                  images: (v.images as Array<Record<string, unknown>>)?.map((img) => ({
-                    id: (img.id as string) || generateUUID(),
-                    imageUrl: (img.imageUrl as string) || "",
-                    isPrimary: (img.isPrimary as boolean) || false,
-                    colorRef: (img.colorRef as string) || "#f8fafc",
-                  })) || [],
-                  sizes: []
+                  images:
+                    (v.images as Array<Record<string, unknown>>)?.map(
+                      (img) => ({
+                        id: (img.id as string) || generateUUID(),
+                        imageUrl: (img.imageUrl as string) || "",
+                        isPrimary: (img.isPrimary as boolean) || false,
+                        colorRef: (img.colorRef as string) || "#f8fafc",
+                      }),
+                    ) || [],
+                  sizes: [],
                 });
               }
               const group = colorGroupsMap.get(key)!;
@@ -97,12 +107,17 @@ export default function ProductEditor() {
             }
             setColorGroups(Array.from(colorGroupsMap.values()));
           } else {
-             setColorGroups([]);
+            setColorGroups([]);
           }
         })
         .catch((err) => {
           console.error("Failed to load product:", err);
-          toast.error(err?.response?.data?.error || err?.response?.data?.message || err?.message || "Failed to load product details.");
+          toast.error(
+            err?.response?.data?.error ||
+              err?.response?.data?.message ||
+              err?.message ||
+              "Failed to load product details.",
+          );
         })
         .finally(() => setLoading(false));
     } else {
@@ -122,15 +137,17 @@ export default function ProductEditor() {
               stockQty: 0,
               basePrice: "0.00",
               originalPrice: "0.00",
-            }
-          ]
+            },
+          ],
         },
       ]);
     }
   }, [isEditMode, id]);
 
   // Track previous category attributes to clean up when switching
-  const [prevCategoryAttributes, setPrevCategoryAttributes] = useState<string[]>([]);
+  const [prevCategoryAttributes, setPrevCategoryAttributes] = useState<
+    string[]
+  >([]);
 
   // Fetch aggregated category attributes when category change
   useEffect(() => {
@@ -139,15 +156,17 @@ export default function ProductEditor() {
         .then((res) => {
           const category = res.data || res;
           const attrs = category.attributes || [];
-          
-          const attrKeys = attrs.map((a: any) => typeof a === "string" ? a : a.key);
-          
-          setAttributes(prev => {
+
+          const attrKeys = attrs.map((a: any) =>
+            typeof a === "string" ? a : a.key,
+          );
+
+          setAttributes((prev) => {
             const next = { ...prev };
             let changed = false;
 
             // 1. Remove empty attributes that were from previous category but not in current one
-            prevCategoryAttributes.forEach(key => {
+            prevCategoryAttributes.forEach((key) => {
               if (!attrKeys.includes(key) && next[key] === "") {
                 delete next[key];
                 changed = true;
@@ -165,7 +184,11 @@ export default function ProductEditor() {
             return changed ? next : prev;
           });
 
-          setCategoryAttributes(attrs.map((a: any) => typeof a === "string" ? { key: a, label: a, type: "text" } : a));
+          setCategoryAttributes(
+            attrs.map((a: any) =>
+              typeof a === "string" ? { key: a, label: a, type: "text" } : a,
+            ),
+          );
           setPrevCategoryAttributes(attrKeys);
         })
         .catch((err) => {
@@ -180,54 +203,118 @@ export default function ProductEditor() {
     try {
       setLoading(true);
 
-      const productFolderName = name.toLowerCase().trim().replace(/\s+/g, '-');
+      // Frontend Validation
+      if (!name.trim()) {
+        toast.error("Product name is required");
+        setLoading(false);
+        return;
+      }
+
+      if (!categoryId) {
+        toast.error("Category is required");
+        setLoading(false);
+        return;
+      }
+
+      if (colorGroups.length === 0) {
+        toast.error("At least one product variant is required");
+        setLoading(false);
+        return;
+      }
+
+      for (const group of colorGroups) {
+        if (!group.colorName.trim()) {
+          toast.error("Please fill all the compulsory fields: Color Name is missing.");
+          setLoading(false);
+          return;
+        }
+        if (group.images.length === 0) {
+          toast.error(`Please fill all the compulsory fields: Images are missing for ${group.colorName}.`);
+          setLoading(false);
+          return;
+        }
+        if (group.sizes.length === 0) {
+          toast.error(`Please fill all the compulsory fields: At least one size is required for ${group.colorName}.`);
+          setLoading(false);
+          return;
+        }
+        for (const sz of group.sizes) {
+          if (!sz.size || !sz.sku.trim() || !sz.basePrice || parseFloat(sz.basePrice) <= 0 || !sz.originalPrice || parseFloat(sz.originalPrice) <= 0) {
+            toast.error("Please fill all the compulsory fields: SKU, Price, or MRP is missing/invalid.");
+            setLoading(false);
+            return;
+          }
+          if (sz.stockQty === undefined || sz.stockQty === null) {
+            toast.error("Please fill all the compulsory fields: Stock quantity is missing.");
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
+      const productFolderName = name.toLowerCase().trim().replace(/\s+/g, "-");
       const uploadFolder = `products/${productFolderName}`;
 
       // Process all color groups and their variants
       const processedVariants: any[] = [];
-      await Promise.all(colorGroups.map(async (cg) => {
-        const processedImages = await Promise.all((cg.images || []).map(async (img: any, i: number) => {
-          if (img.file) {
-            const fileExt = img.file.name.split('.').pop();
-            const uniqueName = `color-${cg.id}-${i}-${Date.now()}.${fileExt}`;
-            try {
-              const res = await uploadFile(img.file, uploadFolder, uniqueName);
+      await Promise.all(
+        colorGroups.map(async (cg) => {
+          const processedImages = await Promise.all(
+            (cg.images || []).map(async (img: any, i: number) => {
+              if (img.file) {
+                const fileExt = img.file.name.split(".").pop();
+                const uniqueName = `color-${cg.id}-${i}-${Date.now()}.${fileExt}`;
+                try {
+                  const res = await uploadFile(
+                    img.file,
+                    uploadFolder,
+                    uniqueName,
+                  );
+                  return {
+                    imageUrl: res.data.url,
+                    isPrimary: img.isPrimary,
+                    displayOrder: i + 1,
+                    colorRef: img.colorRef,
+                  };
+                } catch (error: any) {
+                  console.error(
+                    `Failed to upload image for color group ${cg.colorName}:`,
+                    error,
+                  );
+                  throw new Error(
+                    `Failed to upload image for color group ${cg.colorName}: ${error?.message || "Unknown error"}`,
+                  );
+                }
+              }
               return {
-                imageUrl: res.data.url,
+                imageUrl: img.imageUrl,
                 isPrimary: img.isPrimary,
                 displayOrder: i + 1,
-                colorRef: img.colorRef
+                colorRef: img.colorRef,
               };
-            } catch (error: any) {
-              console.error(`Failed to upload image for color group ${cg.colorName}:`, error);
-              throw new Error(`Failed to upload image for color group ${cg.colorName}: ${error?.message || "Unknown error"}`);
-            }
+            }),
+          );
+
+          const validImages = processedImages.filter(
+            (img): img is any => img !== null && !!img.imageUrl,
+          );
+
+          for (let idx = 0; idx < cg.sizes.length; idx++) {
+            const sizeData = cg.sizes[idx];
+            processedVariants.push({
+              sku: sizeData.sku,
+              size: sizeData.size,
+              colorName: cg.colorName,
+              colorValue: cg.colorValue,
+              stockQty: Number(sizeData.stockQty) || 0,
+              basePrice: Number(sizeData.basePrice) || 0,
+              originalPrice: Number(sizeData.originalPrice) || 0,
+              isDefault: cg.isDefault && idx === 0, // only the first size is marked as default to avoid multiple defaults
+              images: validImages,
+            });
           }
-          return {
-            imageUrl: img.imageUrl,
-            isPrimary: img.isPrimary,
-            displayOrder: i + 1,
-            colorRef: img.colorRef
-          };
-        }));
-
-        const validImages = processedImages.filter((img): img is any => img !== null && !!img.imageUrl);
-
-        for (let idx = 0; idx < cg.sizes.length; idx++) {
-           const sizeData = cg.sizes[idx];
-           processedVariants.push({
-             sku: sizeData.sku,
-             size: sizeData.size,
-             colorName: cg.colorName,
-             colorValue: cg.colorValue,
-             stockQty: Number(sizeData.stockQty) || 0,
-             basePrice: Number(sizeData.basePrice) || 0,
-             originalPrice: Number(sizeData.originalPrice) || 0,
-             isDefault: cg.isDefault && idx === 0, // only the first size is marked as default to avoid multiple defaults
-             images: validImages
-           });
-        }
-      }));
+        }),
+      );
 
       const payload = {
         name,
@@ -237,7 +324,7 @@ export default function ProductEditor() {
         gender,
         isPublished,
         attributes,
-        variants: processedVariants
+        variants: processedVariants,
       };
 
       if (isEditMode && id) {
@@ -251,7 +338,19 @@ export default function ProductEditor() {
       }
     } catch (err: any) {
       console.error(err);
-      toast.error(err?.response?.data?.error || err?.response?.data?.message || err?.message || (isEditMode ? "Failed to update product." : "Failed to save product."));
+      const errorData = err?.response?.data?.error;
+      
+      if (Array.isArray(errorData)) {
+        errorData.forEach((e: any) => {
+          toast.error(e.message || "Validation error occurred");
+        });
+      } else {
+        toast.error(
+          err?.response?.data?.message ||
+            err?.message ||
+            (isEditMode ? "Failed to update product." : "Failed to save product."),
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -263,7 +362,7 @@ export default function ProductEditor() {
         title={isEditMode ? "Edit Product" : "Create Product"}
         description={
           <Button
-            variant="link"
+            variant="ghost"
             size="sm"
             onClick={() => navigate("/products")}
             leftIcon={
@@ -271,7 +370,7 @@ export default function ProductEditor() {
                 arrow_back
               </span>
             }
-            className="hover:underline"
+            className=""
           >
             Back to Products
           </Button>
@@ -282,7 +381,11 @@ export default function ProductEditor() {
               Discard
             </Button>
             <Button onClick={handleSave} disabled={loading}>
-              {loading ? "Saving..." : isEditMode ? "Save Changes" : "Create Product"}
+              {loading
+                ? "Saving..."
+                : isEditMode
+                  ? "Save Changes"
+                  : "Create Product"}
             </Button>
           </>
         }
@@ -309,7 +412,10 @@ export default function ProductEditor() {
             onAttributesChange={setAttributes}
             categoryAttributes={categoryAttributes}
           />
-          <VariantsTable colorGroups={colorGroups} onColorGroupsChange={setColorGroups} />
+          <VariantsTable
+            colorGroups={colorGroups}
+            onColorGroupsChange={setColorGroups}
+          />
           {/* <SeoSection seo={seo} onSeoChange={setSeo} /> */}
         </div>
 

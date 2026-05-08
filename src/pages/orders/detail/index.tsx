@@ -16,6 +16,7 @@ import {
   refreshOrderStatus,
 } from "../../../api/orders";
 import dayjs from "dayjs";
+import Button from "../../../components/ui/Button";
 
 export default function OrderDetail() {
   const navigate = useNavigate();
@@ -115,7 +116,7 @@ export default function OrderDetail() {
           <h2 className="text-xl font-bold text-slate-900">Order not found</h2>
           <button
             onClick={() => navigate("/orders")}
-            className="mt-4 text-primary hover:underline"
+            className="mt-4 text-primary"
           >
             Back to Orders
           </button>
@@ -129,15 +130,12 @@ export default function OrderDetail() {
       <PageHeader
         title={`Order ${order.orderCode || order.id.slice(0, 8).toUpperCase()}`}
         description={
-          <button
-            onClick={() => navigate("/orders")}
-            className="inline-flex items-center gap-1 text-primary text-sm font-semibold hover:underline"
-          >
+          <Button onClick={() => navigate("/orders")} variant="ghost" size="sm">
             <span className="material-symbols-outlined text-sm">
               arrow_back
             </span>
             Back to Orders
-          </button>
+          </Button>
         }
         actions={
           <div className="flex flex-col items-end gap-2">

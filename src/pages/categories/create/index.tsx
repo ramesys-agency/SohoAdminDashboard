@@ -18,7 +18,7 @@ export default function CreateCategory() {
         title={isEditMode ? "Edit Category" : "Create Category"}
         description={
           <Button
-            variant="link"
+            variant="ghost"
             size="sm"
             onClick={() => navigate("/categories")}
             leftIcon={
@@ -26,7 +26,7 @@ export default function CreateCategory() {
                 arrow_back
               </span>
             }
-            className="hover:underline"
+            className=""
           >
             Back to Categories
           </Button>
