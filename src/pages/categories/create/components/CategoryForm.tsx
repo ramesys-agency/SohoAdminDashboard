@@ -144,7 +144,7 @@ export default function CategoryForm() {
 
   const { mutate: handleUpdate } = useMutation({
     mutationFn: (payload: Parameters<typeof updateCategory>[1]) =>
-      updateCategory(editCategory!.id, payload),
+      updateCategory(categoryId!, payload),
     onSuccess: () => {
       toast.success("Category updated successfully");
       navigate("/categories");
@@ -208,7 +208,7 @@ export default function CategoryForm() {
         attributes: attributes.filter((a) => a.key.trim() !== ""),
         parentId: parentId || (isEditMode ? null : undefined),
         isActive,
-        imageUrl: mainUrl || undefined,
+        imageUrl: mainUrl === null ? null : (mainUrl || undefined),
         genderImages,
       };
 
@@ -521,7 +521,7 @@ export default function CategoryForm() {
                           <option value="select">Select Options</option>
                         </select>
                       </div>
-                      <div className="flex items-end pb-2">
+                      {/* <div className="flex items-end pb-2">
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
@@ -539,7 +539,7 @@ export default function CategoryForm() {
                             Use for Filtering
                           </span>
                         </label>
-                      </div>
+                      </div> */}
                     </div>
 
                     {attr.type === "select" && (

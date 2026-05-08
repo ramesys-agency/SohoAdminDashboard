@@ -29,9 +29,17 @@ function Stars({ count }: { count: number }) {
 export default function ReviewsSection({ reviews }: ReviewsSectionProps) {
   if (reviews.length === 0) {
     return (
-      <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-        <h3 className="font-bold text-slate-900 mb-6">Customer Reviews</h3>
-        <p className="text-sm text-slate-500 italic">No reviews yet.</p>
+      <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-10 flex flex-col items-center justify-center text-center">
+        <span 
+          className="material-symbols-outlined text-6xl text-slate-200 mb-4" 
+          style={{ fontVariationSettings: "'FILL' 1" }}
+        >
+          reviews
+        </span>
+        <h3 className="font-bold text-slate-800 text-lg mb-2">No Reviews Yet</h3>
+        <p className="text-sm text-slate-500 max-w-sm">
+          This product hasn't received any customer reviews. Once customers purchase and review this item, their feedback will appear here.
+        </p>
       </section>
     );
   }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,7 +8,7 @@ import PageHeader from "../../../components/ui/PageHeader";
 import PlacementForm from "../components/PlacementForm";
 import MobilePreview from "../components/MobilePreview";
 import { createPlacement, updatePlacement } from "../../../api/placements";
-import { getCollections } from "../../../api/collections";
+import { getCollections, getCollectionById } from "../../../api/collections";
 import type { Collection } from "../../../api/collections";
 
 type CollectionMode = "new" | "existing";
@@ -27,38 +27,56 @@ export default function CreatePlacements() {
   // Collection data passed from the list page via router state
   const locationState = location.state as LocationState | null;
   const passedCollection = locationState?.collection;
-  const passedPlacement = passedCollection?.collectionPlacements?.[0];
+  // const passedPlacement = passedCollection?.collectionPlacements?.[0];
 
-  // Initialise form state directly from router state (no fetch needed)
+  // Fetch the specific collection data in edit mode (handles page refreshes)
+  const { data: fetchedCollectionRes, isLoading: isLoadingCollection } =
+    useQuery({
+      queryKey: ["collection", id],
+      queryFn: () => getCollectionById(id!),
+      enabled: isEdit && Boolean(id),
+    });
+  const fetchedCollection = fetchedCollectionRes?.data;
+
+  // Initialise form state
   const [collectionMode, setCollectionMode] =
     useState<CollectionMode>("existing");
-  const [collectionId, setCollectionId] = useState<string>(
-    passedCollection?.id ?? "",
-  );
-  const [pageName, setPageName] = useState<string>(passedPlacement?.page ?? "");
-  const [sectionName, setSectionName] = useState<string>(
-    passedPlacement?.section ?? "",
-  );
-  const [isBanner, setIsBanner] = useState<boolean>(
-    passedPlacement?.isBanner ?? true,
-  );
-  const [isActive, setIsActive] = useState<boolean>(
-    passedPlacement?.isActive ?? true,
-  );
-  const [imageUrl, setImageUrl] = useState<string>(
-    passedPlacement?.imageUrl ?? "",
-  );
+  const [collectionId, setCollectionId] = useState<string>("");
+  const [pageName, setPageName] = useState<string>("");
+  const [sectionName, setSectionName] = useState<string>("");
+  const [isBanner, setIsBanner] = useState<boolean>(true);
+  const [isActive, setIsActive] = useState<boolean>(true);
+  const [imageUrl, setImageUrl] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // The placement ID needed for the PUT call
-  const placementId = passedPlacement?.id ?? "";
+  // Sync form state when data is available (from router state or API)
+  useEffect(() => {
+    const col = fetchedCollection || passedCollection;
+    const placement = col?.collectionPlacements?.[0];
 
-  // Fetch all collections for the dropdown (create mode only)
+    if (col) {
+      setCollectionId(col.id);
+      if (placement) {
+        setPageName(placement.page);
+        setSectionName(placement.section);
+        setIsBanner(placement.isBanner);
+        setIsActive(placement.isActive);
+        setImageUrl(placement.imageUrl);
+      }
+    }
+  }, [fetchedCollection, passedCollection]);
+
+  // The placement ID needed for the PUT call
+  const placementId =
+    (fetchedCollection || passedCollection)?.collectionPlacements?.[0]?.id ??
+    "";
+
+  // Fetch all collections for the dropdown
   const { data: collectionsData, isLoading: isLoadingCollections } = useQuery({
     queryKey: ["collections-all"],
     queryFn: () => getCollections(1, 100),
-    enabled: !isEdit && collectionMode === "existing",
+    enabled: collectionMode === "existing",
   });
 
   const allCollections =
@@ -72,7 +90,6 @@ export default function CreatePlacements() {
       queryClient.invalidateQueries({ queryKey: ["collections"] });
       navigate("/placements");
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       toast.error(
         error?.response?.data?.message ?? "Failed to create placement.",
@@ -94,7 +111,6 @@ export default function CreatePlacements() {
       queryClient.invalidateQueries({ queryKey: ["collections"] });
       navigate("/placements");
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       toast.error(
         error?.response?.data?.message ?? "Failed to update placement.",
@@ -151,7 +167,20 @@ export default function CreatePlacements() {
   };
 
   const isPending =
-    createMutation.isPending || updateMutation.isPending || isSaving;
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    isSaving ||
+    isLoadingCollection;
+
+  if (isEdit && isLoadingCollection) {
+    return (
+      <PageWrapper>
+        <div className="p-8 text-center text-slate-500">
+          Loading placement data...
+        </div>
+      </PageWrapper>
+    );
+  }
 
   return (
     <PageWrapper>
@@ -162,7 +191,7 @@ export default function CreatePlacements() {
           <div className="flex items-center gap-3">
             <Button
               onClick={() => navigate("/placements")}
-              className="!bg-white !text-slate-700 border border-slate-200 hover:!bg-slate-50"
+              className="bg-white! text-slate-700! border border-slate-200 hover:bg-slate-50!"
             >
               Cancel
             </Button>
@@ -218,12 +247,12 @@ export default function CreatePlacements() {
       )}
 
       {/* In edit mode, show the collection name as a read-only label */}
-      {isEdit && passedCollection && (
+      {isEdit && (fetchedCollection || passedCollection) && (
         <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-sm text-slate-700 font-semibold">
           <span className="material-symbols-outlined text-[18px] text-slate-400">
             folder
           </span>
-          Collection: {passedCollection.name}
+          Collection: {(fetchedCollection || passedCollection)!.name}
         </div>
       )}
 

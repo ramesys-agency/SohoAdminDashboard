@@ -23,7 +23,7 @@ export interface CreateCategoryPayload {
   attributes: any[];
   parentId?: string | null;
   isActive?: boolean;
-  imageUrl?: string;
+  imageUrl?: string | null;
   genderImages?: { gender: string; imageUrl: string }[];
 }
 
@@ -47,7 +47,7 @@ export interface UpdateCategoryPayload {
   parentId?: string | null;
   isActive?: boolean;
   displayOrder?: number;
-  imageUrl?: string;
+  imageUrl?: string | null;
 }
 
 export const updateCategory = async (

@@ -180,7 +180,19 @@ export default function ViewProduct() {
           },
         ]
       : [],
-    reviews: productData.reviews || [],
+    reviews: productData.reviews?.map((r: any) => ({
+      id: r.id,
+      name: r.user?.fullName || "Anonymous",
+      rating: r.rating || 0,
+      comment: r.comment || "",
+      date: r.createdAt
+        ? new Date(r.createdAt).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })
+        : "N/A",
+    })) || [],
   };
 
   return (

@@ -165,6 +165,19 @@ export default function CategoryTreeTable() {
                               <span className="material-symbols-outlined text-slate-300">
                                 subdirectory_arrow_right
                               </span>
+                              <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden shrink-0">
+                                {child.imageUrl ? (
+                                  <img
+                                    src={child.imageUrl}
+                                    alt={child.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <span className="material-symbols-outlined text-sm">
+                                    category
+                                  </span>
+                                )}
+                              </div>
                               <span className="font-medium text-slate-700">
                                 {child.name}
                               </span>
@@ -223,7 +236,7 @@ export default function CategoryTreeTable() {
           {/* Dialog */}
           <div className="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 z-10">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-red-500 text-2xl">
                   warning
                 </span>
