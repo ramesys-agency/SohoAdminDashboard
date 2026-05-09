@@ -239,13 +239,18 @@ export default function ProductEditor() {
           return;
         }
         for (const sz of group.sizes) {
-          if (!sz.size || !sz.sku.trim() || !sz.basePrice || parseFloat(sz.basePrice) <= 0 || !sz.originalPrice || parseFloat(sz.originalPrice) <= 0) {
-            toast.error("Please fill all the compulsory fields: SKU, Price, or MRP is missing/invalid.");
+          const missingFields = [];
+          if (!sz.sku.trim()) missingFields.push("SKU");
+          if (!sz.basePrice || parseFloat(sz.basePrice) <= 0) missingFields.push("Price");
+          if (!sz.originalPrice || parseFloat(sz.originalPrice) <= 0) missingFields.push("MRP");
+
+          if (missingFields.length > 0) {
+            toast.error(`Please fill all the compulsory fields: ${missingFields.join(", ")} is missing/invalid for ${group.colorName} variant.`);
             setLoading(false);
             return;
           }
           if (sz.stockQty === undefined || sz.stockQty === null) {
-            toast.error("Please fill all the compulsory fields: Stock quantity is missing.");
+            toast.error(`Please fill all the compulsory fields: Stock quantity is missing for ${group.colorName} variant.`);
             setLoading(false);
             return;
           }

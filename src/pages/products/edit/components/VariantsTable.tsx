@@ -277,7 +277,7 @@ function ColorGroupCard({
 
         <div className="flex flex-col gap-2">
           <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-            Color Images <span className="text-red-500">*</span>
+            Variant Images <span className="text-red-500">*</span>
           </label>
           <p className="text-[10px] text-slate-400 -mt-1 mb-1">
             These images apply to all sizes in this color.

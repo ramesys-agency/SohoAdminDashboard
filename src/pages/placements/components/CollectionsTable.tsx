@@ -68,7 +68,6 @@ export default function CollectionsTable() {
       queryClient.invalidateQueries({ queryKey: ["collections"] });
       setDeletingId(null);
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       toast.error(
         error?.response?.data?.message ?? "Failed to delete placement.",
@@ -154,8 +153,9 @@ export default function CollectionsTable() {
               <tr className="bg-slate-50/50 border-b border-slate-200">
                 {[
                   "Collection Name",
+                  "Genders",
                   "Products",
-                  "Page",
+                  "Placement Page",
                   "Status",
                   "Actions",
                 ].map((h) => (
@@ -176,7 +176,7 @@ export default function CollectionsTable() {
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
                         {getFirstImageUrl(col) ? (
                           <img
                             src={getFirstImageUrl(col)!}
@@ -197,6 +197,21 @@ export default function CollectionsTable() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
+                    <div className="flex flex-wrap gap-1">
+                      {col.gender?.map((g) => (
+                        <span
+                          key={g}
+                          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 capitalize"
+                        >
+                          {g.toLowerCase()}
+                        </span>
+                      ))}
+                      {(!col.gender || col.gender.length === 0) && (
+                        <span className="text-xs text-slate-400">—</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
                     <span className="text-sm font-semibold text-slate-900">
                       {col.productCount} Products
                     </span>
@@ -212,9 +227,9 @@ export default function CollectionsTable() {
                       ).map((pageStr) => (
                         <span
                           key={pageStr}
-                          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 capitalize"
+                          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700"
                         >
-                          {pageStr}
+                          {PAGE_DISPLAY_LABEL[pageStr as AppPage] || pageStr}
                         </span>
                       ))}
                       {(!col.collectionPlacements ||
@@ -278,7 +293,7 @@ export default function CollectionsTable() {
               {allCollections.length === 0 && !isLoading && (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="px-6 py-8 text-center text-slate-500"
                   >
                     No collections found.
