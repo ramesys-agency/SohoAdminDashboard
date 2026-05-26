@@ -19,6 +19,32 @@ export interface PlacementUpdatePayload {
   image?: File | null;
 }
 
+export interface PlacementProduct {
+  placementId: string;
+  productId: string;
+  displayOrder: number;
+  product: {
+    id: string;
+    name: string;
+    [key: string]: unknown;
+  };
+}
+
+export interface PlacementDetail {
+  id: string;
+  collectionId: string;
+  collection: { id: string; name: string; gender: string[] };
+  isBanner: boolean;
+  imageUrl: string | null;
+  page: string;
+  section: string | null;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  products: PlacementProduct[];
+  _count: { products: number };
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const createPlacement = async (payload: PlacementPayload): Promise<any> => {
   const form = new FormData();
@@ -54,5 +80,20 @@ export const updatePlacement = async (id: string, payload: PlacementUpdatePayloa
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const deletePlacement = async (id: string): Promise<any> => {
   const { data } = await api.delete(apiEndpoint.placements.byId(id));
+  return data;
+};
+
+export const getPlacementById = async (id: string): Promise<{ success: boolean; data: PlacementDetail }> => {
+  const { data } = await api.get(`${apiEndpoint.placements.byId(id)}`);
+  return data;
+};
+
+export const addProductsToPlacement = async (id: string, productIds: string[]) => {
+  const { data } = await api.post(`${apiEndpoint.placements.byId(id)}/products`, { productIds });
+  return data;
+};
+
+export const removeProductsFromPlacement = async (id: string, productIds: string[]) => {
+  const { data } = await api.delete(`${apiEndpoint.placements.byId(id)}/products`, { data: { productIds } });
   return data;
 };

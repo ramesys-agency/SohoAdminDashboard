@@ -16,7 +16,21 @@ const headers = [
   "Actions",
 ];
 
-export default function OrdersTable() {
+interface OrdersTableProps {
+  search: string;
+  paymentFilter: string;
+  fulfillmentFilter: string;
+  startDate: string;
+  endDate: string;
+}
+
+export default function OrdersTable({
+  search,
+  paymentFilter,
+  fulfillmentFilter,
+  startDate,
+  endDate,
+}: OrdersTableProps) {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -25,6 +39,11 @@ export default function OrdersTable() {
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [search, paymentFilter, fulfillmentFilter, startDate, endDate]);
 
   const fetchOrders = async () => {
     try {
@@ -37,6 +56,83 @@ export default function OrdersTable() {
       setLoading(false);
     }
   };
+
+  // Filter logic
+  const filteredOrders = orders.filter((order) => {
+    // Payment filter
+    const latestPayment = order.payments?.[0];
+    const paymentStatus = latestPayment?.status || "pending";
+    if (paymentFilter !== "Payment: All") {
+      const normalizedFilter = paymentFilter.toLowerCase();
+      
+      if (normalizedFilter === "paid") {
+        if (paymentStatus.toLowerCase() !== "success" && paymentStatus.toLowerCase() !== "paid") return false;
+      } else if (normalizedFilter === "pending") {
+        if (paymentStatus.toLowerCase() !== "pending" && paymentStatus.toLowerCase() !== "cod_pending") return false;
+      } else if (normalizedFilter === "refunded") {
+        if (paymentStatus.toLowerCase() !== "refunded") return false;
+      }
+    }
+
+    // Fulfillment filter
+    // Options: "Fulfillment: All", "Fulfilled", "Unfulfilled", "Processing"
+    if (fulfillmentFilter !== "Fulfillment: All") {
+      const normalizedFilter = fulfillmentFilter.toLowerCase();
+      // Order status options in database: pending, processing, shipped, delivered, cancelled
+      if (normalizedFilter === "fulfilled") {
+        if (order.status.toLowerCase() !== "delivered") return false;
+      } else if (normalizedFilter === "unfulfilled") {
+        if (order.status.toLowerCase() !== "pending" && order.status.toLowerCase() !== "cancelled") return false;
+      } else if (normalizedFilter === "processing") {
+        if (order.status.toLowerCase() !== "processing" && order.status.toLowerCase() !== "shipped") return false;
+      }
+    }
+
+    // Date filter
+    if (startDate) {
+      const start = dayjs(startDate).startOf("day");
+      const orderDate = dayjs(order.createdAt);
+      if (orderDate.isBefore(start)) {
+        return false;
+      }
+    }
+    if (endDate) {
+      const end = dayjs(endDate).endOf("day");
+      const orderDate = dayjs(order.createdAt);
+      if (orderDate.isAfter(end)) {
+        return false;
+      }
+    }
+
+    // Search filter
+    if (search.trim()) {
+      const query = search.toLowerCase().trim();
+      const orderCode = (order.orderCode || "").toLowerCase();
+      const orderId = (order.id || "").toLowerCase();
+      const customerName = (order.user?.fullName || order.customerFullName || "guest user").toLowerCase();
+      const customerEmail = (order.user?.email || order.customerEmail || "").toLowerCase();
+      const customerPhone = (order.user?.phone || order.customerMobileNumber || "").toLowerCase();
+
+      const matchesSearch =
+        orderCode.includes(query) ||
+        orderId.includes(query) ||
+        customerName.includes(query) ||
+        customerEmail.includes(query) ||
+        customerPhone.includes(query);
+
+      if (!matchesSearch) return false;
+    }
+
+    return true;
+  });
+
+  // Pagination logic
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage) || 1;
+  const paginatedOrders = filteredOrders.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
 
   if (loading) {
     return (
@@ -65,7 +161,7 @@ export default function OrdersTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {orders.length === 0 ? (
+            {paginatedOrders.length === 0 ? (
               <tr>
                 <td
                   colSpan={7}
@@ -75,7 +171,7 @@ export default function OrdersTable() {
                 </td>
               </tr>
             ) : (
-              orders.map((order) => {
+              paginatedOrders.map((order) => {
                 const customerInitials = order.user?.fullName
                   ? order.user.fullName
                       .split(" ")
@@ -150,9 +246,9 @@ export default function OrdersTable() {
       </div>
       <Pagination
         currentPage={page}
-        totalPages={1}
+        totalPages={totalPages}
         onPageChange={setPage}
-        showingText={`Showing ${orders.length} total orders`}
+        showingText={`Showing ${paginatedOrders.length} of ${filteredOrders.length} total orders`}
       />
     </div>
   );

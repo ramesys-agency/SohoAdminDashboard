@@ -8,12 +8,12 @@ import Pagination from "../../../components/ui/Pagination";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import ProductFilters from "../../products/components/ProductFilters";
 import { getProducts, type ApiProduct } from "../../../api/products";
+import { getCollections, type Collection } from "../../../api/collections";
 import {
-  getCollections,
-  type Collection,
-  addProductsToCollection,
-  removeProductsFromCollection,
-} from "../../../api/collections";
+  getPlacementById,
+  addProductsToPlacement,
+  removeProductsFromPlacement,
+} from "../../../api/placements";
 import { getParentCategories } from "../../../api/categories";
 
 interface ParentCategory {
@@ -23,11 +23,11 @@ interface ParentCategory {
 
 const LIMIT = 20;
 
-export default function AddProductsToCollection() {
-  const { id } = useParams();
+export default function AddProductsToPlacement() {
+  const { id } = useParams(); // placement ID
   const navigate = useNavigate();
   const location = useLocation();
-  const collectionName = location.state?.collectionName;
+  const collectionNameFromState = location.state?.collectionName as string | undefined;
 
   // Filter state
   const [search, setSearch] = useState("");
@@ -38,32 +38,22 @@ export default function AddProductsToCollection() {
   const [filterCollectionId, setFilterCollectionId] = useState("");
   const [sortBy, setSortBy] = useState("");
   const [page, setPage] = useState(1);
-  const [productFilter, setProductFilter] = useState<
-    "All" | "Added" | "Not Added"
-  >("All");
+  const [productFilter, setProductFilter] = useState<"All" | "Added" | "Not Added">("All");
 
   // Data state
+  const [collectionName, setCollectionName] = useState(collectionNameFromState ?? "");
   const [products, setProducts] = useState<ApiProduct[]>([]);
-  const [meta, setMeta] = useState({
-    total: 0,
-    page: 1,
-    limit: LIMIT,
-    totalPages: 1,
-  });
+  const [meta, setMeta] = useState({ total: 0, page: 1, limit: LIMIT, totalPages: 1 });
   const [categories, setCategories] = useState<ParentCategory[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Added Products state
-  const [selectedProductsMap, setSelectedProductsMap] = useState<
-    Map<string, ApiProduct>
-  >(new Map());
-  const [initialSelectedIds, setInitialSelectedIds] = useState<Set<string>>(
-    new Set(),
-  );
+  // Selected products tracking
+  const [selectedProductsMap, setSelectedProductsMap] = useState<Map<string, ApiProduct>>(new Map());
+  const [initialSelectedIds, setInitialSelectedIds] = useState<Set<string>>(new Set());
 
-  // Debounce search input
+  // Debounce search
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleSearchChange = useCallback((value: string) => {
     setSearch(value);
@@ -74,27 +64,11 @@ export default function AddProductsToCollection() {
     }, 400);
   }, []);
 
-  // Reset page when filters change
-  const handleGenderChange = (v: string) => {
-    setGender(v);
-    setPage(1);
-  };
-  const handleIsPublishedChange = (v: string) => {
-    setIsPublished(v);
-    setPage(1);
-  };
-  const handleCategoryChange = (v: string) => {
-    setCategoryId(v);
-    setPage(1);
-  };
-  const handleCollectionChange = (v: string) => {
-    setFilterCollectionId(v);
-    setPage(1);
-  };
-  const handleSortByChange = (v: string) => {
-    setSortBy(v);
-    setPage(1);
-  };
+  const handleGenderChange = (v: string) => { setGender(v); setPage(1); };
+  const handleIsPublishedChange = (v: string) => { setIsPublished(v); setPage(1); };
+  const handleCategoryChange = (v: string) => { setCategoryId(v); setPage(1); };
+  const handleCollectionChange = (v: string) => { setFilterCollectionId(v); setPage(1); };
+  const handleSortByChange = (v: string) => { setSortBy(v); setPage(1); };
 
   // Fetch categories & collections once on mount
   useEffect(() => {
@@ -107,28 +81,21 @@ export default function AddProductsToCollection() {
       .catch(() => {});
   }, []);
 
-  // Initial fetch for already-added products in the collection
+  // Fetch placement to get its already-added products
   useEffect(() => {
     if (!id) return;
-    getProducts({ collectionId: id, limit: 1000 })
+    getPlacementById(id)
       .then((res) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const anyRes = res as any;
-        const fetchedProducts: ApiProduct[] = Array.isArray(anyRes.data)
-          ? anyRes.data
-          : Array.isArray(anyRes.products)
-            ? anyRes.products
-            : Array.isArray(anyRes.items)
-              ? anyRes.items
-              : Array.isArray(anyRes)
-                ? anyRes
-                : [];
-
-        const newMap = new Map();
+        const placement = res.data;
+        if (placement.collection?.name) {
+          setCollectionName(placement.collection.name);
+        }
+        const newMap = new Map<string, ApiProduct>();
         const initialSet = new Set<string>();
-        fetchedProducts.forEach((p) => {
-          newMap.set(p.id, p);
-          initialSet.add(p.id);
+        placement.products?.forEach((pp) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          newMap.set(pp.productId, pp.product as any);
+          initialSet.add(pp.productId);
         });
         setSelectedProductsMap(newMap);
         setInitialSelectedIds(initialSet);
@@ -136,20 +103,14 @@ export default function AddProductsToCollection() {
       .catch(console.error);
   }, [id]);
 
-  // Fetch products whenever filters change
+  // Fetch products when filters change
   useEffect(() => {
     let isMounted = true;
 
     const fetchProductsData = async () => {
-      if (isMounted) {
-        setLoading(true);
-        setError(null);
-      }
+      if (isMounted) { setLoading(true); setError(null); }
 
-      const params: Record<string, string | number | boolean> = {
-        page,
-        limit: LIMIT,
-      };
+      const params: Record<string, string | number | boolean> = { page, limit: LIMIT };
       if (debouncedSearch) params.search = debouncedSearch;
       if (gender) params.gender = gender;
       if (isPublished !== "") params.isPublished = isPublished === "true";
@@ -173,42 +134,25 @@ export default function AddProductsToCollection() {
                 ? anyRes
                 : [];
 
-        const newMeta = anyRes.meta ??
-          anyRes.pagination ??
-          anyRes.pageMeta ?? {
-            total: fetchedProducts.length,
-            page: 1,
-            limit: LIMIT,
-            totalPages: 1,
-          };
+        const newMeta = anyRes.meta ?? anyRes.pagination ?? anyRes.pageMeta ?? {
+          total: fetchedProducts.length,
+          page: 1,
+          limit: LIMIT,
+          totalPages: 1,
+        };
 
         setProducts(fetchedProducts);
         setMeta(newMeta);
       } catch {
-        if (isMounted) {
-          setError("Failed to load products. Please try again.");
-        }
+        if (isMounted) setError("Failed to load products. Please try again.");
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchProductsData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [
-    page,
-    debouncedSearch,
-    gender,
-    isPublished,
-    categoryId,
-    filterCollectionId,
-    sortBy,
-  ]);
+    return () => { isMounted = false; };
+  }, [page, debouncedSearch, gender, isPublished, categoryId, filterCollectionId, sortBy]);
 
   const toggleProduct = (product: ApiProduct) => {
     setSelectedProductsMap((prev) => {
@@ -226,47 +170,28 @@ export default function AddProductsToCollection() {
     if (!id) return;
     try {
       const currentSelectedIds = Array.from(selectedProductsMap.keys());
-      const toAdd = currentSelectedIds.filter(
-        (pid) => !initialSelectedIds.has(pid),
-      );
-      const toRemove = Array.from(initialSelectedIds).filter(
-        (pid) => !selectedProductsMap.has(pid),
-      );
+      const toAdd = currentSelectedIds.filter((pid) => !initialSelectedIds.has(pid));
+      const toRemove = Array.from(initialSelectedIds).filter((pid) => !selectedProductsMap.has(pid));
 
-      if (toAdd.length > 0) {
-        await addProductsToCollection(id, toAdd);
-      }
-      if (toRemove.length > 0) {
-        await removeProductsFromCollection(id, toRemove);
-      }
+      if (toAdd.length > 0) await addProductsToPlacement(id, toAdd);
+      if (toRemove.length > 0) await removeProductsFromPlacement(id, toRemove);
 
-      toast.success("Products saved to collection successfully.");
+      toast.success("Products saved to placement successfully.");
       navigate("/placements");
-    } catch (err: any) {
-      console.error(err);
-      toast.error(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to save products to collection.",
-      );
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      toast.error(e?.response?.data?.message || e?.message || "Failed to save products.");
     }
   };
 
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(price);
+    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(price);
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "—";
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return "—";
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
 
   let displayedProducts = products;
@@ -282,16 +207,14 @@ export default function AddProductsToCollection() {
   return (
     <PageWrapper>
       <PageHeader
-        title={`Add products to ${collectionName || "Collection"}`}
+        title={`Add products to ${collectionName || "Placement"}`}
         description={
           <Button
             variant="link"
             size="sm"
             onClick={() => navigate("/placements")}
             leftIcon={
-              <span className="material-symbols-outlined text-sm">
-                arrow_back
-              </span>
+              <span className="material-symbols-outlined text-sm">arrow_back</span>
             }
             className="hover:underline"
           >
@@ -319,10 +242,7 @@ export default function AddProductsToCollection() {
           {(["All", "Added", "Not Added"] as const).map((tab) => (
             <button
               key={tab}
-              onClick={() => {
-                setProductFilter(tab);
-                setPage(1);
-              }}
+              onClick={() => { setProductFilter(tab); setPage(1); }}
               className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
                 productFilter === tab
                   ? "bg-white text-primary shadow-sm"
@@ -364,20 +284,8 @@ export default function AddProductsToCollection() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-200">
-                {[
-                  "Select",
-                  "Product",
-                  "Category",
-                  "Gender",
-                  "Price",
-                  "Variants",
-                  "Status",
-                  "Created",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider"
-                  >
+                {["Select", "Product", "Category", "Gender", "Price", "Variants", "Status", "Created"].map((h) => (
+                  <th key={h} className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                     {h}
                   </th>
                 ))}
@@ -396,9 +304,7 @@ export default function AddProductsToCollection() {
                 <tr>
                   <td colSpan={8} className="px-6 py-16 text-center">
                     <div className="flex flex-col items-center gap-3 text-slate-400">
-                      <span className="material-symbols-outlined text-4xl">
-                        inventory_2
-                      </span>
+                      <span className="material-symbols-outlined text-4xl">inventory_2</span>
                       <p className="text-sm font-medium">No products found</p>
                       <p className="text-xs">Try adjusting your filters.</p>
                     </div>
@@ -406,11 +312,7 @@ export default function AddProductsToCollection() {
                 </tr>
               ) : (
                 displayedProducts.map((p) => (
-                  <tr
-                    key={p.id}
-                    className="hover:bg-slate-50/30 transition-all duration-200 group"
-                  >
-                    {/* Checkbox */}
+                  <tr key={p.id} className="hover:bg-slate-50/30 transition-all duration-200 group">
                     <td className="px-6 py-4">
                       <input
                         type="checkbox"
@@ -419,98 +321,56 @@ export default function AddProductsToCollection() {
                         onChange={() => toggleProduct(p)}
                       />
                     </td>
-
-                    {/* Product */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <div className="size-11 rounded-xl bg-slate-50 border border-slate-100 flex-shrink-0 flex items-center justify-center group-hover:border-primary/20 transition-colors overflow-hidden">
                           {p.primaryImage ? (
-                            <img
-                              src={p.primaryImage}
-                              alt={p.name}
-                              className="size-full object-cover rounded-xl"
-                            />
+                            <img src={p.primaryImage} alt={p.name} className="size-full object-cover rounded-xl" />
                           ) : (
-                            <span className="material-symbols-outlined text-slate-300 group-hover:text-primary/40">
-                              inventory_2
-                            </span>
+                            <span className="material-symbols-outlined text-slate-300 group-hover:text-primary/40">inventory_2</span>
                           )}
                         </div>
                         <div className="flex flex-col gap-0.5">
-                          <p className="text-sm font-bold text-slate-900">
-                            {p.name}
-                          </p>
-                          {p.sku && (
-                            <p className="text-[11px] text-slate-400 font-medium">
-                              SKU: {p.sku}
-                            </p>
-                          )}
+                          <p className="text-sm font-bold text-slate-900">{p.name}</p>
+                          {p.sku && <p className="text-[11px] text-slate-400 font-medium">SKU: {p.sku}</p>}
                         </div>
                       </div>
                     </td>
-
-                    {/* Category */}
                     <td className="px-6 py-4">
-                      <span className="text-sm font-semibold text-slate-600">
-                        {p.category?.name ?? "—"}
-                      </span>
+                      <span className="text-sm font-semibold text-slate-600">{p.category?.name ?? "—"}</span>
                     </td>
-
-                    {/* Gender */}
                     <td className="px-6 py-4">
                       <span className="text-sm text-slate-500 capitalize">
-                        {p.gender && p.gender.length > 0
-                          ? p.gender.join(", ").toLowerCase()
-                          : "—"}
+                        {p.gender && p.gender.length > 0 ? p.gender.join(", ").toLowerCase() : "—"}
                       </span>
                     </td>
-
-                    {/* Price */}
                     <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-slate-900 font-mono tracking-tight">
-                        {formatPrice(p.price)}
-                      </span>
+                      <span className="text-sm font-bold text-slate-900 font-mono tracking-tight">{formatPrice(p.price)}</span>
                     </td>
-
-                    {/* Variants */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1.5">
                         {p.availableColors && p.availableColors.length > 0 ? (
-                          p.availableColors
-                            .slice(0, 3)
-                            .map((c, i) => (
-                              <div
-                                key={i}
-                                className="size-4 rounded-full border border-slate-200"
-                                style={{ backgroundColor: c.colorValue }}
-                                title={c.colorName}
-                              />
-                            ))
+                          p.availableColors.slice(0, 3).map((c, i) => (
+                            <div
+                              key={i}
+                              className="size-4 rounded-full border border-slate-200"
+                              style={{ backgroundColor: c.colorValue }}
+                              title={c.colorName}
+                            />
+                          ))
                         ) : (
-                          <span className="text-xs text-slate-400">
-                            No variants
-                          </span>
+                          <span className="text-xs text-slate-400">No variants</span>
                         )}
                         {p.availableColors && p.availableColors.length > 3 && (
-                          <span className="text-[10px] font-bold text-slate-400">
-                            +{p.availableColors.length - 3}
-                          </span>
+                          <span className="text-[10px] font-bold text-slate-400">+{p.availableColors.length - 3}</span>
                         )}
                       </div>
                     </td>
-
-                    {/* Status */}
                     <td className="px-6 py-4">
-                      <StatusBadge
-                        status={p.isPublished ? "Active" : "Draft"}
-                      />
+                      <StatusBadge status={p.isPublished ? "Active" : "Draft"} />
                     </td>
-
-                    {/* Created */}
                     <td className="px-6 py-4">
-                      <span className="text-sm text-slate-500 font-medium whitespace-nowrap">
-                        {formatDate(p.createdAt)}
-                      </span>
+                      <span className="text-sm text-slate-500 font-medium whitespace-nowrap">{formatDate(p.createdAt)}</span>
                     </td>
                   </tr>
                 ))
@@ -524,11 +384,7 @@ export default function AddProductsToCollection() {
             currentPage={page}
             totalPages={meta.totalPages}
             onPageChange={setPage}
-            showingText={
-              meta.total > 0
-                ? `Showing ${from}–${to} of ${meta.total} products`
-                : "No products"
-            }
+            showingText={meta.total > 0 ? `Showing ${from}–${to} of ${meta.total} products` : "No products"}
           />
         )}
       </div>

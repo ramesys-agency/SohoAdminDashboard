@@ -252,12 +252,12 @@ function ColorGroupCard({
                     </label>
                     <input
                       type="number"
-                      value={sz.stockQty === 0 ? "" : sz.stockQty}
+                      value={sz.stockQty}
                       onChange={(e) =>
                         updateSize(
                           sz.id,
                           "stockQty",
-                          parseInt(e.target.value) || 0,
+                          e.target.value === "" ? 0 : parseInt(e.target.value) || 0,
                         )
                       }
                       placeholder="0"

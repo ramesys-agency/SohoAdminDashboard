@@ -12,6 +12,7 @@ export interface AdminUser {
   role: string;
   avatar?: string;
   isVerified: boolean;
+  isDeleted?: boolean;
   createdAt: string;
 }
 
@@ -32,6 +33,9 @@ export interface GetUsersParams {
   page?: number;
   limit?: number;
   search?: string;
+  region?: string;
+  role?: string;
+  showDeleted?: string;
 }
 
 export const getAllUsers = async (
@@ -42,3 +46,22 @@ export const getAllUsers = async (
   });
   return data;
 };
+
+export interface CreateAdminInput {
+  email: string;
+  fullName: string;
+  phone?: string;
+  password?: string;
+  region?: string;
+}
+
+export const createAdminUser = async (
+  input: CreateAdminInput
+): Promise<{ message: string; user: AdminUser }> => {
+  const { data } = await api.post<{ message: string; user: AdminUser }>(
+    apiEndpoint.users.adminCreate,
+    input
+  );
+  return data;
+};
+

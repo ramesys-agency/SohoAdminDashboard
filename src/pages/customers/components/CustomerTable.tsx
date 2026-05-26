@@ -32,11 +32,21 @@ export default function CustomerTable() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const [region, setRegion] = useState("All Regions");
+  const [role, setRole] = useState("customer");
+  const [showDeleted, setShowDeleted] = useState("active");
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["admin-users", page, search],
+    queryKey: ["admin-users", page, search, region, role, showDeleted],
     queryFn: () =>
-      getAllUsers({ page, limit: 20, ...(search ? { search } : {}) }),
+      getAllUsers({
+        page,
+        limit: 20,
+        ...(search ? { search } : {}),
+        ...(region !== "All Regions" ? { region } : {}),
+        ...(role !== "all" ? { role } : {}),
+        showDeleted,
+      }),
   });
 
   const users: AdminUser[] = data?.data ?? [];
@@ -74,6 +84,91 @@ export default function CustomerTable() {
             className="bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-4 py-2 text-sm w-full sm:w-72 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
           />
         </form>
+      </div>
+
+      {/* Filters Toolbar */}
+      <div className="p-4 bg-slate-50/50 border-b border-slate-200 flex flex-wrap items-center gap-3">
+        {/* Region Dropdown */}
+        <div className="relative min-w-[160px]">
+          <select
+            value={region}
+            onChange={(e) => {
+              setPage(1);
+              setRegion(e.target.value);
+            }}
+            className="w-full pl-3 pr-10 py-1.5 bg-white border border-slate-200 rounded-lg text-sm appearance-none focus:outline-none text-slate-700 font-semibold cursor-pointer"
+          >
+            {["All Regions", "Dhaka", "Chattogram", "Khulna", "Rajshahi", "Barishal", "Sylhet", "Rangpur", "Mymensingh"].map((r) => (
+              <option key={r} value={r}>{r === "All Regions" ? "Region: All" : r}</option>
+            ))}
+          </select>
+          <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">
+            expand_more
+          </span>
+        </div>
+
+        {/* Role Dropdown */}
+        <div className="relative min-w-[160px]">
+          <select
+            value={role}
+            onChange={(e) => {
+              setPage(1);
+              setRole(e.target.value);
+            }}
+            className="w-full pl-3 pr-10 py-1.5 bg-white border border-slate-200 rounded-lg text-sm appearance-none focus:outline-none text-slate-700 font-semibold cursor-pointer"
+          >
+            {[
+              { label: "Role: Customers", value: "customer" },
+              { label: "Role: Admins", value: "admin" },
+              { label: "Role: All", value: "all" },
+            ].map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">
+            expand_more
+          </span>
+        </div>
+
+        {/* Status (Deleted) Dropdown */}
+        <div className="relative min-w-[160px]">
+          <select
+            value={showDeleted}
+            onChange={(e) => {
+              setPage(1);
+              setShowDeleted(e.target.value);
+            }}
+            className="w-full pl-3 pr-10 py-1.5 bg-white border border-slate-200 rounded-lg text-sm appearance-none focus:outline-none text-slate-700 font-semibold cursor-pointer"
+          >
+            {[
+              { label: "Status: Active", value: "active" },
+              { label: "Status: Deleted Only", value: "only" },
+              { label: "Status: All (Inc. Deleted)", value: "all" },
+            ].map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">
+            expand_more
+          </span>
+        </div>
+
+        {/* Clear filters if anything is filtered */}
+        {(region !== "All Regions" || role !== "customer" || showDeleted !== "active" || search !== "") && (
+          <button
+            onClick={() => {
+              setPage(1);
+              setRegion("All Regions");
+              setRole("customer");
+              setShowDeleted("active");
+              setSearch("");
+              setSearchInput("");
+            }}
+            className="text-primary text-xs font-bold hover:underline transition-all ml-auto sm:ml-0"
+          >
+            Clear Filters
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -157,7 +252,7 @@ export default function CustomerTable() {
                         {getInitials(user.fullName)}
                       </div>
                       <div>
-                        <p className="font-semibold text-sm text-slate-900 flex items-center gap-1.5">
+                        <p className="font-semibold text-sm text-slate-900 flex items-center gap-1.5 flex-wrap">
                           {user.fullName}
                           {user.isVerified && (
                             <span
@@ -165,6 +260,11 @@ export default function CustomerTable() {
                               title="Verified"
                             >
                               verified
+                            </span>
+                          )}
+                          {user.isDeleted && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-rose-100 text-rose-700">
+                              Deleted
                             </span>
                           )}
                         </p>

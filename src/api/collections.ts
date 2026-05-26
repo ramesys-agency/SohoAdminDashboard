@@ -11,6 +11,7 @@ export interface CollectionPlacement {
   displayOrder: number;
   isActive: boolean;
   createdAt: string;
+  _count?: { products: number };
 }
 
 export interface Collection {

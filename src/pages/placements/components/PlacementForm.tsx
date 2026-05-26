@@ -6,6 +6,7 @@ import {
   PAGE_DISPLAY_LABEL,
   SECTION_PREVIEW_MAP,
   isBannerSection,
+  SECTION_GUIDANCE_MAP,
 } from "../types";
 
 type CollectionMode = "new" | "existing";
@@ -188,6 +189,12 @@ export default function PlacementForm({
                   </>
                 )}
               </select>
+
+              {sectionName && SECTION_GUIDANCE_MAP[sectionName as PageSection] && (
+                <p className="mt-1.5 text-xs text-indigo-600 font-semibold bg-indigo-50/50 p-2 rounded border border-indigo-100 leading-normal">
+                  💡 {SECTION_GUIDANCE_MAP[sectionName as PageSection]}
+                </p>
+              )}
 
               {/* Section Preview Helper */}
               {showPreview &&

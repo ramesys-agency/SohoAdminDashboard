@@ -21,12 +21,16 @@ export const apiEndpoint = {
     base: "/v1/app-placement",
     byId: (id: string) => `/v1/app-placement/${id}`,
   },
+  homePromo: {
+    base: "/v1/home-promo",
+  },
   users: {
     profile: "/v1/users/profile",
     avatar: "/v1/users/avatar",
     updatePassword: "/v1/users/password",
     byId: (id: string) => `/v1/users/${id}`,
     adminAll: "/v1/users/admin/all",
+    adminCreate: "/v1/users/admin/create",
   },
   stats: {
     dashboard: "/v1/stats/dashboard",

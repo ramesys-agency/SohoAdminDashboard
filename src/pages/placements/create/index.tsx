@@ -7,14 +7,14 @@ import PageWrapper from "../../../components/ui/PageWrapper";
 import PageHeader from "../../../components/ui/PageHeader";
 import PlacementForm from "../components/PlacementForm";
 import MobilePreview from "../components/MobilePreview";
-import { createPlacement, updatePlacement } from "../../../api/placements";
-import { getCollections, getCollectionById } from "../../../api/collections";
-import type { Collection } from "../../../api/collections";
+import { createPlacement, updatePlacement, getPlacementById } from "../../../api/placements";
+import type { PlacementDetail } from "../../../api/placements";
+import { getCollections } from "../../../api/collections";
 
 type CollectionMode = "new" | "existing";
 
 interface LocationState {
-  collection?: Collection;
+  placement?: PlacementDetail;
 }
 
 export default function CreatePlacements() {
@@ -24,23 +24,21 @@ export default function CreatePlacements() {
   const queryClient = useQueryClient();
   const location = useLocation();
 
-  // Collection data passed from the list page via router state
   const locationState = location.state as LocationState | null;
-  const passedCollection = locationState?.collection;
-  // const passedPlacement = passedCollection?.collectionPlacements?.[0];
+  const passedPlacement = locationState?.placement;
 
-  // Fetch the specific collection data in edit mode (handles page refreshes)
-  const { data: fetchedCollectionRes, isLoading: isLoadingCollection } =
-    useQuery({
-      queryKey: ["collection", id],
-      queryFn: () => getCollectionById(id!),
-      enabled: isEdit && Boolean(id),
-    });
-  const fetchedCollection = fetchedCollectionRes?.data;
+  // In edit mode, fetch placement by its ID
+  const { data: fetchedPlacementRes, isLoading: isLoadingPlacement } = useQuery({
+    queryKey: ["placement", id],
+    queryFn: () => getPlacementById(id!),
+    enabled: isEdit && Boolean(id) && !passedPlacement,
+  });
+  const fetchedPlacement = fetchedPlacementRes?.data;
 
-  // Initialise form state
-  const [collectionMode, setCollectionMode] =
-    useState<CollectionMode>("existing");
+  const activePlacement = (fetchedPlacement || passedPlacement) as PlacementDetail | undefined;
+
+  // Form state
+  const [collectionMode, setCollectionMode] = useState<CollectionMode>("existing");
   const [collectionId, setCollectionId] = useState<string>("");
   const [pageName, setPageName] = useState<string>("");
   const [sectionName, setSectionName] = useState<string>("");
@@ -50,39 +48,27 @@ export default function CreatePlacements() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Sync form state when data is available (from router state or API)
+  // Hydrate form from placement (edit mode)
   useEffect(() => {
-    const col = fetchedCollection || passedCollection;
-    const placement = col?.collectionPlacements?.[0];
+    if (!activePlacement) return;
+    setCollectionId(activePlacement.collectionId);
+    setPageName(activePlacement.page);
+    setSectionName(activePlacement.section ?? "");
+    setIsBanner(activePlacement.isBanner);
+    setIsActive(activePlacement.isActive);
+    setImageUrl(activePlacement.imageUrl ?? "");
+  }, [activePlacement]);
 
-    if (col) {
-      setCollectionId(col.id);
-      if (placement) {
-        setPageName(placement.page);
-        setSectionName(placement.section);
-        setIsBanner(placement.isBanner);
-        setIsActive(placement.isActive);
-        setImageUrl(placement.imageUrl);
-      }
-    }
-  }, [fetchedCollection, passedCollection]);
-
-  // The placement ID needed for the PUT call
-  const placementId =
-    (fetchedCollection || passedCollection)?.collectionPlacements?.[0]?.id ??
-    "";
-
-  // Fetch all collections for the dropdown
+  // Fetch all collections for the dropdown (create mode only)
   const { data: collectionsData, isLoading: isLoadingCollections } = useQuery({
     queryKey: ["collections-all"],
     queryFn: () => getCollections(1, 100),
-    enabled: collectionMode === "existing",
+    enabled: !isEdit && collectionMode === "existing",
   });
 
   const allCollections =
     collectionsData?.data?.map((c) => ({ id: c.id, name: c.name })) ?? [];
 
-  // Create mutation
   const createMutation = useMutation({
     mutationFn: createPlacement,
     onSuccess: () => {
@@ -90,14 +76,12 @@ export default function CreatePlacements() {
       queryClient.invalidateQueries({ queryKey: ["collections"] });
       navigate("/placements");
     },
-    onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message ?? "Failed to create placement.",
-      );
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err?.response?.data?.message ?? "Failed to create placement.");
     },
   });
 
-  // Update mutation
   const updateMutation = useMutation({
     mutationFn: ({
       pId,
@@ -109,12 +93,12 @@ export default function CreatePlacements() {
     onSuccess: () => {
       toast.success("Placement updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["collections"] });
+      queryClient.invalidateQueries({ queryKey: ["placement", id] });
       navigate("/placements");
     },
-    onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message ?? "Failed to update placement.",
-      );
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err?.response?.data?.message ?? "Failed to update placement.");
     },
   });
 
@@ -131,9 +115,9 @@ export default function CreatePlacements() {
     setIsSaving(true);
 
     try {
-      if (isEdit && placementId) {
+      if (isEdit && id) {
         updateMutation.mutate({
-          pId: placementId,
+          pId: id,
           payload: {
             page: pageName,
             section: sectionName || undefined,
@@ -144,8 +128,7 @@ export default function CreatePlacements() {
         });
       } else {
         createMutation.mutate({
-          collectionId:
-            collectionMode === "existing" ? collectionId : undefined,
+          collectionId: collectionMode === "existing" ? collectionId : undefined,
           collectionName: collectionMode === "new" ? collectionId : undefined,
           page: pageName,
           section: sectionName || undefined,
@@ -154,13 +137,9 @@ export default function CreatePlacements() {
           image: imageFile ?? undefined,
         });
       }
-    } catch (err: any) {
-      console.error(err);
-      toast.error(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to create placement.",
-      );
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      toast.error(e?.response?.data?.message || e?.message || "Failed to save placement.");
     } finally {
       setIsSaving(false);
     }
@@ -170,9 +149,9 @@ export default function CreatePlacements() {
     createMutation.isPending ||
     updateMutation.isPending ||
     isSaving ||
-    isLoadingCollection;
+    isLoadingPlacement;
 
-  if (isEdit && isLoadingCollection) {
+  if (isEdit && isLoadingPlacement && !passedPlacement) {
     return (
       <PageWrapper>
         <div className="p-8 text-center text-slate-500">
@@ -247,12 +226,12 @@ export default function CreatePlacements() {
       )}
 
       {/* In edit mode, show the collection name as a read-only label */}
-      {isEdit && (fetchedCollection || passedCollection) && (
+      {isEdit && activePlacement && (
         <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-sm text-slate-700 font-semibold">
           <span className="material-symbols-outlined text-[18px] text-slate-400">
             folder
           </span>
-          Collection: {(fetchedCollection || passedCollection)!.name}
+          Collection: {activePlacement.collection?.name}
         </div>
       )}
 

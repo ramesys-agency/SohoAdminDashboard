@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import Pagination from "../../../components/ui/Pagination";
 import { getCollections } from "../../../api/collections";
-import type { Collection } from "../../../api/collections";
+import type { Collection, CollectionPlacement } from "../../../api/collections";
 import { deletePlacement } from "../../../api/placements";
 
 import { AppPage, PAGE_DISPLAY_LABEL } from "../types";
@@ -27,6 +27,11 @@ const PAGE_OPTIONS = [
   },
   { label: PAGE_DISPLAY_LABEL[AppPage.OFFERS], value: AppPage.OFFERS },
 ];
+
+interface PlacementRow {
+  placement: CollectionPlacement;
+  collection: Collection;
+}
 
 export default function CollectionsTable() {
   const navigate = useNavigate();
@@ -68,23 +73,17 @@ export default function CollectionsTable() {
       queryClient.invalidateQueries({ queryKey: ["collections"] });
       setDeletingId(null);
     },
-    onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message ?? "Failed to delete placement.",
-      );
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err?.response?.data?.message ?? "Failed to delete placement.");
       setDeletingId(null);
     },
   });
 
-  const handleDelete = (col: Collection) => {
-    const placementId = col.collectionPlacements?.[0]?.id;
-    if (!placementId) {
-      toast.error("No placement found for this collection.");
-      return;
-    }
+  const handleDelete = (placementId: string, collectionName: string) => {
     if (
       !window.confirm(
-        `Delete placement for "${col.name}"? This cannot be undone.`,
+        `Delete this placement for "${collectionName}"? This cannot be undone.`,
       )
     )
       return;
@@ -95,9 +94,11 @@ export default function CollectionsTable() {
   const allCollections = data?.data || [];
   const meta = data?.meta;
 
-  const getFirstImageUrl = (col: Collection): string | null => {
-    return col.collectionPlacements?.[0]?.imageUrl ?? null;
-  };
+  // Flatten: one row per placement across all collections
+  const placementRows: PlacementRow[] = allCollections.flatMap(
+    (col: Collection) =>
+      col.collectionPlacements?.map((p) => ({ placement: p, collection: col })) ?? [],
+  );
 
   if (isLoading) {
     return (
@@ -153,7 +154,6 @@ export default function CollectionsTable() {
               <tr className="bg-slate-50/50 border-b border-slate-200">
                 {[
                   "Collection Name",
-                  "Genders",
                   "Products",
                   "Placement Page",
                   "Status",
@@ -169,18 +169,18 @@ export default function CollectionsTable() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {allCollections.map((col: Collection) => (
+              {placementRows.map(({ placement, collection }) => (
                 <tr
-                  key={col.id}
+                  key={placement.id}
                   className="hover:bg-slate-50 transition-colors group"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
-                        {getFirstImageUrl(col) ? (
+                        {placement.imageUrl ? (
                           <img
-                            src={getFirstImageUrl(col)!}
-                            alt={col.name}
+                            src={placement.imageUrl}
+                            alt={collection.name}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -191,56 +191,24 @@ export default function CollectionsTable() {
                       </div>
                       <div>
                         <span className="font-bold text-slate-900 block">
-                          {col.name}
+                          {collection.name}
                         </span>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-1">
-                      {col.gender?.map((g) => (
-                        <span
-                          key={g}
-                          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 capitalize"
-                        >
-                          {g.toLowerCase()}
-                        </span>
-                      ))}
-                      {(!col.gender || col.gender.length === 0) && (
-                        <span className="text-xs text-slate-400">—</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
                     <span className="text-sm font-semibold text-slate-900">
-                      {col.productCount} Products
+                      {placement._count?.products ?? 0} Products
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-1">
-                      {Array.from(
-                        new Set(
-                          col.collectionPlacements
-                            ?.map((p) => p.page)
-                            .filter(Boolean),
-                        ),
-                      ).map((pageStr) => (
-                        <span
-                          key={pageStr}
-                          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700"
-                        >
-                          {PAGE_DISPLAY_LABEL[pageStr as AppPage] || pageStr}
-                        </span>
-                      ))}
-                      {(!col.collectionPlacements ||
-                        col.collectionPlacements.length === 0) && (
-                        <span className="text-xs text-slate-400">—</span>
-                      )}
-                    </div>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
+                      {PAGE_DISPLAY_LABEL[placement.page as AppPage] || placement.page}
+                    </span>
                   </td>
                   <td className="px-6 py-4">
                     <StatusBadge
-                      status={col.isActive ? "Active" : "Inactive"}
+                      status={placement.isActive ? "Active" : "Inactive"}
                     />
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -248,8 +216,8 @@ export default function CollectionsTable() {
                       <button
                         onClick={() =>
                           navigate(
-                            `/placements/collection/${col.id}/add-products`,
-                            { state: { collectionName: col.name } },
+                            `/placements/${placement.id}/products`,
+                            { state: { collectionName: collection.name } },
                           )
                         }
                         className="px-3 py-1 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
@@ -259,8 +227,8 @@ export default function CollectionsTable() {
                       </button>
                       <button
                         onClick={() =>
-                          navigate(`/placements/edit/${col.id}`, {
-                            state: { collection: col },
+                          navigate(`/placements/edit/${placement.id}`, {
+                            state: { placement },
                           })
                         }
                         className="p-2 text-slate-400 hover:text-primary transition-colors"
@@ -271,17 +239,15 @@ export default function CollectionsTable() {
                         </span>
                       </button>
                       <button
-                        onClick={() => handleDelete(col)}
+                        onClick={() => handleDelete(placement.id, collection.name)}
                         disabled={
-                          deletingId === col.collectionPlacements?.[0]?.id &&
-                          deleteMutation.isPending
+                          deletingId === placement.id && deleteMutation.isPending
                         }
                         className="p-2 text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50"
                         title="Delete"
                       >
                         <span className="material-symbols-outlined text-lg">
-                          {deletingId === col.collectionPlacements?.[0]?.id &&
-                          deleteMutation.isPending
+                          {deletingId === placement.id && deleteMutation.isPending
                             ? "hourglass_empty"
                             : "delete"}
                         </span>
@@ -290,13 +256,13 @@ export default function CollectionsTable() {
                   </td>
                 </tr>
               ))}
-              {allCollections.length === 0 && !isLoading && (
+              {placementRows.length === 0 && !isLoading && (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={5}
                     className="px-6 py-8 text-center text-slate-500"
                   >
-                    No collections found.
+                    No placements found.
                   </td>
                 </tr>
               )}

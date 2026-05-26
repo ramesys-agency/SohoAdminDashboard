@@ -6,7 +6,7 @@ import Dashboard from "./pages/dashboard";
 import Analytics from "./pages/analytics";
 import Categories from "./pages/categories";
 import CreateCategory from "./pages/categories/create";
-import AddProductsToCollection from "./pages/placements/add-products";
+import AddProductsToPlacement from "./pages/placements/add-products";
 import Customers from "./pages/customers";
 import Offers from "./pages/offers";
 import CreateOffer from "./pages/offers/create";
@@ -20,6 +20,7 @@ import Settings from "./pages/settings";
 import LoginPage from "./pages/auth/LoginPage";
 import CreatePlacements from "./pages/placements/create";
 import Placements from "./pages/placements";
+import HomePromoPage from "./pages/home-promo";
 import ShippingPage from "./pages/shipping";
 
 export default function App() {
@@ -40,10 +41,11 @@ export default function App() {
             <Route path="placements" element={<Placements />} />
             <Route path="placements/edit/:id" element={<CreatePlacements />} />
             <Route
-              path="placements/collection/:id/add-products"
-              element={<AddProductsToCollection />}
+              path="placements/:id/products"
+              element={<AddProductsToPlacement />}
             />
             <Route path="placements/create" element={<CreatePlacements />} />
+            <Route path="home-promo" element={<HomePromoPage />} />
             <Route path="customers" element={<Customers />} />
             <Route path="offers" element={<Offers />} />
             <Route path="offers/create" element={<CreateOffer />} />

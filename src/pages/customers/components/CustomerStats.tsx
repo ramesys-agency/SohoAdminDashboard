@@ -3,7 +3,7 @@ import { getAllUsers } from "../../../api/users";
 
 export default function CustomerStats() {
   const { data } = useQuery({
-    queryKey: ["admin-users", 1, ""],
+    queryKey: ["admin-users-stats"],
     queryFn: () => getAllUsers({ page: 1, limit: 1 }),
   });
 
