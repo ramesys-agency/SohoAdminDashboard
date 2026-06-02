@@ -8,7 +8,7 @@ import { getCollections } from "../../../api/collections";
 import type { Collection, CollectionPlacement } from "../../../api/collections";
 import { deletePlacement } from "../../../api/placements";
 
-import { AppPage, PAGE_DISPLAY_LABEL } from "../types";
+import { AppPage, PAGE_DISPLAY_LABEL, SECTION_GUIDANCE_MAP, PageSection } from "../types";
 
 const PAGE_OPTIONS = [
   { label: "All Pages", value: "" },
@@ -156,6 +156,7 @@ export default function CollectionsTable() {
                   "Collection Name",
                   "Products",
                   "Placement Page",
+                  "Section",
                   "Status",
                   "Actions",
                 ].map((h) => (
@@ -205,6 +206,21 @@ export default function CollectionsTable() {
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
                       {PAGE_DISPLAY_LABEL[placement.page as AppPage] || placement.page}
                     </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    {placement.section ? (
+                      <span
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-violet-50 text-violet-700"
+                        title={SECTION_GUIDANCE_MAP[placement.section as PageSection] ?? placement.section}
+                      >
+                        <span className="material-symbols-outlined text-[13px]">
+                          {placement.isBanner ? "panorama_wide_angle" : "crop_portrait"}
+                        </span>
+                        {placement.section}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-slate-400">—</span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <StatusBadge
@@ -259,7 +275,7 @@ export default function CollectionsTable() {
               {placementRows.length === 0 && !isLoading && (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="px-6 py-8 text-center text-slate-500"
                   >
                     No placements found.

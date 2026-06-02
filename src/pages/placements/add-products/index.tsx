@@ -201,6 +201,26 @@ export default function AddProductsToPlacement() {
     displayedProducts = products.filter((p) => !selectedProductsMap.has(p.id));
   }
 
+  const allCurrentPageSelected =
+    displayedProducts.length > 0 &&
+    displayedProducts.every((p) => selectedProductsMap.has(p.id));
+
+  const someCurrentPageSelected =
+    !allCurrentPageSelected &&
+    displayedProducts.some((p) => selectedProductsMap.has(p.id));
+
+  const toggleAllCurrentPage = () => {
+    setSelectedProductsMap((prev) => {
+      const next = new Map(prev);
+      if (allCurrentPageSelected) {
+        displayedProducts.forEach((p) => next.delete(p.id));
+      } else {
+        displayedProducts.forEach((p) => next.set(p.id, p));
+      }
+      return next;
+    });
+  };
+
   const from = (page - 1) * LIMIT + 1;
   const to = Math.min(page * LIMIT, meta.total);
 
@@ -284,7 +304,18 @@ export default function AddProductsToPlacement() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-200">
-                {["Select", "Product", "Category", "Gender", "Price", "Variants", "Status", "Created"].map((h) => (
+                <th className="px-6 py-4">
+                  <input
+                    type="checkbox"
+                    className="size-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer"
+                    checked={allCurrentPageSelected}
+                    ref={(el) => { if (el) el.indeterminate = someCurrentPageSelected; }}
+                    onChange={toggleAllCurrentPage}
+                    disabled={displayedProducts.length === 0 || loading}
+                    title={allCurrentPageSelected ? "Deselect all on this page" : "Select all on this page"}
+                  />
+                </th>
+                {["Product", "Category", "Gender", "Price", "Variants", "Status", "Created"].map((h) => (
                   <th key={h} className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                     {h}
                   </th>
@@ -316,7 +347,7 @@ export default function AddProductsToPlacement() {
                     <td className="px-6 py-4">
                       <input
                         type="checkbox"
-                        className="size-4 rounded border-slate-300 text-primary focus:ring-primary"
+                        className="size-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer"
                         checked={selectedProductsMap.has(p.id)}
                         onChange={() => toggleProduct(p)}
                       />

@@ -12,6 +12,8 @@ export interface PlacementPayload {
 }
 
 export interface PlacementUpdatePayload {
+  collectionId?: string;
+  collectionName?: string;
   page?: string;
   section?: string;
   isBanner?: boolean;
@@ -65,6 +67,8 @@ export const createPlacement = async (payload: PlacementPayload): Promise<any> =
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const updatePlacement = async (id: string, payload: PlacementUpdatePayload): Promise<any> => {
   const form = new FormData();
+  if (payload.collectionId) form.append("collectionId", payload.collectionId);
+  if (payload.collectionName) form.append("collectionName", payload.collectionName);
   if (payload.page !== undefined) form.append("page", payload.page);
   if (payload.section !== undefined) form.append("section", payload.section);
   if (payload.isBanner !== undefined) form.append("isBanner", String(payload.isBanner));

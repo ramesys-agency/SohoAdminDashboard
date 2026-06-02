@@ -55,4 +55,7 @@ export const apiEndpoint = {
   upload: {
     base: "/v1/upload",
   },
+  notifications: {
+    adminSend: "/v1/notifications/admin/send",
+  },
 };

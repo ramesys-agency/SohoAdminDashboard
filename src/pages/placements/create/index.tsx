@@ -59,11 +59,11 @@ export default function CreatePlacements() {
     setImageUrl(activePlacement.imageUrl ?? "");
   }, [activePlacement]);
 
-  // Fetch all collections for the dropdown (create mode only)
+  // Fetch all collections for the dropdown
   const { data: collectionsData, isLoading: isLoadingCollections } = useQuery({
     queryKey: ["collections-all"],
     queryFn: () => getCollections(1, 100),
-    enabled: !isEdit && collectionMode === "existing",
+    enabled: collectionMode === "existing",
   });
 
   const allCollections =
@@ -103,7 +103,7 @@ export default function CreatePlacements() {
   });
 
   const handleSave = async () => {
-    if (!isEdit && !collectionId) {
+    if (!collectionId) {
       toast.error("Please select or enter a collection.");
       return;
     }
@@ -119,6 +119,8 @@ export default function CreatePlacements() {
         updateMutation.mutate({
           pId: id,
           payload: {
+            collectionId: collectionMode === "existing" ? collectionId : undefined,
+            collectionName: collectionMode === "new" ? collectionId : undefined,
             page: pageName,
             section: sectionName || undefined,
             isBanner,
@@ -185,55 +187,43 @@ export default function CreatePlacements() {
         }
       />
 
-      {/* Collection Mode Toggle — only show in create mode */}
-      {!isEdit && (
-        <div className="mt-6 inline-flex items-center bg-slate-100 rounded-xl p-1 gap-1">
-          <button
-            type="button"
-            onClick={() => {
-              setCollectionMode("existing");
-              setCollectionId("");
-            }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-              collectionMode === "existing"
-                ? "bg-white text-primary shadow-sm border border-slate-200"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            <span className="material-symbols-outlined text-[18px]">
-              library_books
-            </span>
-            Select Existing Collection
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setCollectionMode("new");
-              setCollectionId("");
-            }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-              collectionMode === "new"
-                ? "bg-white text-primary shadow-sm border border-slate-200"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            <span className="material-symbols-outlined text-[18px]">
-              add_circle
-            </span>
-            Create New Collection
-          </button>
-        </div>
-      )}
-
-      {/* In edit mode, show the collection name as a read-only label */}
-      {isEdit && activePlacement && (
-        <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-sm text-slate-700 font-semibold">
-          <span className="material-symbols-outlined text-[18px] text-slate-400">
-            folder
+      {/* Collection Mode Toggle */}
+      <div className="mt-6 inline-flex items-center bg-slate-100 rounded-xl p-1 gap-1">
+        <button
+          type="button"
+          onClick={() => {
+            setCollectionMode("existing");
+            setCollectionId(isEdit && activePlacement ? activePlacement.collectionId : "");
+          }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+            collectionMode === "existing"
+              ? "bg-white text-primary shadow-sm border border-slate-200"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">
+            library_books
           </span>
-          Collection: {activePlacement.collection?.name}
-        </div>
-      )}
+          Select Existing Collection
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setCollectionMode("new");
+            setCollectionId("");
+          }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+            collectionMode === "new"
+              ? "bg-white text-primary shadow-sm border border-slate-200"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">
+            add_circle
+          </span>
+          Create New Collection
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start mt-6">
         {/* Left: Main form */}

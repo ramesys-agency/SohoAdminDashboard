@@ -33,13 +33,7 @@ export const PAGE_SECTION_MAP: Record<AppPage, PageSection[]> = {
   [AppPage.CATALOG_WOMEN]: [PageSection.FEATURED_ROW, PageSection.GRID_SECTION],
   [AppPage.CATALOG_KIDS]: [PageSection.FEATURED_ROW, PageSection.GRID_SECTION],
   [AppPage.OFFERS]: [], // No sections
-  [AppPage.HOME]: [
-    PageSection.HERO,
-    PageSection.FEATURED_ROW,
-    PageSection.GRID_SECTION,
-    PageSection.MID_BANNER,
-    PageSection.SEE_ALL,
-  ],
+  [AppPage.HOME]: [PageSection.HERO],
 };
 
 // Human-readable labels/guidance for each Section to help the Admin

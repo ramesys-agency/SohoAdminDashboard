@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import {
   AppPage,
   PageSection,
@@ -47,6 +47,20 @@ export default function PlacementForm({
   isLoadingCollections = false,
 }: PlacementFormProps) {
   const [showPreview, setShowPreview] = React.useState(false);
+  const [collectionSearch, setCollectionSearch] = React.useState("");
+  const [collectionDropdownOpen, setCollectionDropdownOpen] = React.useState(false);
+  const collectionDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (collectionDropdownRef.current && !collectionDropdownRef.current.contains(e.target as Node)) {
+        setCollectionDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   // Derive available sections based on selected page (memoized)
   const availableSections = useMemo(() => {
@@ -101,23 +115,91 @@ export default function PlacementForm({
                 className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
               />
             ) : (
-              <select
-                value={collectionId}
-                onChange={(e) => setCollectionId(e.target.value)}
-                disabled={isLoadingCollections}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none disabled:bg-slate-50 disabled:text-slate-400"
-              >
-                <option value="">
-                  {isLoadingCollections
-                    ? "Loading..."
-                    : "-- Choose a Collection --"}
-                </option>
-                {collections.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <div ref={collectionDropdownRef} className="relative">
+                {/* Trigger button */}
+                <button
+                  type="button"
+                  disabled={isLoadingCollections}
+                  onClick={() => {
+                    setCollectionDropdownOpen((v) => !v);
+                    setCollectionSearch("");
+                  }}
+                  className="w-full flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2.5 text-sm bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none disabled:bg-slate-50 disabled:text-slate-400 text-left"
+                >
+                  <span className={collectionId ? "text-slate-900" : "text-slate-400"}>
+                    {isLoadingCollections
+                      ? "Loading..."
+                      : collectionId
+                        ? (collections.find((c) => c.id === collectionId)?.name ?? "-- Choose a Collection --")
+                        : "-- Choose a Collection --"}
+                  </span>
+                  <span className="material-symbols-outlined text-[18px] text-slate-400 flex-shrink-0">
+                    {collectionDropdownOpen ? "expand_less" : "expand_more"}
+                  </span>
+                </button>
+
+                {/* Dropdown panel */}
+                {collectionDropdownOpen && (
+                  <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">
+                    {/* Search input */}
+                    <div className="flex items-center gap-2 px-3 py-2 border-b border-slate-100">
+                      <span className="material-symbols-outlined text-[18px] text-slate-400 flex-shrink-0">search</span>
+                      <input
+                        type="text"
+                        autoFocus
+                        value={collectionSearch}
+                        onChange={(e) => setCollectionSearch(e.target.value)}
+                        placeholder="Search collections..."
+                        className="flex-1 text-sm outline-none placeholder:text-slate-400"
+                      />
+                      {collectionSearch && (
+                        <button
+                          type="button"
+                          onClick={() => setCollectionSearch("")}
+                          className="text-slate-400 hover:text-slate-600"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">close</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Options list */}
+                    <ul className="max-h-52 overflow-y-auto py-1">
+                      {collections
+                        .filter((c) =>
+                          c.name.toLowerCase().includes(collectionSearch.toLowerCase())
+                        )
+                        .map((c) => (
+                          <li key={c.id}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCollectionId(c.id);
+                                setCollectionDropdownOpen(false);
+                                setCollectionSearch("");
+                              }}
+                              className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 flex items-center gap-2 ${
+                                collectionId === c.id ? "text-primary font-semibold bg-primary/5" : "text-slate-700"
+                              }`}
+                            >
+                              {collectionId === c.id && (
+                                <span className="material-symbols-outlined text-[16px] text-primary flex-shrink-0">check</span>
+                              )}
+                              <span className={collectionId === c.id ? "" : "ml-[22px]"}>{c.name}</span>
+                            </button>
+                          </li>
+                        ))}
+                      {collections.filter((c) =>
+                        c.name.toLowerCase().includes(collectionSearch.toLowerCase())
+                      ).length === 0 && (
+                        <li className="px-3 py-3 text-sm text-slate-400 text-center">
+                          No collections found
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 

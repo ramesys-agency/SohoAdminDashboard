@@ -22,6 +22,7 @@ import CreatePlacements from "./pages/placements/create";
 import Placements from "./pages/placements";
 import HomePromoPage from "./pages/home-promo";
 import ShippingPage from "./pages/shipping";
+import Notifications from "./pages/notifications";
 
 export default function App() {
   return (
@@ -47,6 +48,7 @@ export default function App() {
             <Route path="placements/create" element={<CreatePlacements />} />
             <Route path="home-promo" element={<HomePromoPage />} />
             <Route path="customers" element={<Customers />} />
+            <Route path="notifications" element={<Notifications />} />
             <Route path="offers" element={<Offers />} />
             <Route path="offers/create" element={<CreateOffer />} />
             <Route path="offers/view/:id" element={<ViewOffer />} />
