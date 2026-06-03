@@ -101,7 +101,7 @@ export default function ViewOffer() {
                 <p className="text-sm font-bold text-slate-900">
                   {coupon.type === "percentage"
                     ? `${coupon.value}%`
-                    : `$${Number(coupon.value).toFixed(2)}`}
+                    : `৳${Number(coupon.value).toFixed(2)}`}
                 </p>
               </div>
               <div>

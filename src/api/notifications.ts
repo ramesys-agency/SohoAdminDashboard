@@ -13,6 +13,7 @@ export interface SendNotificationInput {
   userIds?: string[];
   includeAdmins?: boolean;
   data?: Record<string, unknown> | null;
+  pushEnabled?: boolean;
 }
 
 export interface SendNotificationResult {

@@ -73,6 +73,7 @@ export default function Notifications() {
   const [redirectType, setRedirectType] = useState<RedirectType>("none");
   const [redirectTarget, setRedirectTarget] = useState<RedirectTarget>(null);
   const [redirectSearch, setRedirectSearch] = useState("");
+  const [pushEnabled, setPushEnabled] = useState(true);
 
   // User search results for the "specific users" audience
   const { data: userResults, isFetching: usersLoading } = useQuery({
@@ -152,6 +153,7 @@ export default function Notifications() {
     setRedirectType("none");
     setRedirectTarget(null);
     setRedirectSearch("");
+    setPushEnabled(true);
   };
 
   const validate = (): string | null => {
@@ -201,6 +203,7 @@ export default function Notifications() {
         type,
         audience,
         includeAdmins,
+        pushEnabled,
         ...(audience === "region" ? { regions } : {}),
         ...(audience === "users"
           ? { userIds: selectedUsers.map((u) => u.id) }
@@ -293,6 +296,61 @@ export default function Notifications() {
               <p className="text-xs text-slate-400 text-right">
                 {body.length}/500
               </p>
+            </div>
+          </div>
+
+          {/* ---- Delivery channel ---- */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+              Delivery Channel
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setPushEnabled(true)}
+                className={`text-left p-4 rounded-xl border transition-all ${
+                  pushEnabled
+                    ? "bg-primary/5 border-primary ring-1 ring-primary"
+                    : "bg-white border-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                <span
+                  className={`material-symbols-outlined text-2xl ${
+                    pushEnabled ? "text-primary" : "text-slate-400"
+                  }`}
+                >
+                  phone_android
+                </span>
+                <p className="font-bold text-sm text-slate-900 mt-2">
+                  Mobile + In-app
+                </p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Sends a push notification to the device and saves it in-app
+                </p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPushEnabled(false)}
+                className={`text-left p-4 rounded-xl border transition-all ${
+                  !pushEnabled
+                    ? "bg-primary/5 border-primary ring-1 ring-primary"
+                    : "bg-white border-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                <span
+                  className={`material-symbols-outlined text-2xl ${
+                    !pushEnabled ? "text-primary" : "text-slate-400"
+                  }`}
+                >
+                  notifications
+                </span>
+                <p className="font-bold text-sm text-slate-900 mt-2">
+                  In-app only
+                </p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Saved in the notification centre — no device push sent
+                </p>
+              </button>
             </div>
           </div>
 
@@ -653,6 +711,12 @@ export default function Notifications() {
                       : `No ${redirectType} selected`}
                 </span>
               </div>
+              <div className="flex justify-between">
+                <span>Channel</span>
+                <span className="font-semibold text-slate-700">
+                  {pushEnabled ? "Mobile + In-app" : "In-app only"}
+                </span>
+              </div>
             </div>
 
             <button
@@ -729,6 +793,12 @@ export default function Notifications() {
                   </span>
                 </div>
               )}
+              <div className="flex justify-between gap-2">
+                <span>Channel</span>
+                <span className="font-semibold text-slate-800">
+                  {pushEnabled ? "Mobile + In-app" : "In-app only"}
+                </span>
+              </div>
             </div>
 
             {/* Actions */}

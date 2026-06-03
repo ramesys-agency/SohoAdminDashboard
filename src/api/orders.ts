@@ -60,8 +60,16 @@ export interface Order {
   lastLogisticsSync?: string;
 }
 
-export const getAllOrders = async (): Promise<Order[]> => {
-  const { data } = await api.get(apiEndpoint.orders.adminAll);
+export interface OrderFilterParams {
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+  paymentStatus?: string;
+  fulfillmentStatus?: string;
+}
+
+export const getAllOrders = async (params?: OrderFilterParams): Promise<Order[]> => {
+  const { data } = await api.get(apiEndpoint.orders.adminAll, { params });
   return data.data;
 };
 

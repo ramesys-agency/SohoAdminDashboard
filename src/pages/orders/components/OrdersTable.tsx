@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import Pagination from "../../../components/ui/Pagination";
@@ -24,6 +24,17 @@ interface OrdersTableProps {
   endDate: string;
 }
 
+// Normalise label-style filter values ("Payment: All", "Paid", …) into API params
+function toPaymentStatus(f: string): string | undefined {
+  const v = f.replace("Payment: ", "").toLowerCase();
+  return v === "all" ? undefined : v;
+}
+
+function toFulfillmentStatus(f: string): string | undefined {
+  const v = f.replace("Fulfillment: ", "").toLowerCase();
+  return v === "all" ? undefined : v;
+}
+
 export default function OrdersTable({
   search,
   paymentFilter,
@@ -36,100 +47,48 @@ export default function OrdersTable({
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Debounce search so we don't fire on every keystroke
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    fetchOrders();
-  }, []);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => { if (searchTimer.current) clearTimeout(searchTimer.current); };
+  }, [search]);
 
-  // Reset page to 1 when filters change
+  // Reset page to 1 when any filter changes
   useEffect(() => {
     setPage(1);
-  }, [search, paymentFilter, fulfillmentFilter, startDate, endDate]);
+  }, [debouncedSearch, paymentFilter, fulfillmentFilter, startDate, endDate]);
 
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      const data = await getAllOrders();
-      setOrders(data);
-    } catch (error) {
-      console.error("Failed to fetch orders:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Filter logic
-  const filteredOrders = orders.filter((order) => {
-    // Payment filter
-    const latestPayment = order.payments?.[0];
-    const paymentStatus = latestPayment?.status || "pending";
-    if (paymentFilter !== "Payment: All") {
-      const normalizedFilter = paymentFilter.toLowerCase();
-      
-      if (normalizedFilter === "paid") {
-        if (paymentStatus.toLowerCase() !== "success" && paymentStatus.toLowerCase() !== "paid") return false;
-      } else if (normalizedFilter === "pending") {
-        if (paymentStatus.toLowerCase() !== "pending" && paymentStatus.toLowerCase() !== "cod_pending") return false;
-      } else if (normalizedFilter === "refunded") {
-        if (paymentStatus.toLowerCase() !== "refunded") return false;
+  // Re-fetch whenever the effective filter set changes
+  useEffect(() => {
+    let cancelled = false;
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const data = await getAllOrders({
+          search: debouncedSearch.trim() || undefined,
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
+          paymentStatus: toPaymentStatus(paymentFilter),
+          fulfillmentStatus: toFulfillmentStatus(fulfillmentFilter),
+        });
+        if (!cancelled) setOrders(data);
+      } catch (error) {
+        console.error("Failed to fetch orders:", error);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    }
+    };
+    fetchOrders();
+    return () => { cancelled = true; };
+  }, [debouncedSearch, paymentFilter, fulfillmentFilter, startDate, endDate]);
 
-    // Fulfillment filter
-    // Options: "Fulfillment: All", "Fulfilled", "Unfulfilled", "Processing"
-    if (fulfillmentFilter !== "Fulfillment: All") {
-      const normalizedFilter = fulfillmentFilter.toLowerCase();
-      // Order status options in database: pending, processing, shipped, delivered, cancelled
-      if (normalizedFilter === "fulfilled") {
-        if (order.status.toLowerCase() !== "delivered") return false;
-      } else if (normalizedFilter === "unfulfilled") {
-        if (order.status.toLowerCase() !== "pending" && order.status.toLowerCase() !== "cancelled") return false;
-      } else if (normalizedFilter === "processing") {
-        if (order.status.toLowerCase() !== "processing" && order.status.toLowerCase() !== "shipped") return false;
-      }
-    }
-
-    // Date filter
-    if (startDate) {
-      const start = dayjs(startDate).startOf("day");
-      const orderDate = dayjs(order.createdAt);
-      if (orderDate.isBefore(start)) {
-        return false;
-      }
-    }
-    if (endDate) {
-      const end = dayjs(endDate).endOf("day");
-      const orderDate = dayjs(order.createdAt);
-      if (orderDate.isAfter(end)) {
-        return false;
-      }
-    }
-
-    // Search filter
-    if (search.trim()) {
-      const query = search.toLowerCase().trim();
-      const orderCode = (order.orderCode || "").toLowerCase();
-      const orderId = (order.id || "").toLowerCase();
-      const customerName = (order.user?.fullName || order.customerFullName || "guest user").toLowerCase();
-      const customerEmail = (order.user?.email || order.customerEmail || "").toLowerCase();
-      const customerPhone = (order.user?.phone || order.customerMobileNumber || "").toLowerCase();
-
-      const matchesSearch =
-        orderCode.includes(query) ||
-        orderId.includes(query) ||
-        customerName.includes(query) ||
-        customerEmail.includes(query) ||
-        customerPhone.includes(query);
-
-      if (!matchesSearch) return false;
-    }
-
-    return true;
-  });
-
-  // Pagination logic
+  // Pagination logic (server already filtered — just page the result set)
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage) || 1;
-  const paginatedOrders = filteredOrders.slice(
+  const totalPages = Math.ceil(orders.length / itemsPerPage) || 1;
+  const paginatedOrders = orders.slice(
     (page - 1) * itemsPerPage,
     page * itemsPerPage
   );
@@ -248,7 +207,7 @@ export default function OrdersTable({
         currentPage={page}
         totalPages={totalPages}
         onPageChange={setPage}
-        showingText={`Showing ${paginatedOrders.length} of ${filteredOrders.length} total orders`}
+        showingText={`Showing ${paginatedOrders.length} of ${orders.length} total orders`}
       />
     </div>
   );

@@ -56,7 +56,7 @@ export default function CouponsTable({
     if (coupon.type === "percentage") {
       return `${coupon.value}% Off`;
     }
-    return `$${Number(coupon.value).toFixed(2)} Off`;
+    return `৳${Number(coupon.value).toFixed(2)} Off`;
   };
 
   const formatType = (type: string) => {

@@ -27,7 +27,7 @@ export default function Orders() {
       />
       <div className="space-y-4 mb-6">
         {/* Search & Date Filter Card */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 shadow-sm">
           {/* Search bar */}
           <div className="relative flex-1 max-w-md">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">
@@ -41,9 +41,9 @@ export default function Orders() {
               className="bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-4 py-2 text-sm w-full focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-slate-700"
             />
           </div>
-          
+
           {/* Date range picker */}
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600">
               <span className="material-symbols-outlined text-slate-400 text-lg">
                 calendar_today

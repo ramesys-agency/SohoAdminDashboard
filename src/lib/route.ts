@@ -21,9 +21,6 @@ export const apiEndpoint = {
     base: "/v1/app-placement",
     byId: (id: string) => `/v1/app-placement/${id}`,
   },
-  homePromo: {
-    base: "/v1/home-promo",
-  },
   users: {
     profile: "/v1/users/profile",
     avatar: "/v1/users/avatar",

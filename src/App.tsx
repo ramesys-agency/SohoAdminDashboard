@@ -20,9 +20,9 @@ import Settings from "./pages/settings";
 import LoginPage from "./pages/auth/LoginPage";
 import CreatePlacements from "./pages/placements/create";
 import Placements from "./pages/placements";
-import HomePromoPage from "./pages/home-promo";
 import ShippingPage from "./pages/shipping";
 import Notifications from "./pages/notifications";
+import NotFoundPage from "./pages/not-found";
 
 export default function App() {
   return (
@@ -31,6 +31,7 @@ export default function App() {
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<LoginPage />} />
         </Route>
+        <Route path="*" element={<NotFoundPage />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
@@ -46,7 +47,6 @@ export default function App() {
               element={<AddProductsToPlacement />}
             />
             <Route path="placements/create" element={<CreatePlacements />} />
-            <Route path="home-promo" element={<HomePromoPage />} />
             <Route path="customers" element={<Customers />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="offers" element={<Offers />} />
