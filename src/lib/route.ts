@@ -55,4 +55,8 @@ export const apiEndpoint = {
   notifications: {
     adminSend: "/v1/notifications/admin/send",
   },
+  homePromo: {
+    base: "/v1/home-promo",
+    byId: (id: string) => `/v1/home-promo/${id}`,
+  },
 };

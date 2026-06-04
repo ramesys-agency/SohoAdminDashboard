@@ -10,9 +10,8 @@ import {
 } from "../../api/notifications";
 import { getAllUsers, type AdminUser } from "../../api/users";
 import { getCollections, type Collection } from "../../api/collections";
-import { getProducts, type ApiProduct } from "../../api/products";
 
-type RedirectType = "none" | "collection" | "product";
+type RedirectType = "none" | "collection";
 type RedirectTarget = { id: string; name: string; slug: string } | null;
 
 const REGIONS = [
@@ -95,13 +94,6 @@ export default function Notifications() {
     enabled: redirectType === "collection",
   });
 
-  const { data: productResults, isFetching: productsLoading } = useQuery({
-    queryKey: ["notif-product-search", redirectSearch],
-    queryFn: () =>
-      getProducts({ limit: 10, search: redirectSearch || undefined }),
-    enabled: redirectType === "product",
-  });
-
   const redirectItems: RedirectTarget[] =
     redirectType === "collection"
       ? (collectionResults?.data ?? []).map((c: Collection) => ({
@@ -109,16 +101,9 @@ export default function Notifications() {
           name: c.name,
           slug: c.slug,
         }))
-      : redirectType === "product"
-        ? (productResults?.data ?? []).map((p: ApiProduct) => ({
-            id: p.id,
-            name: p.name,
-            slug: p.slug,
-          }))
-        : [];
+      : [];
 
-  const redirectLoading =
-    redirectType === "collection" ? collectionsLoading : productsLoading;
+  const redirectLoading = collectionsLoading;
 
   const selectedUserIds = useMemo(
     () => new Set(selectedUsers.map((u) => u.id)),
@@ -368,7 +353,6 @@ export default function Notifications() {
                     label: "Collection",
                     icon: "collections_bookmark",
                   },
-                  { value: "product", label: "Product", icon: "inventory_2" },
                 ] as { value: RedirectType; label: string; icon: string }[]
               ).map((opt) => (
                 <button
@@ -399,9 +383,7 @@ export default function Notifications() {
                   <div className="flex items-center justify-between px-4 py-3 bg-primary/5 border border-primary/20 rounded-xl">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="material-symbols-outlined text-primary text-[18px]">
-                        {redirectType === "collection"
-                          ? "collections_bookmark"
-                          : "inventory_2"}
+                        collections_bookmark
                       </span>
                       <span className="text-sm font-semibold text-slate-800 truncate">
                         {redirectTarget.name}
@@ -455,9 +437,7 @@ export default function Notifications() {
                             className="w-full flex items-center gap-3 p-3 text-left hover:bg-slate-50 transition-colors"
                           >
                             <span className="material-symbols-outlined text-slate-400 text-[18px]">
-                              {redirectType === "collection"
-                                ? "collections_bookmark"
-                                : "inventory_2"}
+                              collections_bookmark
                             </span>
                             <div className="min-w-0">
                               <p className="text-sm font-semibold text-slate-900 truncate">
@@ -746,7 +726,7 @@ export default function Notifications() {
           >
             {/* Icon + heading */}
             <div className="flex items-start gap-4">
-              <div className="size-11 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <div className="size-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-primary text-[22px]">
                   send
                 </span>
@@ -789,7 +769,9 @@ export default function Notifications() {
                 <div className="flex justify-between gap-2">
                   <span>Redirects to</span>
                   <span className="font-semibold text-slate-800 text-right truncate max-w-[60%]">
-                    {redirectTarget ? redirectTarget.name : `No ${redirectType} selected`}
+                    {redirectTarget
+                      ? redirectTarget.name
+                      : `No ${redirectType} selected`}
                   </span>
                 </div>
               )}

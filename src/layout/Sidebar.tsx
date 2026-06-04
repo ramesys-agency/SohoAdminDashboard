@@ -8,6 +8,7 @@ const navItems = [
   { to: "/categories", icon: "category", label: "Categories" },
   // { to: "/collections", icon: "layers", label: "Collections" },
   { to: "/placements", icon: "view_quilt", label: "App Placements" },
+  { to: "/home-promo", icon: "campaign", label: "Homepage Promo" },
   { to: "/orders", icon: "shopping_cart", label: "Orders" },
   { to: "/customers", icon: "group", label: "Customers" },
   { to: "/notifications", icon: "notifications", label: "Notifications" },

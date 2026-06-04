@@ -23,6 +23,8 @@ import Placements from "./pages/placements";
 import ShippingPage from "./pages/shipping";
 import Notifications from "./pages/notifications";
 import NotFoundPage from "./pages/not-found";
+import HomePromoList from "./pages/home-promo";
+import CreateOrEditHomePromo from "./pages/home-promo/create";
 
 export default function App() {
   return (
@@ -41,6 +43,9 @@ export default function App() {
             <Route path="categories/edit/:id" element={<CreateCategory />} />
             <Route path="shipping" element={<ShippingPage />} />
             <Route path="placements" element={<Placements />} />
+            <Route path="home-promo" element={<HomePromoList />} />
+            <Route path="home-promo/create" element={<CreateOrEditHomePromo />} />
+            <Route path="home-promo/edit/:id" element={<CreateOrEditHomePromo />} />
             <Route path="placements/edit/:id" element={<CreatePlacements />} />
             <Route
               path="placements/:id/products"
