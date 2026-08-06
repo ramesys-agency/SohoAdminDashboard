@@ -40,6 +40,13 @@ export const apiEndpoint = {
     syncRoadRush: (id: string) => `/v1/orders/admin/${id}/sync-roadrush`,
     refreshStatus: (id: string) => `/v1/orders/admin/${id}/refresh-status`,
   },
+  returns: {
+    adminAll: "/v1/returns/admin/all",
+    byOrder: (orderId: string) => `/v1/returns/order/${orderId}`,
+    create: (orderId: string) => `/v1/returns/admin/order/${orderId}`,
+    update: (returnId: string) => `/v1/returns/admin/${returnId}`,
+    remove: (returnId: string) => `/v1/returns/admin/${returnId}`,
+  },
   coupons: {
     base: "/v1/coupons",
     byId: (id: string) => `/v1/coupons/${id}`,

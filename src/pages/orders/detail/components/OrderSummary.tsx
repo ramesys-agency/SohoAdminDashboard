@@ -52,8 +52,14 @@ export default function OrderSummary({
                 <option value="shipped">Shipped</option>
                 <option value="delivered">Delivered</option>
                 <option value="cancelled">Cancelled</option>
+                <option value="returned">Returned</option>
               </select>
             </div>
+            {order.logisticsStatusName && (
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+                RoadRush: {order.logisticsStatusName}
+              </p>
+            )}
           </div>
           <div>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
@@ -89,7 +95,7 @@ export default function OrderSummary({
               </>
             )}
 
-          {order.status !== "delivered" && order.status !== "cancelled" && (
+          {!["delivered", "cancelled", "returned"].includes(order.status) && (
             <button
               onClick={() =>
                 onUpdateStatus(
@@ -100,6 +106,19 @@ export default function OrderSummary({
               className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition-opacity"
             >
               Fulfill Order
+            </button>
+          )}
+
+          {/* Refunds are normally recorded per return in the Returns panel, which
+              flips this automatically once refunds cover the order total. This is
+              the manual escape hatch for refunds settled outside that flow. */}
+          {currentPayment && currentPayment.status !== "refunded" && (
+            <button
+              onClick={() => onUpdatePayment("refunded")}
+              title="Marks the whole payment refunded, regardless of individual returns"
+              className="px-4 py-2 bg-purple-50 text-purple-700 border border-purple-200 text-sm font-bold rounded-lg hover:bg-purple-100 transition-colors"
+            >
+              Mark Refunded
             </button>
           )}
         </div>

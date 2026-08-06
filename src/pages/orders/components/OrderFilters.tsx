@@ -39,7 +39,7 @@ export default function OrderFilters({
             onChange={(e) => setFulfillmentFilter(e.target.value)}
             className="w-full pl-3 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm appearance-none focus:outline-none text-slate-700 font-semibold cursor-pointer"
           >
-            {["Fulfillment: All", "Fulfilled", "Unfulfilled", "Processing"].map((o) => (
+            {["Fulfillment: All", "Fulfilled", "Unfulfilled", "Processing", "Returned"].map((o) => (
               <option key={o} value={o}>{o}</option>
             ))}
           </select>

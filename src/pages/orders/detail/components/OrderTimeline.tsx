@@ -30,10 +30,17 @@ export default function OrderTimeline({ order }: OrderTimelineProps) {
                 )}
               </div>
               <div>
+                {/* Show the courier's own wording when the entry came from
+                    RoadRush; our enum is only a coarse grouping of it. */}
                 <p className="text-sm font-bold text-slate-900 uppercase">
-                  {log.status.replace(/_/g, " ")}
+                  {(log.logisticsStatusName || log.status).replace(/_/g, " ")}
                 </p>
-                {log.note && (
+                {log.logisticsStatusName && (
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                    {log.status}
+                  </p>
+                )}
+                {log.note && log.note !== log.logisticsStatusName && (
                   <p className="text-xs text-slate-500 mt-1">{log.note}</p>
                 )}
                 <p className="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-wider">

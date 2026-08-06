@@ -1,5 +1,18 @@
 import api from "../lib/axios";
 import { apiEndpoint } from "../lib/route";
+import type { ReturnStatus } from "./returns";
+
+/** Return rows embedded in an order item by the orders endpoints. */
+export interface OrderItemReturn {
+  id: string;
+  reason: string;
+  status: ReturnStatus;
+  quantity: number;
+  note?: string | null;
+  refundAmount?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface OrderItem {
   id: string;
@@ -14,6 +27,7 @@ export interface OrderItem {
     size: string;
     colorName: string;
   };
+  returns?: OrderItemReturn[];
 }
 
 export interface OrderPayment {
@@ -48,6 +62,8 @@ export interface Order {
   statusLogs: Array<{
     status: string;
     note: string;
+    /** Raw RoadRush status name; null for admin-generated entries. */
+    logisticsStatusName?: string | null;
     createdAt: string;
   }>;
   customerMobileNumber?: string;
@@ -58,6 +74,19 @@ export interface Order {
   receiverDistrict?: string;
   receiverThana?: string;
   lastLogisticsSync?: string;
+  /** Raw RoadRush status name, e.g. "Rider Accepted". */
+  logisticsStatusName?: string | null;
+
+  // Logistics & COD figures mirrored from RoadRush order_details
+  cashCollectAmount?: string | null;
+  deliveryFee?: string | null;
+  codCharge?: string | null;
+  vat?: string | null;
+  tax?: string | null;
+  distanceKm?: string | null;
+  deliveryPriority?: string | null;
+  otp?: string | null;
+  requestDeliveryDate?: string | null;
 }
 
 export interface OrderFilterParams {
