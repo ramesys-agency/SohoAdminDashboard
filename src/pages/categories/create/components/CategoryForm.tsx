@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation, useParams, Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
   createCategory,
@@ -21,6 +21,41 @@ export interface AttributeData {
   isFilterable: boolean;
 }
 
+type GenderKey = "MEN" | "WOMEN" | "KIDS";
+
+/**
+ * Per-gender catalog placement. `isActive` controls whether the category shows
+ * up in that tab of the mobile catalog at all — the backend treats a missing or
+ * inactive placement as "hidden", regardless of what products the category has.
+ */
+interface PlacementState {
+  file: File | null;
+  preview: string | null;
+  url: string | null;
+  isActive: boolean;
+  displayOrder: number;
+}
+
+const GENDERS: { key: GenderKey; label: string; icon: string }[] = [
+  { key: "MEN", label: "Men", icon: "man" },
+  { key: "WOMEN", label: "Women", icon: "woman" },
+  { key: "KIDS", label: "Kids", icon: "child_care" },
+];
+
+const emptyPlacement: PlacementState = {
+  file: null,
+  preview: null,
+  url: null,
+  isActive: false,
+  displayOrder: 0,
+};
+
+const emptyPlacements: Record<GenderKey, PlacementState> = {
+  MEN: { ...emptyPlacement },
+  WOMEN: { ...emptyPlacement },
+  KIDS: { ...emptyPlacement },
+};
+
 export default function CategoryForm() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -37,20 +72,19 @@ export default function CategoryForm() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [, setLoading] = useState(false);
 
-  // Gender Specific Images
-  const [menImageFile, setMenImageFile] = useState<File | null>(null);
-  const [menImagePreview, setMenImagePreview] = useState<string | null>(null);
-  const [menImageUrl, setMenImageUrl] = useState<string | null>(null);
+  // Per-gender catalog placements (image + visibility + ordering)
+  const [placements, setPlacements] =
+    useState<Record<GenderKey, PlacementState>>(emptyPlacements);
 
-  const [womenImageFile, setWomenImageFile] = useState<File | null>(null);
-  const [womenImagePreview, setWomenImagePreview] = useState<string | null>(
-    null,
-  );
-  const [womenImageUrl, setWomenImageUrl] = useState<string | null>(null);
-
-  const [kidsImageFile, setKidsImageFile] = useState<File | null>(null);
-  const [kidsImagePreview, setKidsImagePreview] = useState<string | null>(null);
-  const [kidsImageUrl, setKidsImageUrl] = useState<string | null>(null);
+  const updatePlacement = (
+    gender: GenderKey,
+    changes: Partial<PlacementState>,
+  ) => {
+    setPlacements((current) => ({
+      ...current,
+      [gender]: { ...current[gender], ...changes },
+    }));
+  };
 
   // Fetch category data if in edit mode (handles page refreshes)
   const categoryId = id || editCategory?.id;
@@ -61,6 +95,12 @@ export default function CategoryForm() {
   });
 
   const categoryData = fetchedCategoryRes?.data || editCategory;
+
+  // Published product counts per gender, including descendant categories — the
+  // same set the "View products" link lands on. Only present on the by-id fetch,
+  // so it stays empty until that resolves.
+  const genderProductCounts: Partial<Record<GenderKey, number>> =
+    fetchedCategoryRes?.data?.genderProductCounts ?? {};
 
   // Pre-populate from state when editing
   useEffect(() => {
@@ -74,22 +114,30 @@ export default function CategoryForm() {
         setImagePreview(categoryData.imageUrl);
       }
 
-      // Pre-populate gender images
+      // Pre-populate gender placements. An existing row means the category is
+      // already configured for that tab, so default isActive to true when the
+      // backend has not sent an explicit value.
       if (categoryData.genderImages) {
-        categoryData.genderImages.forEach((gi: any) => {
-          if (gi.gender === "MEN") {
-            setMenImageUrl(gi.imageUrl);
-            setMenImagePreview(gi.imageUrl);
-          }
-          if (gi.gender === "WOMEN") {
-            setWomenImageUrl(gi.imageUrl);
-            setWomenImagePreview(gi.imageUrl);
-          }
-          if (gi.gender === "KIDS") {
-            setKidsImageUrl(gi.imageUrl);
-            setKidsImagePreview(gi.imageUrl);
-          }
+        const next: Record<GenderKey, PlacementState> = {
+          MEN: { ...emptyPlacement },
+          WOMEN: { ...emptyPlacement },
+          KIDS: { ...emptyPlacement },
+        };
+
+        categoryData.genderImages.forEach((placement: any) => {
+          const gender = placement.gender as GenderKey;
+          if (!next[gender]) return;
+
+          next[gender] = {
+            file: null,
+            preview: placement.imageUrl ?? null,
+            url: placement.imageUrl ?? null,
+            isActive: placement.isActive ?? true,
+            displayOrder: placement.displayOrder ?? 0,
+          };
         });
+
+        setPlacements(next);
       }
     }
   }, [categoryData]);
@@ -167,41 +215,46 @@ export default function CategoryForm() {
 
     setLoading(true);
 
+    const categoryFolder = `category/${name.toLowerCase().replace(/\s+/g, "-")}`;
+
     const uploadImages = async () => {
       let mainUrl = imageUrl;
-      let mUrl = menImageUrl;
-      let wUrl = womenImageUrl;
-      let kUrl = kidsImageUrl;
-
-      const categoryFolder = `category/${name.toLowerCase().replace(/\s+/g, "-")}`;
 
       if (imageFile) {
         const res = await uploadFile(imageFile, categoryFolder, "main");
         mainUrl = res.data.url;
       }
-      if (menImageFile) {
-        const res = await uploadFile(menImageFile, categoryFolder, "men");
-        mUrl = res.data.url;
-      }
-      if (womenImageFile) {
-        const res = await uploadFile(womenImageFile, categoryFolder, "women");
-        wUrl = res.data.url;
-      }
-      if (kidsImageFile) {
-        const res = await uploadFile(kidsImageFile, categoryFolder, "kids");
-        kUrl = res.data.url;
+
+      const placementUrls = {} as Record<GenderKey, string | null>;
+      for (const { key } of GENDERS) {
+        const placement = placements[key];
+        if (placement.file) {
+          const res = await uploadFile(
+            placement.file,
+            categoryFolder,
+            key.toLowerCase(),
+          );
+          placementUrls[key] = res.data.url;
+        } else {
+          placementUrls[key] = placement.url;
+        }
       }
 
-      return { mainUrl, mUrl, wUrl, kUrl };
+      return { mainUrl, placementUrls };
     };
 
     try {
-      const { mainUrl, mUrl, wUrl, kUrl } = await uploadImages();
+      const { mainUrl, placementUrls } = await uploadImages();
 
-      const genderImages = [];
-      if (mUrl) genderImages.push({ gender: "MEN", imageUrl: mUrl });
-      if (wUrl) genderImages.push({ gender: "WOMEN", imageUrl: wUrl });
-      if (kUrl) genderImages.push({ gender: "KIDS", imageUrl: kUrl });
+      // Send every gender, including disabled ones: the backend upserts by
+      // (category, gender), so an explicit isActive false is what hides a
+      // category from a tab while keeping its image and ordering on file.
+      const genderImages = GENDERS.map(({ key }) => ({
+        gender: key,
+        imageUrl: placementUrls[key],
+        isActive: placements[key].isActive,
+        displayOrder: placements[key].displayOrder,
+      }));
 
       const payload = {
         name,
@@ -319,119 +372,122 @@ export default function CategoryForm() {
               </div>
             </div>
 
-            {/* Gender Specific Images */}
+            {/* Catalog Placement — controls the mobile app's gender tabs */}
             <div className="pt-6 border-t border-slate-100">
-              <h4 className="text-xs font-bold text-slate-500 uppercase mb-4">
-                Gender Specific Displays
+              <h4 className="text-xs font-bold text-slate-500 uppercase">
+                Catalog Placement
               </h4>
+              <p className="text-[11px] text-slate-500 mt-1 mb-4">
+                Choose which gender tabs this category appears in. A tab that is
+                off hides the category from the app, even if it has products.
+                Leave the image empty to use the main image above. Counts are
+                published products, including sub-categories.
+              </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* MEN */}
-                <div className="space-y-3 flex flex-col items-center">
-                  <label className="text-[10px] font-bold text-slate-500 flex items-center gap-1 uppercase tracking-wider">
-                    MEN
-                  </label>
-                  <div
-                    onClick={() =>
-                      document.getElementById("men-image")?.click()
-                    }
-                    className="size-20 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary bg-slate-50 overflow-hidden relative group shadow-sm"
-                  >
-                    {menImagePreview ? (
-                      <img
-                        src={menImagePreview}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="material-symbols-outlined text-slate-300 text-lg">
-                        man
-                      </span>
-                    )}
-                    <input
-                      id="men-image"
-                      type="file"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setMenImageFile(file);
-                          setMenImagePreview(URL.createObjectURL(file));
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
+                {GENDERS.map(({ key, label, icon }) => {
+                  const placement = placements[key];
+                  const inputId = `${key.toLowerCase()}-image`;
 
-                {/* WOMEN */}
-                <div className="space-y-3 flex flex-col items-center">
-                  <label className="text-[10px] font-bold text-slate-500 flex items-center gap-1 uppercase tracking-wider">
-                    WOMEN
-                  </label>
-                  <div
-                    onClick={() =>
-                      document.getElementById("women-image")?.click()
-                    }
-                    className="size-20 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary bg-slate-50 overflow-hidden relative group shadow-sm"
-                  >
-                    {womenImagePreview ? (
-                      <img
-                        src={womenImagePreview}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="material-symbols-outlined text-slate-300 text-lg">
-                        woman
-                      </span>
-                    )}
-                    <input
-                      id="women-image"
-                      type="file"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setWomenImageFile(file);
-                          setWomenImagePreview(URL.createObjectURL(file));
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
+                  return (
+                    <div
+                      key={key}
+                      className={`space-y-3 flex flex-col items-center rounded-lg border p-4 transition-colors ${
+                        placement.isActive
+                          ? "border-slate-200 bg-white"
+                          : "border-slate-100 bg-slate-50"
+                      }`}
+                    >
+                      <label className="text-[10px] font-bold text-slate-500 flex items-center gap-1 uppercase tracking-wider">
+                        {label}
+                      </label>
 
-                {/* KIDS */}
-                <div className="space-y-3 flex flex-col items-center">
-                  <label className="text-[10px] font-bold text-slate-500 flex items-center gap-1 uppercase tracking-wider">
-                    KIDS
-                  </label>
-                  <div
-                    onClick={() =>
-                      document.getElementById("kids-image")?.click()
-                    }
-                    className="size-20 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary bg-slate-50 overflow-hidden relative group shadow-sm"
-                  >
-                    {kidsImagePreview ? (
-                      <img
-                        src={kidsImagePreview}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="material-symbols-outlined text-slate-300 text-lg">
-                        child_care
-                      </span>
-                    )}
-                    <input
-                      id="kids-image"
-                      type="file"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setKidsImageFile(file);
-                          setKidsImagePreview(URL.createObjectURL(file));
+                      <div
+                        onClick={() =>
+                          document.getElementById(inputId)?.click()
                         }
-                      }}
-                    />
-                  </div>
-                </div>
+                        className={`size-20 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary bg-slate-50 overflow-hidden relative group shadow-sm ${
+                          placement.isActive ? "" : "opacity-40"
+                        }`}
+                      >
+                        {placement.preview ? (
+                          <img
+                            src={placement.preview}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="material-symbols-outlined text-slate-300 text-lg">
+                            {icon}
+                          </span>
+                        )}
+                        <input
+                          id={inputId}
+                          type="file"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              updatePlacement(key, {
+                                file,
+                                preview: URL.createObjectURL(file),
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+
+                      {placement.preview && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updatePlacement(key, {
+                              file: null,
+                              preview: null,
+                              url: null,
+                            })
+                          }
+                          className="text-[10px] text-red-500 font-bold hover:underline"
+                        >
+                          Remove Image
+                        </button>
+                      )}
+
+                      <label className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={placement.isActive}
+                          onChange={(e) =>
+                            updatePlacement(key, {
+                              isActive: e.target.checked,
+                            })
+                          }
+                          className="size-3.5 rounded border-slate-300 accent-primary cursor-pointer"
+                        />
+                        Show in {label}
+                      </label>
+
+                      {isEditMode && (
+                        <div className="w-full pt-2 border-t border-slate-100 text-center">
+                          <p className="text-[11px] text-slate-500">
+                            <span className="font-bold text-slate-700">
+                              {genderProductCounts[key] ?? 0}
+                            </span>{" "}
+                            {genderProductCounts[key] === 1
+                              ? "product"
+                              : "products"}
+                          </p>
+                          {(genderProductCounts[key] ?? 0) > 0 && (
+                            <Link
+                              to={`/products?categoryId=${categoryId}&gender=${key}&isPublished=true`}
+                              className="text-[10px] font-bold text-primary hover:underline"
+                            >
+                              View products
+                            </Link>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

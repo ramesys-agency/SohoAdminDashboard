@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import { getParentCategories } from "../../../../api/categories";
+import {
+  getParentCategories,
+  type CategoryTreeNode,
+} from "../../../../api/categories";
+import CategorySelectOptions from "../../../../components/ui/CategorySelectOptions";
 
 interface OrganizationCardProps {
   categoryId: string;
@@ -8,18 +12,13 @@ interface OrganizationCardProps {
   onCollectionsChange: (v: string[]) => void;
 }
 
-interface ParentCategory {
-  id: string;
-  name: string;
-}
-
 export default function OrganizationCard({
   categoryId,
   onCategoryIdChange,
   // collections,
   // onCollectionsChange,
 }: OrganizationCardProps) {
-  const [categories, setCategories] = useState<ParentCategory[]>([]);
+  const [categories, setCategories] = useState<CategoryTreeNode[]>([]);
 
   useEffect(() => {
     getParentCategories()
@@ -58,11 +57,7 @@ export default function OrganizationCard({
               className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer"
             >
               <option value="">Select a category</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
+              <CategorySelectOptions categories={categories} />
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
               <span className="material-symbols-outlined text-slate-400 text-lg">

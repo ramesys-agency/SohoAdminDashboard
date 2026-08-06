@@ -18,13 +18,25 @@ export const getCategoryHierarchy = async (
   return data;
 };
 
+/**
+ * Per-gender catalog placement. An active row is what makes a category appear in
+ * that tab of the mobile catalog; imageUrl is optional and falls back to the
+ * category's main image.
+ */
+export interface GenderPlacementPayload {
+  gender: string;
+  imageUrl?: string | null;
+  isActive?: boolean;
+  displayOrder?: number;
+}
+
 export interface CreateCategoryPayload {
   name: string;
   attributes: any[];
   parentId?: string | null;
   isActive?: boolean;
   imageUrl?: string | null;
-  genderImages?: { gender: string; imageUrl: string }[];
+  genderImages?: GenderPlacementPayload[];
 }
 
 export const createCategory = async (payload: CreateCategoryPayload) => {
@@ -41,6 +53,13 @@ export const getParentCategories = async () => {
   return data;
 };
 
+/** Shape returned by getParentCategories: roots with one level of children. */
+export interface CategoryTreeNode {
+  id: string;
+  name: string;
+  children?: { id: string; name: string }[];
+}
+
 export interface UpdateCategoryPayload {
   name?: string;
   attributes?: any[];
@@ -48,6 +67,7 @@ export interface UpdateCategoryPayload {
   isActive?: boolean;
   displayOrder?: number;
   imageUrl?: string | null;
+  genderImages?: GenderPlacementPayload[];
 }
 
 export const updateCategory = async (

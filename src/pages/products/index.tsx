@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import PageWrapper from "../../components/ui/PageWrapper";
 import PageHeader from "../../components/ui/PageHeader";
@@ -13,26 +13,35 @@ import {
   type ApiProduct,
 } from "../../api/products";
 import { getCollections, type Collection } from "../../api/collections";
-import { getParentCategories } from "../../api/categories";
-
-interface ParentCategory {
-  id: string;
-  name: string;
-}
+import {
+  getParentCategories,
+  type CategoryTreeNode,
+} from "../../api/categories";
 
 const LIMIT = 20;
 
 export default function Products() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Filter state
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [gender, setGender] = useState("");
-  const [isPublished, setIsPublished] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [collectionId, setCollectionId] = useState("");
-  const [sortBy, setSortBy] = useState("");
+  // Filter state, seeded from the URL so other pages can deep-link into a
+  // filtered view (e.g. a category's Catalog Placement card linking to its
+  // published products for one gender).
+  const [search, setSearch] = useState(() => searchParams.get("search") ?? "");
+  const [debouncedSearch, setDebouncedSearch] = useState(
+    () => searchParams.get("search") ?? "",
+  );
+  const [gender, setGender] = useState(() => searchParams.get("gender") ?? "");
+  const [isPublished, setIsPublished] = useState(
+    () => searchParams.get("isPublished") ?? "",
+  );
+  const [categoryId, setCategoryId] = useState(
+    () => searchParams.get("categoryId") ?? "",
+  );
+  const [collectionId, setCollectionId] = useState(
+    () => searchParams.get("collectionId") ?? "",
+  );
+  const [sortBy, setSortBy] = useState(() => searchParams.get("sortBy") ?? "");
   const [page, setPage] = useState(1);
 
   // Data state
@@ -43,7 +52,7 @@ export default function Products() {
     limit: LIMIT,
     totalPages: 1,
   });
-  const [categories, setCategories] = useState<ParentCategory[]>([]);
+  const [categories, setCategories] = useState<CategoryTreeNode[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +89,29 @@ export default function Products() {
     setSortBy(v);
     setPage(1);
   };
+
+  // Mirror the active filters back into the URL so a filtered view stays
+  // shareable and survives a refresh. Replaces rather than pushes, so filtering
+  // does not fill up the back button.
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (debouncedSearch) next.set("search", debouncedSearch);
+    if (gender) next.set("gender", gender);
+    if (isPublished !== "") next.set("isPublished", isPublished);
+    if (categoryId) next.set("categoryId", categoryId);
+    if (collectionId) next.set("collectionId", collectionId);
+    if (sortBy) next.set("sortBy", sortBy);
+
+    setSearchParams(next, { replace: true });
+  }, [
+    debouncedSearch,
+    gender,
+    isPublished,
+    categoryId,
+    collectionId,
+    sortBy,
+    setSearchParams,
+  ]);
 
   // Fetch categories & collections once on mount
   useEffect(() => {

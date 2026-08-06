@@ -1,9 +1,6 @@
 import type { Collection } from "../../../api/collections";
-
-interface ParentCategory {
-  id: string;
-  name: string;
-}
+import type { CategoryTreeNode } from "../../../api/categories";
+import CategorySelectOptions from "../../../components/ui/CategorySelectOptions";
 
 interface ProductFiltersProps {
   search: string;
@@ -18,7 +15,7 @@ interface ProductFiltersProps {
   onCollectionChange: (v: string) => void;
   sortBy: string;
   onSortByChange: (v: string) => void;
-  categories: ParentCategory[];
+  categories: CategoryTreeNode[];
   collections: Collection[];
 }
 
@@ -66,6 +63,7 @@ export default function ProductFilters({
           <option value="">All Genders</option>
           <option value="MEN">Men</option>
           <option value="WOMEN">Women</option>
+          <option value="KIDS">Kids</option>
         </select>
 
         {/* Category */}
@@ -75,11 +73,7 @@ export default function ProductFilters({
           className="text-sm border border-slate-200 bg-white rounded-lg focus:outline-none py-2 px-3 text-slate-700"
         >
           <option value="">All Categories</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
-          ))}
+          <CategorySelectOptions categories={categories} />
         </select>
 
         {/* Collection */}

@@ -11,7 +11,16 @@ export interface Category {
   updatedAt: string;
   totalProducts: number;
   children?: Category[];
-  genderImages?: { gender: string; imageUrl: string }[];
+  genderImages?: CategoryGenderPlacement[];
+}
+
+/** Per-gender catalog placement row as returned by the API. */
+export interface CategoryGenderPlacement {
+  id?: string;
+  gender: string;
+  imageUrl: string | null;
+  isActive: boolean;
+  displayOrder: number;
 }
 
 export interface CategoryHierarchyResponse {
