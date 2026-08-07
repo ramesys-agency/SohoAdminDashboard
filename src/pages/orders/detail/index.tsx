@@ -16,6 +16,8 @@ import {
   syncOrderWithRoadRush,
   type Order,
   refreshOrderStatus,
+  retryOrderSync,
+  setManualHandled,
 } from "../../../api/orders";
 import dayjs from "dayjs";
 import Button from "../../../components/ui/Button";
@@ -85,6 +87,42 @@ export default function OrderDetail() {
       console.error("Failed to sync with RoadRush:", error);
       toast.error(
         error?.response?.data?.message || "Failed to sync with RoadRush",
+      );
+    }
+  };
+
+  const handleRetrySync = async () => {
+    if (!id) return;
+    try {
+      const response = await retryOrderSync(id);
+      if (response?.data?.order?.orderCode) {
+        toast.success("Order handed to the courier successfully");
+      } else {
+        toast.warning(
+          "The courier is still unreachable — the order stays queued for another attempt",
+        );
+      }
+      await fetchOrder();
+    } catch (error: any) {
+      console.error("Failed to retry logistics sync:", error);
+      toast.error(error?.response?.data?.error || "Retry failed");
+    }
+  };
+
+  const handleToggleManualHandled = async () => {
+    if (!id || !order) return;
+    try {
+      await setManualHandled(id, !order.manualHandledAt);
+      toast.success(
+        order.manualHandledAt
+          ? "Order moved back to the manual shipping queue"
+          : "Order marked as handled",
+      );
+      await fetchOrder();
+    } catch (error: any) {
+      console.error("Failed to update manual shipping state:", error);
+      toast.error(
+        error?.response?.data?.error || "Could not update this order",
       );
     }
   };
@@ -183,6 +221,47 @@ export default function OrderDetail() {
           </div>
         }
       />
+
+      {order.orderType === "manual_shipping" && (
+        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <div className="flex items-start gap-3">
+            <span className="material-symbols-outlined text-amber-600">
+              local_shipping
+            </span>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-amber-900">
+                Manual shipping required
+                {order.manualHandledAt && " — already handled"}
+              </p>
+              <p className="text-sm text-amber-800">
+                The courier hand-off failed
+                {order.logisticsJob
+                  ? ` after ${order.logisticsJob.attempts} of ${order.logisticsJob.maxAttempts} attempts`
+                  : ""}
+                {order.manualFlaggedAt
+                  ? ` on ${dayjs(order.manualFlaggedAt).format("MMM DD, hh:mm A")}`
+                  : ""}
+                . Arrange this delivery yourself, then mark it handled.
+              </p>
+              {order.manualReason && (
+                <p className="mt-1 text-xs text-amber-700 font-mono break-all">
+                  {order.manualReason}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {!order.orderCode && (
+                <Button variant="outline" size="sm" onClick={handleRetrySync}>
+                  Retry sync
+                </Button>
+              )}
+              <Button size="sm" onClick={handleToggleManualHandled}>
+                {order.manualHandledAt ? "Reopen" : "Mark handled"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <OrderSummary
         order={order}

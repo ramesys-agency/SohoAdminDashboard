@@ -39,6 +39,12 @@ export const apiEndpoint = {
     updatePayment: (id: string) => `/v1/orders/admin/${id}/payment`,
     syncRoadRush: (id: string) => `/v1/orders/admin/${id}/sync-roadrush`,
     refreshStatus: (id: string) => `/v1/orders/admin/${id}/refresh-status`,
+    // Manual shipping — orders the automated courier hand-off gave up on
+    manual: "/v1/orders/admin/manual",
+    manualCount: "/v1/orders/admin/manual/count",
+    manualHandled: (id: string) => `/v1/orders/admin/${id}/manual/handled`,
+    manualUnhandled: (id: string) => `/v1/orders/admin/${id}/manual/unhandled`,
+    retrySync: (id: string) => `/v1/orders/admin/${id}/retry-sync`,
   },
   returns: {
     adminAll: "/v1/returns/admin/all",

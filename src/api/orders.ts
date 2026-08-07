@@ -77,6 +77,23 @@ export interface Order {
   /** Raw RoadRush status name, e.g. "Rider Accepted". */
   logisticsStatusName?: string | null;
 
+  // Manual shipping fallback
+  orderType?: OrderType;
+  manualReason?: string | null;
+  manualFlaggedAt?: string | null;
+  manualHandledAt?: string | null;
+  manualHandledBy?: string | null;
+  /** Retry-queue state for the courier hand-off. Admin responses only. */
+  logisticsJob?: {
+    id: string;
+    status: string;
+    attempts: number;
+    maxAttempts: number;
+    nextRunAt: string;
+    lastError?: string | null;
+    lastAttempt?: string | null;
+  } | null;
+
   // Logistics & COD figures mirrored from RoadRush order_details
   cashCollectAmount?: string | null;
   deliveryFee?: string | null;
@@ -95,7 +112,47 @@ export interface OrderFilterParams {
   endDate?: string;
   paymentStatus?: string;
   fulfillmentStatus?: string;
+  orderType?: OrderType;
 }
+
+/** `manual_shipping` orders need a human to arrange the delivery. */
+export type OrderType = "standard" | "manual_shipping";
+
+export interface ManualOrderFilterParams {
+  /** "false" (default) = still needs attention, "true" = already arranged. */
+  handled?: "true" | "false" | "all";
+  search?: string;
+}
+
+export const getManualOrders = async (
+  params?: ManualOrderFilterParams
+): Promise<Order[]> => {
+  const { data } = await api.get(apiEndpoint.orders.manual, { params });
+  return data.data;
+};
+
+export const getManualOrdersCount = async (): Promise<number> => {
+  const { data } = await api.get(apiEndpoint.orders.manualCount);
+  return data.data?.pending ?? 0;
+};
+
+export const setManualHandled = async (
+  id: string,
+  handled: boolean
+): Promise<any> => {
+  const { data } = await api.post(
+    handled
+      ? apiEndpoint.orders.manualHandled(id)
+      : apiEndpoint.orders.manualUnhandled(id)
+  );
+  return data;
+};
+
+/** Reset the retry counter and run the courier hand-off again right now. */
+export const retryOrderSync = async (id: string): Promise<any> => {
+  const { data } = await api.post(apiEndpoint.orders.retrySync(id));
+  return data;
+};
 
 export const getAllOrders = async (params?: OrderFilterParams): Promise<Order[]> => {
   const { data } = await api.get(apiEndpoint.orders.adminAll, { params });

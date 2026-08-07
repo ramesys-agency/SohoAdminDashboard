@@ -26,6 +26,8 @@ const variants: Record<string, string> = {
   "new lead": "bg-amber-100 text-amber-700",
   "churn risk": "bg-red-100 text-red-700",
   completed: "bg-emerald-100 text-emerald-700",
+  manual_shipping: "bg-amber-100 text-amber-700",
+  standard: "bg-slate-100 text-slate-600",
 };
 
 const dotVariants: Record<string, string> = {
@@ -52,6 +54,8 @@ const dotVariants: Record<string, string> = {
   "new lead": "bg-amber-500",
   "churn risk": "bg-red-500",
   completed: "bg-emerald-500",
+  manual_shipping: "bg-amber-500",
+  standard: "bg-slate-400",
 };
 
 export default function StatusBadge({ status }: StatusBadgeProps) {

@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
 import { useAuthStore } from "../store/authStore";
+import { getManualOrdersCount } from "../api/orders";
 
 const navItems = [
   { to: "/", icon: "dashboard", label: "Dashboard" },
@@ -20,6 +22,30 @@ const navItems = [
 export default function Sidebar() {
   const navigate = useNavigate();
   const logout = useAuthStore((state) => state.logout);
+
+  // Orders that fell back to manual shipping need a human today, so the count
+  // follows the admin around instead of hiding on the Orders page.
+  const [manualCount, setManualCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchCount = async () => {
+      try {
+        const count = await getManualOrdersCount();
+        if (!cancelled) setManualCount(count);
+      } catch {
+        // A failed poll should never break navigation — leave the last count.
+      }
+    };
+
+    fetchCount();
+    const timer = setInterval(fetchCount, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -55,6 +81,14 @@ export default function Sidebar() {
               {item.icon}
             </span>
             <span>{item.label}</span>
+            {item.to === "/orders" && manualCount > 0 && (
+              <span
+                title={`${manualCount} order(s) need manual shipping`}
+                className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold"
+              >
+                {manualCount}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>

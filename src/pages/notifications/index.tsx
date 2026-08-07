@@ -195,9 +195,15 @@ export default function Notifications() {
           : {}),
         ...(redirectData ? { data: redirectData } : {}),
       });
+      // Push is queued and retried in the background, so promising delivery here
+      // would be a lie — say what actually happened.
       toast.success(
-        `Notification delivered to ${result.sent} user(s).` +
-          (result.sent === 0 ? " No recipients matched your filters." : ""),
+        result.sent === 0
+          ? "No recipients matched your filters."
+          : `Sent to ${result.sent} user(s).` +
+              (result.push?.queued
+                ? ` Queued for delivery to ${result.push.devices} device(s).`
+                : " In-app only — no device push."),
       );
       resetForm();
     } catch (err: any) {

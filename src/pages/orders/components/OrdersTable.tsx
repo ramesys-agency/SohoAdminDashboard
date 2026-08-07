@@ -151,6 +151,14 @@ export default function OrdersTable({
                       <span className="text-sm font-bold text-primary hover:underline">
                         {order.orderCode || order.id.slice(0, 8).toUpperCase()}
                       </span>
+                      {/* Flags orders the courier hand-off gave up on, so they
+                          are visible here too and not only in their own tab. */}
+                      {order.orderType === "manual_shipping" &&
+                        !order.manualHandledAt && (
+                          <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wide">
+                            Manual
+                          </span>
+                        )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">

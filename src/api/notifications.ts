@@ -19,6 +19,16 @@ export interface SendNotificationInput {
 export interface SendNotificationResult {
   sent: number;
   recipients: number;
+  /**
+   * Device delivery is queued, not sent inline — the backend retries it and
+   * confirms it against Expo receipts after this request has already returned.
+   */
+  push: {
+    queued: boolean;
+    devices: number;
+    jobs: number;
+    dispatchId: string | null;
+  };
 }
 
 export const sendNotification = async (
