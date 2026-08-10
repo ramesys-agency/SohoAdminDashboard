@@ -21,6 +21,14 @@ export default function LoginPage() {
   const loginMutation = useMutation({
     mutationFn: (credentials: LoginCredentials) => loginUser(credentials),
     onSuccess: (data) => {
+      // Customer credentials authenticate fine against the same API — they just
+      // don't belong here. Refuse before storing anything, otherwise the session
+      // exists and every dashboard request comes back 403.
+      if (data.data.user?.role !== "admin") {
+        setErrors({ form: "This account doesn't have dashboard access." });
+        return;
+      }
+
       setToken(data.data.accessToken, data.data.refreshToken, data.data.user);
       navigate("/");
     },
