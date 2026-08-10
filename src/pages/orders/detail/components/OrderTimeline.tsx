@@ -45,6 +45,10 @@ export default function OrderTimeline({ order }: OrderTimelineProps) {
                 )}
                 <p className="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-wider">
                   {dayjs(log.createdAt).format("MMM DD, YYYY - HH:mm")}
+                  {/* "Who moved this order" used to be unanswerable — two
+                      writers shared one column and neither signed its work. */}
+                  {log.source === "admin" && " · by staff"}
+                  {log.source === "roadrush" && " · by RoadRush"}
                 </p>
               </div>
             </div>

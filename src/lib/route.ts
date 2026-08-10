@@ -45,6 +45,11 @@ export const apiEndpoint = {
     manualHandled: (id: string) => `/v1/orders/admin/${id}/manual/handled`,
     manualUnhandled: (id: string) => `/v1/orders/admin/${id}/manual/unhandled`,
     retrySync: (id: string) => `/v1/orders/admin/${id}/retry-sync`,
+    // Status reconciliation — orders where our status and RoadRush's disagree
+    conflicts: "/v1/orders/admin/conflicts",
+    conflictsCount: "/v1/orders/admin/conflicts/count",
+    acceptLogisticsStatus: (id: string) => `/v1/orders/admin/${id}/conflict/accept`,
+    keepAdminStatus: (id: string) => `/v1/orders/admin/${id}/conflict/keep`,
   },
   returns: {
     adminAll: "/v1/returns/admin/all",

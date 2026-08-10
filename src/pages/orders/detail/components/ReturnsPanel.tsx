@@ -59,6 +59,10 @@ export default function ReturnsPanel({ order, onChanged }: ReturnsPanelProps) {
     [order.items],
   );
 
+  // Nothing can come back before it has gone out, so the API only accepts
+  // returns on a delivered (or already partly returned) order.
+  const canRecord = order.status === "delivered" || order.status === "returned";
+
   const refundedTotal = rows
     .filter((r) => r.status === "refunded")
     .reduce((sum, r) => sum + parseFloat(r.refundAmount || "0"), 0);
@@ -127,15 +131,21 @@ export default function ReturnsPanel({ order, onChanged }: ReturnsPanelProps) {
                 }`}
           </p>
         </div>
-        <button
-          onClick={() => setRecordOpen(true)}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-black text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-md"
-        >
-          <span className="material-symbols-outlined text-lg">
-            assignment_return
-          </span>
-          Record Return
-        </button>
+        {canRecord ? (
+          <button
+            onClick={() => setRecordOpen(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-black text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-md"
+          >
+            <span className="material-symbols-outlined text-lg">
+              assignment_return
+            </span>
+            Record Return
+          </button>
+        ) : (
+          <p className="text-[11px] text-slate-400 font-semibold max-w-[14rem] text-right">
+            Returns can only be recorded once the order is delivered.
+          </p>
+        )}
       </div>
 
       {rows.length === 0 ? (

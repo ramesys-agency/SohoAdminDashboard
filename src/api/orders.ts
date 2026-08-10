@@ -64,6 +64,8 @@ export interface Order {
     note: string;
     /** Raw RoadRush status name; null for admin-generated entries. */
     logisticsStatusName?: string | null;
+    /** Who caused this entry — makes the timeline auditable after the fact. */
+    source?: StatusSource;
     createdAt: string;
   }>;
   customerMobileNumber?: string;
@@ -76,6 +78,24 @@ export interface Order {
   lastLogisticsSync?: string;
   /** Raw RoadRush status name, e.g. "Rider Accepted". */
   logisticsStatusName?: string | null;
+
+  // Status arbitration. `status` above is derived from the two opinions below —
+  // see order-status.resolver.ts on the backend.
+  /** Which opinion the resolver sided with. */
+  statusSource?: StatusSource;
+  /** The two sides disagree in a way a human has to settle. */
+  statusConflict?: boolean;
+  statusConflictReason?: string | null;
+  /** Set once an admin has chosen a side. Null means it is still in the queue. */
+  statusConflictAckAt?: string | null;
+  /** The last status a human asked for. */
+  adminStatus?: OrderStatus | null;
+  adminStatusAt?: string | null;
+  adminStatusReason?: string | null;
+  /** An admin took ownership — RoadRush can flag but no longer move the status. */
+  adminStatusPinned?: boolean;
+  /** RoadRush's status collapsed onto our enum. */
+  logisticsStatus?: OrderStatus | null;
 
   // Manual shipping fallback
   orderType?: OrderType;
@@ -117,6 +137,17 @@ export interface OrderFilterParams {
 
 /** `manual_shipping` orders need a human to arrange the delivery. */
 export type OrderType = "standard" | "manual_shipping";
+
+export type OrderStatus =
+  | "pending"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled"
+  | "returned";
+
+/** Who decided an order's effective status. */
+export type StatusSource = "admin" | "roadrush" | "system";
 
 export interface ManualOrderFilterParams {
   /** "false" (default) = still needs attention, "true" = already arranged. */
@@ -164,8 +195,24 @@ export const getOrderById = async (id: string): Promise<Order> => {
   return data.data;
 };
 
-export const updateOrderStatus = async (id: string, status: string, note?: string): Promise<any> => {
-  const { data } = await api.patch(apiEndpoint.orders.updateStatus(id), { status, note });
+export interface UpdateOrderStatusOptions {
+  /** Bypass the normal status ladder — the "edit status" correction path. */
+  override?: boolean;
+  /** Put the payment back to unpaid when pulling an order back before delivery. */
+  resetPayment?: boolean;
+}
+
+export const updateOrderStatus = async (
+  id: string,
+  status: string,
+  note?: string,
+  options?: UpdateOrderStatusOptions
+): Promise<any> => {
+  const { data } = await api.patch(apiEndpoint.orders.updateStatus(id), {
+    status,
+    note,
+    ...options,
+  });
   return data;
 };
 
@@ -181,5 +228,36 @@ export const syncOrderWithRoadRush = async (id: string): Promise<any> => {
 
 export const refreshOrderStatus = async (id: string): Promise<any> => {
   const { data } = await api.post(apiEndpoint.orders.refreshStatus(id));
+  return data;
+};
+
+/** Orders whose status disagrees with RoadRush's and nobody has looked yet. */
+export const getStatusConflicts = async (params?: {
+  search?: string;
+}): Promise<Order[]> => {
+  const { data } = await api.get(apiEndpoint.orders.conflicts, { params });
+  return data.data;
+};
+
+export const getStatusConflictCount = async (): Promise<number> => {
+  const { data } = await api.get(apiEndpoint.orders.conflictsCount);
+  return data.data?.pending ?? 0;
+};
+
+/**
+ * Settle a status conflict. `accept` takes RoadRush's word — including the
+ * cancellations that restock units — and `keep` pins ours and marks it reviewed.
+ */
+export const resolveStatusConflict = async (
+  id: string,
+  choice: "accept" | "keep",
+  note?: string,
+): Promise<any> => {
+  const { data } = await api.post(
+    choice === "accept"
+      ? apiEndpoint.orders.acceptLogisticsStatus(id)
+      : apiEndpoint.orders.keepAdminStatus(id),
+    { note },
+  );
   return data;
 };

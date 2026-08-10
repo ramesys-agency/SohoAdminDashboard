@@ -4,11 +4,13 @@ import { toast } from "sonner";
 import PageWrapper from "../../../components/ui/PageWrapper";
 import PageHeader from "../../../components/ui/PageHeader";
 import OrderSummary from "./components/OrderSummary";
+import OrderActions from "./components/OrderActions";
 import OrderItems from "./components/OrderItems";
 import CustomerInfo from "./components/CustomerInfo";
 import OrderTimeline from "./components/OrderTimeline";
 import LogisticsDetails from "./components/LogisticsDetails";
 import ReturnsPanel from "./components/ReturnsPanel";
+import StatusConflictBanner from "./components/StatusConflictBanner";
 import {
   getOrderById,
   updateOrderStatus,
@@ -18,6 +20,7 @@ import {
   refreshOrderStatus,
   retryOrderSync,
   setManualHandled,
+  type UpdateOrderStatusOptions,
 } from "../../../api/orders";
 import dayjs from "dayjs";
 import Button from "../../../components/ui/Button";
@@ -45,10 +48,14 @@ export default function OrderDetail() {
     fetchOrder();
   }, [id]);
 
-  const handleUpdateStatus = async (status: string, note?: string) => {
+  const handleUpdateStatus = async (
+    status: string,
+    note?: string,
+    options?: UpdateOrderStatusOptions,
+  ) => {
     if (!id) return;
     try {
-      await updateOrderStatus(id, status, note);
+      await updateOrderStatus(id, status, note, options);
       toast.success("Status updated successfully");
       await fetchOrder(); // Refresh
     } catch (error: any) {
@@ -58,6 +65,8 @@ export default function OrderDetail() {
           error?.message ||
           "Failed to update status",
       );
+      // Rethrown so the confirmation dialog stays open on a rejected transition.
+      throw error;
     }
   };
 
@@ -74,6 +83,7 @@ export default function OrderDetail() {
           error?.message ||
           "Failed to update payment status",
       );
+      throw error;
     }
   };
 
@@ -222,6 +232,8 @@ export default function OrderDetail() {
         }
       />
 
+      <StatusConflictBanner order={order} onResolved={fetchOrder} />
+
       {order.orderType === "manual_shipping" && (
         <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
           <div className="flex items-start gap-3">
@@ -263,7 +275,9 @@ export default function OrderDetail() {
         </div>
       )}
 
-      <OrderSummary
+      <OrderSummary order={order} />
+
+      <OrderActions
         order={order}
         onUpdateStatus={handleUpdateStatus}
         onUpdatePayment={handleUpdatePayment}

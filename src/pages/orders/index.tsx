@@ -4,9 +4,10 @@ import PageHeader from "../../components/ui/PageHeader";
 import OrderFilters from "./components/OrderFilters";
 import OrdersTable from "./components/OrdersTable";
 import ManualShippingTable from "./components/ManualShippingTable";
-import { getManualOrdersCount } from "../../api/orders";
+import StatusConflictsTable from "./components/StatusConflictsTable";
+import { getManualOrdersCount, getStatusConflictCount } from "../../api/orders";
 
-type OrdersTab = "all" | "manual";
+type OrdersTab = "all" | "manual" | "conflicts";
 
 export default function Orders() {
   const [search, setSearch] = useState("");
@@ -17,9 +18,11 @@ export default function Orders() {
   const [tab, setTab] = useState<OrdersTab>("all");
   const [manualHandled, setManualHandled] = useState<"true" | "false">("false");
   const [manualCount, setManualCount] = useState(0);
+  const [conflictCount, setConflictCount] = useState(0);
 
   // Polled rather than fetched once: an order can fall back to manual shipping
-  // hours after it was placed, while this page is already open.
+  // hours after it was placed, while this page is already open. The same goes
+  // for a status conflict — the poller raises those in the background.
   const refreshManualCount = useCallback(async () => {
     try {
       setManualCount(await getManualOrdersCount());
@@ -28,11 +31,24 @@ export default function Orders() {
     }
   }, []);
 
+  const refreshConflictCount = useCallback(async () => {
+    try {
+      setConflictCount(await getStatusConflictCount());
+    } catch (error) {
+      console.error("Failed to fetch status conflict count:", error);
+    }
+  }, []);
+
   useEffect(() => {
-    refreshManualCount();
-    const timer = setInterval(refreshManualCount, 60_000);
+    const refresh = () => {
+      void refreshManualCount();
+      void refreshConflictCount();
+    };
+
+    refresh();
+    const timer = setInterval(refresh, 60_000);
     return () => clearInterval(timer);
-  }, [refreshManualCount]);
+  }, [refreshManualCount, refreshConflictCount]);
 
   const clearFilters = () => {
     setSearch("");
@@ -73,6 +89,21 @@ export default function Orders() {
           {manualCount > 0 && (
             <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold">
               {manualCount}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setTab("conflicts")}
+          className={`px-4 py-2.5 text-sm font-bold border-b-2 -mb-px transition-colors flex items-center gap-2 ${
+            tab === "conflicts"
+              ? "border-rose-500 text-rose-700"
+              : "border-transparent text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          Status Conflicts
+          {conflictCount > 0 && (
+            <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-rose-100 text-rose-700 text-[11px] font-bold">
+              {conflictCount}
             </span>
           )}
         </button>
@@ -162,7 +193,7 @@ export default function Orders() {
         )}
       </div>
       
-      {tab === "all" ? (
+      {tab === "all" && (
         <OrdersTable
           search={search}
           paymentFilter={paymentFilter}
@@ -170,12 +201,21 @@ export default function Orders() {
           startDate={startDate}
           endDate={endDate}
         />
-      ) : (
+      )}
+
+      {tab === "manual" && (
         <ManualShippingTable
           search={search}
           handled={manualHandled}
           // Retrying or handling an order changes the badge — keep them in step.
           onCountChange={() => void refreshManualCount()}
+        />
+      )}
+
+      {tab === "conflicts" && (
+        <StatusConflictsTable
+          search={search}
+          onCountChange={() => void refreshConflictCount()}
         />
       )}
     </PageWrapper>
