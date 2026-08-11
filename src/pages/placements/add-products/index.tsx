@@ -27,7 +27,7 @@ export default function AddProductsToPlacement() {
   const { id } = useParams(); // placement ID
   const navigate = useNavigate();
   const location = useLocation();
-  const collectionNameFromState = location.state?.collectionName as string | undefined;
+  const placementNameFromState = location.state?.placementName as string | undefined;
 
   // Filter state
   const [search, setSearch] = useState("");
@@ -41,7 +41,7 @@ export default function AddProductsToPlacement() {
   const [productFilter, setProductFilter] = useState<"All" | "Added" | "Not Added">("All");
 
   // Data state
-  const [collectionName, setCollectionName] = useState(collectionNameFromState ?? "");
+  const [placementName, setPlacementName] = useState(placementNameFromState ?? "");
   const [products, setProducts] = useState<ApiProduct[]>([]);
   const [meta, setMeta] = useState({ total: 0, page: 1, limit: LIMIT, totalPages: 1 });
   const [categories, setCategories] = useState<ParentCategory[]>([]);
@@ -87,8 +87,8 @@ export default function AddProductsToPlacement() {
     getPlacementById(id)
       .then((res) => {
         const placement = res.data;
-        if (placement.collection?.name) {
-          setCollectionName(placement.collection.name);
+        if (placement.name) {
+          setPlacementName(placement.name);
         }
         const newMap = new Map<string, ApiProduct>();
         const initialSet = new Set<string>();
@@ -227,7 +227,7 @@ export default function AddProductsToPlacement() {
   return (
     <PageWrapper>
       <PageHeader
-        title={`Add products to ${collectionName || "Placement"}`}
+        title={`Add products to ${placementName || "Section"}`}
         description={
           <Button
             variant="link"

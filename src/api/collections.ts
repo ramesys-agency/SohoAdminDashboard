@@ -1,11 +1,18 @@
 import api from "../lib/axios";
 import { apiEndpoint } from "../lib/route";
 
+/**
+ * Collections are created and destroyed by the placement module — there is no
+ * standalone "create collection" path. Each one belongs to exactly one
+ * placement, so `placement` is a single object rather than a list.
+ */
 export interface CollectionPlacement {
   id: string;
   collectionId: string;
+  description: string | null;
+  productId: string | null;
   isBanner: boolean;
-  imageUrl: string;
+  imageUrl: string | null;
   page: string;
   section: string;
   displayOrder: number;
@@ -21,7 +28,7 @@ export interface Collection {
   isActive: boolean;
   gender: string[];
   createdAt: string;
-  collectionPlacements: CollectionPlacement[];
+  placement: CollectionPlacement | null;
   productCount: number;
 }
 
@@ -48,57 +55,20 @@ export const getCollections = async (
   if (search) params.search = search;
   if (placementPage) params.placementPage = placementPage;
 
-  const { data } = await api.get<CollectionsResponse>(
-    apiEndpoint.collections.base,
-    {
-      params,
-    },
-  );
+  const { data } = await api.get<CollectionsResponse>(apiEndpoint.collections.base, {
+    params,
+  });
   return data;
 };
 
-export interface CollectionByIdResponse {
-  success: boolean;
-  data: Collection;
-}
-
-export const getCollectionById = async (
-  id: string,
-): Promise<CollectionByIdResponse> => {
-  const { data } = await api.get<CollectionByIdResponse>(
-    apiEndpoint.collections.byId(id),
-  );
+export const addProductsToCollection = async (id: string, productIds: string[]) => {
+  const { data } = await api.post(`${apiEndpoint.collections.byId(id)}/products`, { productIds });
   return data;
 };
 
-export const addProductsToCollection = async (
-  id: string,
-  productIds: string[],
-) => {
-  const { data } = await api.post(
-    `${apiEndpoint.collections.byId(id)}/products`,
-    { productIds },
-  );
-  return data;
-};
-
-export const removeProductsFromCollection = async (
-  id: string,
-  productIds: string[],
-) => {
-  const { data } = await api.delete(
-    `${apiEndpoint.collections.byId(id)}/products`,
-    { data: { productIds } },
-  );
-  return data;
-};
-
-export const createCollection = async (
-  payload: { name: string; slug?: string; isActive?: boolean; gender?: string[] }
-): Promise<CollectionByIdResponse> => {
-  const { data } = await api.post<CollectionByIdResponse>(
-    apiEndpoint.collections.base,
-    payload
-  );
+export const removeProductsFromCollection = async (id: string, productIds: string[]) => {
+  const { data } = await api.delete(`${apiEndpoint.collections.byId(id)}/products`, {
+    data: { productIds },
+  });
   return data;
 };

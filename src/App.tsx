@@ -18,7 +18,7 @@ import ProductEditor from "./pages/products/edit";
 import ViewProduct from "./pages/products/view";
 import Settings from "./pages/settings";
 import LoginPage from "./pages/auth/LoginPage";
-import CreatePlacements from "./pages/placements/create";
+import EditPlacement from "./pages/placements/create";
 import Placements from "./pages/placements";
 import ShippingPage from "./pages/shipping";
 import Notifications from "./pages/notifications";
@@ -43,12 +43,13 @@ export default function App() {
             <Route path="placements" element={<Placements />} />
             <Route path="home-promo" element={<Navigate to="/placements" replace />} />
             <Route path="home-promo/*" element={<Navigate to="/placements" replace />} />
-            <Route path="placements/edit/:id" element={<CreatePlacements />} />
+            <Route path="placements/edit/:id" element={<EditPlacement />} />
             <Route
               path="placements/:id/products"
               element={<AddProductsToPlacement />}
             />
-            <Route path="placements/create" element={<CreatePlacements />} />
+            {/* Sections are created on the canvas, never from a bare form. */}
+            <Route path="placements/create" element={<Navigate to="/placements" replace />} />
             <Route path="customers" element={<Customers />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="offers" element={<Offers />} />

@@ -20,6 +20,8 @@ export const apiEndpoint = {
   placements: {
     base: "/v1/app-placement",
     byId: (id: string) => `/v1/app-placement/${id}`,
+    duplicate: (id: string) => `/v1/app-placement/${id}/duplicate`,
+    reorder: "/v1/app-placement/reorder",
   },
   users: {
     profile: "/v1/users/profile",
@@ -72,9 +74,5 @@ export const apiEndpoint = {
   },
   notifications: {
     adminSend: "/v1/notifications/admin/send",
-  },
-  homePromo: {
-    base: "/v1/home-promo",
-    byId: (id: string) => `/v1/home-promo/${id}`,
   },
 };
