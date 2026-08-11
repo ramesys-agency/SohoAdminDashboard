@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import dayjs from "dayjs";
 import StatusBadge from "../../../../components/ui/StatusBadge";
 import RecordReturnModal from "./RecordReturnModal";
+import ConfirmModal from "../../../../components/ui/ConfirmModal";
 import {
   deleteReturn,
   updateReturnStatus,
@@ -99,12 +100,16 @@ export default function ReturnsPanel({ order, onChanged }: ReturnsPanelProps) {
     void applyStatus(row, status);
   };
 
-  const handleDelete = async (row: ReturnRow) => {
+  const [deleteTarget, setDeleteTarget] = useState<ReturnRow | null>(null);
+
+  const confirmDeleteReturn = async () => {
+    if (!deleteTarget) return;
     try {
-      setBusyId(row.id);
-      await deleteReturn(row.id);
+      setBusyId(deleteTarget.id);
+      await deleteReturn(deleteTarget.id);
       toast.success("Return removed");
       onChanged();
+      setDeleteTarget(null);
     } catch (error: any) {
       toast.error(
         error?.response?.data?.message ||
@@ -219,7 +224,7 @@ export default function ReturnsPanel({ order, onChanged }: ReturnsPanelProps) {
                     {row.status === "requested" && (
                       <button
                         disabled={busy}
-                        onClick={() => handleDelete(row)}
+                        onClick={() => setDeleteTarget(row)}
                         title="Remove a return recorded by mistake"
                         className="size-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-red-600 transition-colors disabled:opacity-50"
                       >
@@ -257,6 +262,23 @@ export default function ReturnsPanel({ order, onChanged }: ReturnsPanelProps) {
           onConfirm={(extra) => applyStatus(prompt.row, prompt.status, extra)}
         />
       )}
+
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDeleteReturn}
+        isLoading={busyId === deleteTarget?.id}
+        title="Remove Return Record"
+        message={
+          <>
+            Are you sure you want to remove this return record for{" "}
+            <span className="font-semibold text-slate-900">
+              &ldquo;{deleteTarget?.item?.product?.name}&rdquo;
+            </span>
+            ? This action is intended for returns recorded by mistake.
+          </>
+        }
+      />
     </div>
   );
 }

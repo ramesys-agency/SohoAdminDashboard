@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import Pagination from "../../../components/ui/Pagination";
+import ConfirmModal from "../../../components/ui/ConfirmModal";
 import { getCategoryHierarchy, deleteCategory } from "../../../api/categories";
 import type { Category } from "../category.interface";
 
@@ -225,60 +226,22 @@ export default function CategoryTreeTable() {
         )}
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => !isDeleting && setDeleteTarget(null)}
-          />
-          {/* Dialog */}
-          <div className="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 z-10">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-red-500 text-2xl">
-                  warning
-                </span>
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900">
-                  Delete Category
-                </h3>
-                <p className="text-sm text-slate-500 mt-0.5">
-                  This action cannot be undone.
-                </p>
-              </div>
-            </div>
-            <p className="text-sm text-slate-700 mb-6">
-              Are you sure you want to delete{" "}
-              <span className="font-semibold">
-                &ldquo;{deleteTarget.name}&rdquo;
-              </span>
-              ? The category will be deactivated and hidden from your store.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setDeleteTarget(null)}
-                disabled={isDeleting}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(deleteTarget.id)}
-                disabled={isDeleting}
-                className="px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center gap-2"
-              >
-                {isDeleting && (
-                  <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                )}
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget.id)}
+        isLoading={isDeleting}
+        title="Delete Category"
+        message={
+          <>
+            Are you sure you want to delete{" "}
+            <span className="font-semibold text-slate-900">
+              &ldquo;{deleteTarget?.name}&rdquo;
+            </span>
+            ? The category will be deactivated and hidden from your store.
+          </>
+        }
+      />
     </>
   );
 }

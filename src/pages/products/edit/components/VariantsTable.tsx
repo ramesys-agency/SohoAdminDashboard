@@ -1,6 +1,7 @@
-import React, { useRef } from "react";
+import React, { useState, useRef } from "react";
 import { type ProductVariantImageData } from "../../view/components/ProductGallery";
 import { generateUUID } from "../../../../utils/uuid";
+import ConfirmModal from "../../../../components/ui/ConfirmModal";
 
 export interface SizeVariantData {
   id: string;
@@ -37,6 +38,11 @@ function ColorGroupCard({
   isOnly: boolean;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [confirmAction, setConfirmAction] = useState<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -135,7 +141,13 @@ function ColorGroupCard({
           )}
           {!isOnly && (
             <button
-              onClick={onRemove}
+              onClick={() =>
+                setConfirmAction({
+                  title: "Remove Color Group",
+                  message: `Are you sure you want to remove the "${group.colorName || "unnamed"}" color group?`,
+                  onConfirm: onRemove,
+                })
+              }
               className="text-slate-400 hover:text-red-500 p-1 rounded transition-colors"
               title="Remove color group"
             >
@@ -169,7 +181,13 @@ function ColorGroupCard({
                 className="p-3 bg-slate-50 rounded-lg border border-slate-200 relative group"
               >
                 <button
-                  onClick={() => removeSize(sz.id)}
+                  onClick={() =>
+                    setConfirmAction({
+                      title: "Remove Size Variant",
+                      message: "Are you sure you want to remove this size variant?",
+                      onConfirm: () => removeSize(sz.id),
+                    })
+                  }
                   className="absolute -top-2 -right-2 bg-white text-slate-400 hover:text-red-500 border border-slate-200 rounded-full w-5 h-5 flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <span className="material-symbols-outlined text-[12px]">
@@ -311,7 +329,13 @@ function ColorGroupCard({
                     </button>
                   )}
                   <button
-                    onClick={() => removeImage(img.id)}
+                    onClick={() =>
+                      setConfirmAction({
+                        title: "Remove Variant Image",
+                        message: "Are you sure you want to remove this variant image?",
+                        onConfirm: () => removeImage(img.id),
+                      })
+                    }
                     className="bg-white rounded-full p-1 text-red-500 shadow-md hover:scale-110 transition-transform"
                     title="Remove"
                   >
@@ -344,6 +368,20 @@ function ColorGroupCard({
           />
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(confirmAction)}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={() => {
+          if (confirmAction) {
+            confirmAction.onConfirm();
+            setConfirmAction(null);
+          }
+        }}
+        title={confirmAction?.title}
+        message={confirmAction?.message}
+        confirmText="Remove"
+      />
     </div>
   );
 }

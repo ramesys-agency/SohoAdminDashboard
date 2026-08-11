@@ -12,6 +12,7 @@ import {
   type ApiProduct,
 } from "../../../api/products";
 import Button from "../../../components/ui/Button";
+import ConfirmModal from "../../../components/ui/ConfirmModal";
 
 export default function ViewProduct() {
   const navigate = useNavigate();
@@ -64,12 +65,14 @@ export default function ViewProduct() {
     };
   }, [id]);
 
-  const handleDelete = async () => {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const confirmDelete = async () => {
     if (!product) return;
-    if (!window.confirm(`Are you sure you want to delete "${product.name}"?`))
-      return;
 
     try {
+      setIsDeleting(true);
       await deleteProduct(product.id);
       toast.success("Product deleted successfully.");
       navigate("/products");
@@ -80,6 +83,9 @@ export default function ViewProduct() {
           err?.message ||
           "Failed to delete product. Please try again.",
       );
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -221,7 +227,7 @@ export default function ViewProduct() {
               Edit Product
             </button>
             <button
-              onClick={handleDelete}
+              onClick={() => setShowDeleteConfirm(true)}
               className="flex items-center gap-1.5 px-4 py-2 border border-rose-500 text-rose-600 font-bold text-sm rounded-lg hover:bg-rose-50"
             >
               <span className="material-symbols-outlined text-sm">delete</span>
@@ -257,6 +263,23 @@ export default function ViewProduct() {
       </div>
 
       <ReviewsSection reviews={mappedProduct.reviews} />
+
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={confirmDelete}
+        isLoading={isDeleting}
+        title="Delete Product"
+        message={
+          <>
+            Are you sure you want to delete{" "}
+            <span className="font-semibold text-slate-900">
+              &ldquo;{product?.name}&rdquo;
+            </span>
+            ? This action cannot be undone.
+          </>
+        }
+      />
     </PageWrapper>
   );
 }

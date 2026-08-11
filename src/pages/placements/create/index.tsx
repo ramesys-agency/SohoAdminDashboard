@@ -245,14 +245,16 @@ export default function CreatePlacements() {
           isLoadingCollections={isLoadingCollections}
         />
 
-        {/* Right sidebar */}
-        <MobilePreview
-          pageName={pageName}
-          sectionName={sectionName}
-          isBanner={isBanner}
-          imageUrl={imageUrl}
-          collectionId={collectionId}
-        />
+        {/* Right sidebar - Static on right side */}
+        <div className="sticky top-6 self-start">
+          <MobilePreview
+            pageName={pageName}
+            sectionName={sectionName}
+            isBanner={isBanner}
+            imageUrl={imageUrl}
+            collectionId={collectionId}
+          />
+        </div>
       </div>
     </PageWrapper>
   );

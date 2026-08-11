@@ -10,6 +10,7 @@ import {
 } from "../../../../api/categories";
 import { uploadFile } from "../../../../api/upload";
 import Button from "../../../../components/ui/Button";
+import ConfirmModal from "../../../../components/ui/ConfirmModal";
 import type { Category } from "../../category.interface";
 
 export interface AttributeData {
@@ -66,6 +67,7 @@ export default function CategoryForm() {
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState("");
   const [attributes, setAttributes] = useState<AttributeData[]>([]);
+  const [attrToDeleteIndex, setAttrToDeleteIndex] = useState<number | null>(null);
   const [isActive, setIsActive] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -520,7 +522,7 @@ export default function CategoryForm() {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      onClick={() => removeAttribute(index)}
+                      onClick={() => setAttrToDeleteIndex(index)}
                       className="absolute top-2 right-2 text-slate-400 hover:text-red-500 h-8 w-8"
                     >
                       <span className="material-symbols-outlined text-[18px]">
@@ -679,6 +681,28 @@ export default function CategoryForm() {
           </select>
         </section>
       </div>
+
+      <ConfirmModal
+        isOpen={attrToDeleteIndex !== null}
+        onClose={() => setAttrToDeleteIndex(null)}
+        onConfirm={() => {
+          if (attrToDeleteIndex !== null) {
+            removeAttribute(attrToDeleteIndex);
+            setAttrToDeleteIndex(null);
+          }
+        }}
+        title="Remove Attribute"
+        message={
+          <>
+            Are you sure you want to remove attribute{" "}
+            <span className="font-semibold text-slate-900">
+              &ldquo;{attrToDeleteIndex !== null ? attributes[attrToDeleteIndex]?.label || attributes[attrToDeleteIndex]?.key || "Attribute" : ""}&rdquo;
+            </span>
+            ?
+          </>
+        }
+        confirmText="Remove"
+      />
     </form>
   );
 }

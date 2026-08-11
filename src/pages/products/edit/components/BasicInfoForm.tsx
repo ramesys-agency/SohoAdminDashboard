@@ -1,3 +1,7 @@
+import { useState } from "react";
+import Button from "../../../../components/ui/Button";
+import ConfirmModal from "../../../../components/ui/ConfirmModal";
+
 interface BasicInfoFormProps {
   name: string;
   onNameChange: (v: string) => void;
@@ -10,8 +14,6 @@ interface BasicInfoFormProps {
   categoryAttributes?: any[];
 }
 
-import Button from "../../../../components/ui/Button";
-
 export default function BasicInfoForm({
   name,
   onNameChange,
@@ -23,6 +25,7 @@ export default function BasicInfoForm({
   onAttributesChange,
   categoryAttributes = [],
 }: BasicInfoFormProps) {
+  const [attrToDelete, setAttrToDelete] = useState<string | null>(null);
   const addAttribute = () => {
     onAttributesChange({ ...attributes, "": "" });
   };
@@ -220,7 +223,7 @@ export default function BasicInfoForm({
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => removeAttribute(key)}
+                        onClick={() => setAttrToDelete(key)}
                         className="text-slate-400 hover:text-red-500"
                         title="Remove Category Attribute"
                       >
@@ -259,7 +262,7 @@ export default function BasicInfoForm({
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => removeAttribute(key)}
+                    onClick={() => setAttrToDelete(key)}
                     className="text-slate-400 hover:text-red-500 mt-0.5"
                   >
                     <span className="material-symbols-outlined">delete</span>
@@ -277,6 +280,28 @@ export default function BasicInfoForm({
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(attrToDelete !== null)}
+        onClose={() => setAttrToDelete(null)}
+        onConfirm={() => {
+          if (attrToDelete !== null) {
+            removeAttribute(attrToDelete);
+            setAttrToDelete(null);
+          }
+        }}
+        title="Remove Attribute"
+        message={
+          <>
+            Are you sure you want to remove attribute{" "}
+            <span className="font-semibold text-slate-900">
+              &ldquo;{attrToDelete || "Attribute"}&rdquo;
+            </span>
+            ?
+          </>
+        }
+        confirmText="Remove"
+      />
     </section>
   );
 }

@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import Pagination from "../../../components/ui/Pagination";
+import ConfirmModal from "../../../components/ui/ConfirmModal";
 import { deleteCoupon, expireCoupon } from "../../../api/coupons";
 import type { Coupon } from "../../../api/coupons";
 
@@ -16,11 +18,13 @@ export default function CouponsTable({
 }: CouponsTableProps) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [deleteTarget, setDeleteTarget] = useState<Coupon | null>(null);
 
-  const { mutate: handleDelete } = useMutation({
+  const { mutate: handleDelete, isPending: isDeleting } = useMutation({
     mutationFn: (id: string) => deleteCoupon(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["coupons"] });
+      setDeleteTarget(null);
     },
   });
 
@@ -157,15 +161,7 @@ export default function CouponsTable({
                       <button
                         title="Delete"
                         className="text-slate-400 hover:text-red-500 transition-colors"
-                        onClick={() => {
-                          if (
-                            window.confirm(
-                              "Are you sure you want to delete this coupon? (It will be hidden from the UI)",
-                            )
-                          ) {
-                            handleDelete(coupon.id);
-                          }
-                        }}
+                        onClick={() => setDeleteTarget(coupon)}
                       >
                         <span className="material-symbols-outlined">
                           delete
@@ -215,6 +211,23 @@ export default function CouponsTable({
         </span>
         <Pagination currentPage={1} totalPages={1} onPageChange={() => {}} />
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget.id)}
+        isLoading={isDeleting}
+        title="Delete Coupon"
+        message={
+          <>
+            Are you sure you want to delete coupon{" "}
+            <span className="font-mono font-bold text-slate-900">
+              {deleteTarget?.code}
+            </span>
+            ? It will be hidden from the UI.
+          </>
+        }
+      />
     </div>
   );
 }

@@ -4,8 +4,9 @@ import { toast } from "sonner";
 import PageWrapper from "../../components/ui/PageWrapper";
 import PageHeader from "../../components/ui/PageHeader";
 import Button from "../../components/ui/Button";
-import Pagination from "../../components/ui/Pagination";
 import StatusBadge from "../../components/ui/StatusBadge";
+import Pagination from "../../components/ui/Pagination";
+import ConfirmModal from "../../components/ui/ConfirmModal";
 import ProductFilters from "./components/ProductFilters";
 import {
   getProducts,
@@ -200,15 +201,19 @@ export default function Products() {
     sortBy,
   ]);
 
-  const handleDeleteProduct = async (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [isDeletingProduct, setIsDeletingProduct] = useState(false);
+
+  const confirmDeleteProduct = async () => {
+    if (!deleteTarget) return;
 
     try {
-      await deleteProduct(id);
-      // Remove product from list
-      setProducts(products.filter((p) => p.id !== id));
+      setIsDeletingProduct(true);
+      await deleteProduct(deleteTarget.id);
+      setProducts(products.filter((p) => p.id !== deleteTarget.id));
       setMeta({ ...meta, total: meta.total - 1 });
       toast.success("Product deleted successfully.");
+      setDeleteTarget(null);
     } catch (err: any) {
       console.error("Failed to delete product:", err);
       toast.error(
@@ -216,6 +221,8 @@ export default function Products() {
           err?.message ||
           "Failed to delete product. Please try again.",
       );
+    } finally {
+      setIsDeletingProduct(false);
     }
   };
 
@@ -465,7 +472,7 @@ export default function Products() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDeleteProduct(p.id, p.name)}
+                          onClick={() => setDeleteTarget({ id: p.id, name: p.name })}
                           className="hover:text-red-500 hover:bg-red-50"
                           title="Delete"
                         >
@@ -493,6 +500,23 @@ export default function Products() {
           }
         />
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDeleteProduct}
+        isLoading={isDeletingProduct}
+        title="Delete Product"
+        message={
+          <>
+            Are you sure you want to delete{" "}
+            <span className="font-semibold text-slate-900">
+              &ldquo;{deleteTarget?.name}&rdquo;
+            </span>
+            ? This action cannot be undone.
+          </>
+        }
+      />
     </PageWrapper>
   );
 }

@@ -18,6 +18,22 @@ export const getCategoryHierarchy = async (
   return data;
 };
 
+export interface GetCategoriesParams {
+  isActive?: boolean;
+  gender?: string;
+  parentId?: string | null;
+  page?: number;
+  limit?: number;
+}
+
+export const getCategories = async (params?: GetCategoriesParams) => {
+  const { data } = await api.get(apiEndpoint.categories.base, {
+    params,
+  });
+  return data;
+};
+
+
 /**
  * Per-gender catalog placement. An active row is what makes a category appear in
  * that tab of the mobile catalog; imageUrl is optional and falls back to the

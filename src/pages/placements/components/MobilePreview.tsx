@@ -21,7 +21,7 @@ export default function MobilePreview({
         </h3>
 
         {/* CSS Phone Frame */}
-        <div className="relative w-[280px] h-[580px] border-[8px] border-slate-900 rounded-[36px] bg-slate-50 overflow-hidden shadow-xl ring-1 ring-slate-200 flex flex-col">
+        <div className="relative w-[340px] h-[640px] border-[8px] border-slate-900 rounded-[36px] bg-slate-50 overflow-hidden shadow-xl ring-1 ring-slate-200 flex flex-col">
           {/* Top Notch */}
           <div className="absolute top-0 inset-x-0 h-6 bg-slate-900 rounded-b-xl mx-auto w-32 z-10 flex justify-center items-center">
             <div className="w-12 h-1.5 bg-slate-800 rounded-full mt-1"></div>

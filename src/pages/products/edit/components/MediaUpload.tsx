@@ -1,6 +1,7 @@
-import { useRef } from "react";
+import { useState, useRef } from "react";
 import { type ProductVariantImageData } from "../../view/components/ProductGallery";
 import { generateUUID } from "../../../../utils/uuid";
+import ConfirmModal from "../../../../components/ui/ConfirmModal";
 
 interface MediaUploadProps {
   images: ProductVariantImageData[];
@@ -12,6 +13,7 @@ export default function MediaUpload({
   onImagesChange,
 }: MediaUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imageToDelete, setImageToDelete] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -71,7 +73,7 @@ export default function MediaUpload({
 
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
-                onClick={() => removeImage(img.id)}
+                onClick={() => setImageToDelete(img.id)}
                 className="bg-white rounded-full p-1 text-red-500 shadow-md hover:bg-red-50 transition-colors"
                 title="Remove image"
               >
@@ -108,6 +110,20 @@ export default function MediaUpload({
           </span>
         </button>
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(imageToDelete)}
+        onClose={() => setImageToDelete(null)}
+        onConfirm={() => {
+          if (imageToDelete) {
+            removeImage(imageToDelete);
+            setImageToDelete(null);
+          }
+        }}
+        title="Remove Image"
+        message="Are you sure you want to remove this variant image?"
+        confirmText="Remove"
+      />
     </div>
   );
 }

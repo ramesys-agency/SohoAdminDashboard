@@ -10,6 +10,7 @@ interface ProductsTableProps {
   selectable?: boolean;
   selectedIds?: Set<string>;
   onToggle?: (id: string) => void;
+  onDelete?: (product: Product) => void;
   itemsPerPage?: number;
   hideActions?: boolean;
 }
@@ -19,6 +20,7 @@ export default function ProductsTable({
   selectable = false,
   selectedIds = new Set(),
   onToggle,
+  onDelete,
   itemsPerPage = 5,
   hideActions = false,
 }: ProductsTableProps) {
@@ -149,6 +151,7 @@ export default function ProductsTable({
                         <Button
                           variant="ghost"
                           size="icon"
+                          onClick={() => onDelete?.(p)}
                           className="hover:text-red-500 hover:bg-red-50"
                           title="Delete"
                         >
