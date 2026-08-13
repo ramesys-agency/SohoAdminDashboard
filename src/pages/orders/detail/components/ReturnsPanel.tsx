@@ -300,9 +300,13 @@ function ReturnActionPrompt({
   onCancel: () => void;
   onConfirm: (extra: { note?: string; refundAmount?: string }) => void;
 }) {
-  const suggested = (parseFloat(row.item.priceAtBuy) * row.quantity).toString();
+  const listed = parseFloat(row.item.priceAtBuy) * row.quantity;
   const [note, setNote] = useState("");
-  const [amount, setAmount] = useState(suggested);
+  // Left blank on purpose. The server works out what these units were actually
+  // paid for — their price less their share of any order discount — and pre-
+  // filling the listed price here would talk an admin into refunding more than
+  // the customer handed over.
+  const [amount, setAmount] = useState("");
 
   const isRefund = status === "refunded";
 
@@ -310,13 +314,16 @@ function ReturnActionPrompt({
     e.preventDefault();
 
     if (isRefund) {
-      const parsed = parseFloat(amount);
-      if (Number.isNaN(parsed) || parsed < 0) {
-        toast.error("Enter a valid refund amount");
-        return;
+      const typed = amount.trim();
+      if (typed) {
+        const parsed = parseFloat(typed);
+        if (Number.isNaN(parsed) || parsed < 0) {
+          toast.error("Enter a valid refund amount");
+          return;
+        }
       }
       onConfirm({
-        refundAmount: amount,
+        ...(typed ? { refundAmount: typed } : {}),
         ...(note.trim() ? { note: note.trim() } : {}),
       });
       return;
@@ -365,13 +372,16 @@ function ReturnActionPrompt({
                   min="0"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
+                  placeholder="What was paid for these units"
                   className="w-full rounded-xl border border-slate-200 pl-8 pr-4 py-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                 />
               </div>
               <p className="text-[11px] text-slate-400">
-                Defaults to the line value (৳
-                {parseFloat(suggested).toLocaleString()}). The order's payment is
-                only marked refunded once refunds cover the full order total.
+                Leave blank to refund what the customer paid for these units —
+                their share of any order discount comes off automatically. Listed
+                at ৳{listed.toLocaleString()}. An order can never be refunded past
+                its total, and its payment is marked refunded once the goods are
+                fully paid back.
               </p>
             </div>
           )}
