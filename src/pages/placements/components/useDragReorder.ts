@@ -1,16 +1,16 @@
 import { useState } from "react";
-import type { Placement } from "../../../api/placements";
 
 /**
  * Native HTML5 drag-and-drop reordering — no extra dependency. The list is
- * reordered locally while dragging and only persisted on drop.
+ * reordered locally while dragging and only persisted on drop. Generic so the
+ * same behaviour drives placement canvases and product lists alike.
  */
-export function useDragReorder(placements: Placement[], onReorder: (ordered: Placement[]) => void) {
+export function useDragReorder<T>(items: T[], onReorder: (ordered: T[]) => void) {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
 
-  const move = (from: number, to: number): Placement[] => {
-    const next = [...placements];
+  const move = (from: number, to: number): T[] => {
+    const next = [...items];
     const [moved] = next.splice(from, 1);
     next.splice(to, 0, moved);
     return next;

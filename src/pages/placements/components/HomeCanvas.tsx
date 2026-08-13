@@ -4,12 +4,13 @@ import { getProducts, type ApiProduct } from "../../../api/products";
 import { getFullImageUrl } from "../../../lib/imageUrl";
 import { PageSection, type CanvasProps } from "../types";
 import { useDragReorder } from "./useDragReorder";
+import { SlideArrows, useSlideRow } from "./useSlideRow";
 
 /**
  * Mirrors the app's home screen exactly: hero carousel, then the Best Sellers
- * product grid, then four promo sections. The app picks each promo's layout by
+ * product grid, then every promo section. The app picks each promo's layout by
  * position rather than by section type, so this canvas does the same — what you
- * drag here is what the app shows, including which sections fall off the end.
+ * drag here is what the app shows.
  */
 
 /** The four layouts the app cycles through, in order. */
@@ -23,10 +24,8 @@ const VARIANT_LABEL: Record<PromoVariant, string> = {
   horizontal: "Horizontal Banner",
 };
 
-/** The app renders only this many promo sections. */
-const PROMO_LIMIT = 4;
-
-const isBestSellers = (placement: Placement) => /best\s*-?\s*sell/i.test(placement.name);
+const isBestSellers = (placement: Placement) =>
+  /best\s*-?\s*sell/i.test(placement.name);
 
 export default function HomeCanvas({
   placements,
@@ -45,13 +44,20 @@ export default function HomeCanvas({
   const bestSellersIndex = sections.findIndex(isBestSellers);
   const promos = sections.filter((p) => p.id !== bestSellers?.id);
 
-  const { dragProps, dropIndicatorClass } = useDragReorder(promos, (ordered) => {
-    // Heroes keep the top; Best Sellers keeps its slot so dragging promos
-    // around never rewrites its order.
-    const next = [...ordered];
-    if (bestSellers) next.splice(Math.min(bestSellersIndex, next.length), 0, bestSellers);
-    onReorder([...heroes, ...next]);
-  });
+  // One hero card (280px) plus its gap per press.
+  const heroRow = useSlideRow(288, [heroes.length]);
+
+  const { dragProps, dropIndicatorClass } = useDragReorder(
+    promos,
+    (ordered) => {
+      // Heroes keep the top; Best Sellers keeps its slot so dragging promos
+      // around never rewrites its order.
+      const next = [...ordered];
+      if (bestSellers)
+        next.splice(Math.min(bestSellersIndex, next.length), 0, bestSellers);
+      onReorder([...heroes, ...next]);
+    },
+  );
 
   // The same call the app makes: curated products when a Best Sellers
   // placement exists, most-reviewed products as the fallback.
@@ -59,7 +65,9 @@ export default function HomeCanvas({
     queryKey: ["home-best-sellers-preview", bestSellers?.id ?? "popular"],
     queryFn: async () => {
       const res = (await getProducts(
-        bestSellers ? { placementId: bestSellers.id, limit: 2 } : { sortBy: "popularity", limit: 2 },
+        bestSellers
+          ? { placementId: bestSellers.id, limit: 2 }
+          : { sortBy: "popularity", limit: 2 },
       )) as unknown as { data?: ApiProduct[]; products?: ApiProduct[] };
       return (res.products ?? res.data ?? []).slice(0, 2);
     },
@@ -78,7 +86,9 @@ export default function HomeCanvas({
         onClick={() => onProducts(placement)}
         className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-bold shadow-md flex items-center gap-1 cursor-pointer"
       >
-        <span className="material-symbols-outlined text-[14px]">inventory_2</span>
+        <span className="material-symbols-outlined text-[14px]">
+          inventory_2
+        </span>
         {placement.productCount}
       </button>
       <button
@@ -106,7 +116,8 @@ export default function HomeCanvas({
     variant: PromoVariant;
   }) => {
     const img = getFullImageUrl(placement.imageUrl);
-    const [firstProduct, secondProduct] = placement.previewImages.map(getFullImageUrl);
+    const [firstProduct, secondProduct] =
+      placement.previewImages.map(getFullImageUrl);
 
     const Title = () => (
       <div className="space-y-1">
@@ -114,7 +125,9 @@ export default function HomeCanvas({
           {placement.name}
         </h2>
         {placement.description && (
-          <p className="text-slate-500 text-xs leading-relaxed">{placement.description}</p>
+          <p className="text-slate-500 text-xs leading-relaxed">
+            {placement.description}
+          </p>
         )}
       </div>
     );
@@ -124,7 +137,13 @@ export default function HomeCanvas({
         return (
           <div className="space-y-2.5">
             <div className="w-full h-[340px] overflow-hidden bg-slate-100 rounded-sm">
-              {img && <img src={img} alt={placement.name} className="w-full h-full object-cover" />}
+              {img && (
+                <img
+                  src={img}
+                  alt={placement.name}
+                  className="w-full h-full object-cover"
+                />
+              )}
             </div>
             <Title />
           </div>
@@ -134,7 +153,13 @@ export default function HomeCanvas({
         return (
           <div className="flex gap-3 items-start">
             <div className="w-[140px] h-[200px] rounded-xs overflow-hidden bg-slate-100 flex-shrink-0">
-              {img && <img src={img} alt={placement.name} className="w-full h-full object-cover" />}
+              {img && (
+                <img
+                  src={img}
+                  alt={placement.name}
+                  className="w-full h-full object-cover"
+                />
+              )}
             </div>
             <div className="flex-1 space-y-1.5 pt-2">
               <div className="flex gap-1.5">
@@ -161,7 +186,13 @@ export default function HomeCanvas({
               <Title />
             </div>
             <div className="w-[140px] h-[200px] rounded-xs overflow-hidden bg-slate-100 flex-shrink-0">
-              {img && <img src={img} alt={placement.name} className="w-full h-full object-cover" />}
+              {img && (
+                <img
+                  src={img}
+                  alt={placement.name}
+                  className="w-full h-full object-cover"
+                />
+              )}
             </div>
           </div>
         );
@@ -171,7 +202,13 @@ export default function HomeCanvas({
         return (
           <div className="space-y-2.5">
             <div className="w-full h-[190px] rounded-xs overflow-hidden bg-slate-100">
-              {img && <img src={img} alt={placement.name} className="w-full h-full object-cover" />}
+              {img && (
+                <img
+                  src={img}
+                  alt={placement.name}
+                  className="w-full h-full object-cover"
+                />
+              )}
             </div>
             <Title />
           </div>
@@ -187,7 +224,9 @@ export default function HomeCanvas({
           {bestSellers?.name ?? "Best Sellers"}
         </h2>
         {bestSellers && (
-          <span className="text-[11px] text-slate-400 font-semibold pb-1">See All &gt;&gt;</span>
+          <span className="text-[11px] text-slate-400 font-semibold pb-1">
+            See All &gt;&gt;
+          </span>
         )}
       </div>
 
@@ -197,7 +236,13 @@ export default function HomeCanvas({
           return (
             <div key={product.id} className="space-y-1.5">
               <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-100">
-                {img && <img src={img} alt={product.name} className="w-full h-full object-cover" />}
+                {img && (
+                  <img
+                    src={img}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                )}
                 <span className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-sm">
                   <span className="material-symbols-outlined text-[15px] text-slate-900">
                     favorite
@@ -205,15 +250,23 @@ export default function HomeCanvas({
                 </span>
               </div>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm text-slate-900 truncate">{product.name}</span>
+                <span className="text-sm text-slate-900 truncate">
+                  {product.name}
+                </span>
                 <span className="flex items-center gap-0.5 text-[11px] font-bold text-slate-900">
                   {product.rating ?? 0}
-                  <span className="material-symbols-outlined text-[12px] text-amber-400">star</span>
+                  <span className="material-symbols-outlined text-[12px] text-amber-400">
+                    star
+                  </span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-base font-bold text-slate-900">Price</span>
-                <span className="text-base font-bold text-slate-900">৳ {product.price}</span>
+                <span className="text-base font-bold text-slate-900">
+                  Price
+                </span>
+                <span className="text-base font-bold text-slate-900">
+                  ৳ {product.price}
+                </span>
               </div>
             </div>
           );
@@ -230,8 +283,8 @@ export default function HomeCanvas({
 
       {!bestSellers && (
         <p className="text-[10px] leading-snug text-slate-400">
-          Showing the most-reviewed products. Add a section named “Best Sellers” to curate this grid
-          yourself.
+          Showing the most-reviewed products. Add a section named “Best Sellers”
+          to curate this grid yourself.
         </p>
       )}
     </div>
@@ -253,8 +306,12 @@ export default function HomeCanvas({
           />
         </div>
         <div className="flex items-center gap-3 text-slate-900">
-          <span className="material-symbols-outlined text-xl font-light">search</span>
-          <span className="material-symbols-outlined text-xl font-light">notifications</span>
+          <span className="material-symbols-outlined text-xl font-light">
+            search
+          </span>
+          <span className="material-symbols-outlined text-xl font-light">
+            notifications
+          </span>
         </div>
       </div>
 
@@ -265,36 +322,55 @@ export default function HomeCanvas({
             <h2 className="font-['Playfair_Display',serif] text-xl font-normal text-slate-900">
               See All
             </h2>
-            <span className="text-[11px] text-slate-400 font-semibold">See All &gt;&gt;</span>
+            <span className="text-[11px] text-slate-400 font-semibold">
+              See All &gt;&gt;
+            </span>
           </div>
 
-          <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
-            {heroes.map((hero) => {
-              const img = getFullImageUrl(hero.imageUrl);
-              return (
-                <div
-                  key={hero.id}
-                  className="relative w-[280px] h-[180px] rounded-[20px] overflow-hidden bg-[#27272A] flex items-center justify-center shadow-xs group flex-shrink-0"
-                >
-                  <InactiveTag placement={hero} />
-                  {img ? (
-                    <img src={img} alt={hero.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <h3 className="text-white font-sans text-lg font-bold tracking-wider uppercase px-4 text-center">
-                      {hero.name}
-                    </h3>
-                  )}
-                  <HoverActions placement={hero} />
-                </div>
-              );
-            })}
+          <div className="relative group/row">
+            <SlideArrows
+              atStart={heroRow.atStart}
+              atEnd={heroRow.atEnd}
+              onSlide={heroRow.slide}
+              label="hero slides"
+            />
 
             <div
-              onClick={() => onAdd(PageSection.HERO)}
-              className="w-[280px] h-[180px] rounded-[20px] border-2 border-dashed border-slate-300 hover:border-slate-900 bg-slate-50 hover:bg-white flex flex-col items-center justify-center gap-2 cursor-pointer transition-all flex-shrink-0 text-slate-500 hover:text-slate-900"
+              ref={heroRow.rowRef}
+              onScroll={heroRow.measure}
+              className="flex gap-2 overflow-x-auto hide-scrollbar scroll-smooth pb-1"
             >
-              <span className="material-symbols-outlined text-2xl">add</span>
-              <span className="text-xs font-bold">+ Add Hero Slide</span>
+              {heroes.map((hero) => {
+                const img = getFullImageUrl(hero.imageUrl);
+                return (
+                  <div
+                    key={hero.id}
+                    className="relative w-[280px] h-[180px] rounded-[20px] overflow-hidden bg-[#27272A] flex items-center justify-center shadow-xs group flex-shrink-0"
+                  >
+                    <InactiveTag placement={hero} />
+                    {img ? (
+                      <img
+                        src={img}
+                        alt={hero.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <h3 className="text-white font-sans text-lg font-bold tracking-wider uppercase px-4 text-center">
+                        {hero.name}
+                      </h3>
+                    )}
+                    <HoverActions placement={hero} />
+                  </div>
+                );
+              })}
+
+              <div
+                onClick={() => onAdd(PageSection.HERO)}
+                className="w-[280px] h-[180px] rounded-[20px] border-2 border-dashed border-slate-300 hover:border-slate-900 bg-slate-50 hover:bg-white flex flex-col items-center justify-center gap-2 cursor-pointer transition-all flex-shrink-0 text-slate-500 hover:text-slate-900"
+              >
+                <span className="material-symbols-outlined text-2xl">add</span>
+                <span className="text-xs font-bold">+ Add Hero Slide</span>
+              </div>
             </div>
           </div>
         </div>
@@ -305,26 +381,19 @@ export default function HomeCanvas({
         {/* Promo sections — drag to reorder; position decides the layout */}
         <div className="space-y-6">
           {promos.map((placement, index) => {
-            const beyondLimit = index >= PROMO_LIMIT;
             const variant = PROMO_VARIANTS[index % PROMO_VARIANTS.length];
 
             return (
               <div
                 key={placement.id}
                 {...dragProps(index)}
-                className={`relative group px-4 space-y-2.5 cursor-grab active:cursor-grabbing transition-all ${dropIndicatorClass(index)} ${
-                  beyondLimit ? "opacity-40" : ""
-                }`}
+                className={`relative group px-4 space-y-2.5 cursor-grab active:cursor-grabbing transition-all ${dropIndicatorClass(index)}`}
               >
                 <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                  <span className="material-symbols-outlined text-[13px]">drag_indicator</span>
-                  {beyondLimit ? (
-                    <span className="text-amber-600">
-                      Not shown on the app — only the first {PROMO_LIMIT} sections render
-                    </span>
-                  ) : (
-                    VARIANT_LABEL[variant]
-                  )}
+                  <span className="material-symbols-outlined text-[13px]">
+                    drag_indicator
+                  </span>
+                  {VARIANT_LABEL[variant]}
                 </div>
                 <InactiveTag placement={placement} />
                 <SectionBody placement={placement} variant={variant} />
@@ -340,10 +409,17 @@ export default function HomeCanvas({
               onClick={() => onAdd(PageSection.FEATURED_ROW)}
               className="p-4 border-2 border-dashed border-slate-300 hover:border-primary rounded-xl flex flex-col items-center justify-center gap-1 text-slate-500 hover:text-primary transition-all cursor-pointer bg-white/60 hover:bg-white text-center"
             >
-              <span className="material-symbols-outlined text-[18px]">add_circle</span>
-              <span className="text-[11px] font-bold leading-tight">+ Add Section</span>
+              <span className="material-symbols-outlined text-[18px]">
+                add_circle
+              </span>
+              <span className="text-[11px] font-bold leading-tight">
+                + Add Section
+              </span>
               <span className="text-[10px] text-slate-400 leading-snug">
-                Layout is decided by position: {PROMO_VARIANTS.map((v) => VARIANT_LABEL[v].split(" (")[0]).join(" → ")}
+                Layout is decided by position:{" "}
+                {PROMO_VARIANTS.map(
+                  (v) => VARIANT_LABEL[v].split(" (")[0],
+                ).join(" → ")}
               </span>
             </div>
           </div>

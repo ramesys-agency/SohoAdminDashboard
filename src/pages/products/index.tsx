@@ -26,7 +26,7 @@ export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Filter state, seeded from the URL so other pages can deep-link into a
-  // filtered view (e.g. a category's Catalog Placement card linking to its
+  // filtered view (e.g. a category's Catalog Visibility chips linking to its
   // published products for one gender).
   const [search, setSearch] = useState(() => searchParams.get("search") ?? "");
   const [debouncedSearch, setDebouncedSearch] = useState(

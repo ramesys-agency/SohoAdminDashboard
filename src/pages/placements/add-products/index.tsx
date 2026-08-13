@@ -13,8 +13,12 @@ import {
   getPlacementById,
   addProductsToPlacement,
   removeProductsFromPlacement,
+  reorderPlacementProducts,
+  resetPlacementProducts,
+  type ProductOrigin,
 } from "../../../api/placements";
 import { getParentCategories } from "../../../api/categories";
+import { useDragReorder } from "../components/useDragReorder";
 
 interface ParentCategory {
   id: string;
@@ -52,6 +56,14 @@ export default function AddProductsToPlacement() {
   // Selected products tracking
   const [selectedProductsMap, setSelectedProductsMap] = useState<Map<string, ApiProduct>>(new Map());
   const [initialSelectedIds, setInitialSelectedIds] = useState<Set<string>>(new Set());
+  /** The running order shown in the app — dragged in the Added tab. */
+  const [orderedIds, setOrderedIds] = useState<string[]>([]);
+  const [initialOrder, setInitialOrder] = useState<string[]>([]);
+  /** "auto" products come from the source category; "added" were pinned. */
+  const [originById, setOriginById] = useState<Map<string, ProductOrigin>>(new Map());
+  const [sourceCategoryId, setSourceCategoryId] = useState<string | null>(null);
+
+  const isCategorySourced = Boolean(sourceCategoryId);
 
   // Debounce search
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -81,8 +93,10 @@ export default function AddProductsToPlacement() {
       .catch(() => {});
   }, []);
 
-  // Fetch placement to get its already-added products
-  useEffect(() => {
+  // Fetch the placement's *resolved* list — for a category-sourced placement
+  // that is the category's products with the admin's overrides applied, not a
+  // stored list.
+  const loadPlacement = useCallback(() => {
     if (!id) return;
     getPlacementById(id)
       .then((res) => {
@@ -90,18 +104,31 @@ export default function AddProductsToPlacement() {
         if (placement.name) {
           setPlacementName(placement.name);
         }
+        setSourceCategoryId(placement.sourceCategoryId ?? null);
+
         const newMap = new Map<string, ApiProduct>();
         const initialSet = new Set<string>();
+        const origins = new Map<string, ProductOrigin>();
+        const order: string[] = [];
+
         placement.products?.forEach((pp) => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           newMap.set(pp.productId, pp.product as any);
           initialSet.add(pp.productId);
+          origins.set(pp.productId, pp.origin ?? "added");
+          order.push(pp.productId);
         });
+
         setSelectedProductsMap(newMap);
         setInitialSelectedIds(initialSet);
+        setOriginById(origins);
+        setOrderedIds(order);
+        setInitialOrder(order);
       })
       .catch(console.error);
   }, [id]);
+
+  useEffect(loadPlacement, [loadPlacement]);
 
   // Fetch products when filters change
   useEffect(() => {
@@ -164,6 +191,10 @@ export default function AddProductsToPlacement() {
       }
       return next;
     });
+
+    setOrderedIds((prev) =>
+      prev.includes(product.id) ? prev.filter((pid) => pid !== product.id) : [...prev, product.id],
+    );
   };
 
   const handleSave = async () => {
@@ -176,11 +207,35 @@ export default function AddProductsToPlacement() {
       if (toAdd.length > 0) await addProductsToPlacement(id, toAdd);
       if (toRemove.length > 0) await removeProductsFromPlacement(id, toRemove);
 
+      // Order is persisted last so it covers whatever the list ended up being.
+      const nextOrder = orderedIds.filter((pid) => selectedProductsMap.has(pid));
+      if (nextOrder.length > 0 && nextOrder.join() !== initialOrder.join()) {
+        await reorderPlacementProducts(id, nextOrder);
+      }
+
       toast.success("Products saved to placement successfully.");
       navigate("/placements");
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } }; message?: string };
       toast.error(e?.response?.data?.message || e?.message || "Failed to save products.");
+    }
+  };
+
+  /// Throws away every manual add, removal and position for this placement.
+  const handleResetToCategory = async () => {
+    if (!id) return;
+    const confirmed = window.confirm(
+      "Reset this list to exactly what the category holds? Every product you added or removed by hand here, and the order you set, will be discarded.",
+    );
+    if (!confirmed) return;
+
+    try {
+      await resetPlacementProducts(id);
+      loadPlacement();
+      toast.success("List reset to the category's products.");
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      toast.error(e?.response?.data?.message || e?.message || "Failed to reset the list.");
     }
   };
 
@@ -194,12 +249,22 @@ export default function AddProductsToPlacement() {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
 
+  // The Added tab is the running order the app renders, so it follows
+  // orderedIds rather than whatever the map happens to iterate as.
   let displayedProducts = products;
   if (productFilter === "Added") {
-    displayedProducts = Array.from(selectedProductsMap.values());
+    displayedProducts = orderedIds
+      .map((pid) => selectedProductsMap.get(pid))
+      .filter((p): p is ApiProduct => Boolean(p));
   } else if (productFilter === "Not Added") {
     displayedProducts = products.filter((p) => !selectedProductsMap.has(p.id));
   }
+
+  const isOrderable = productFilter === "Added";
+
+  const { dragProps, dropIndicatorClass } = useDragReorder(displayedProducts, (ordered) =>
+    setOrderedIds(ordered.map((p) => p.id)),
+  );
 
   const allCurrentPageSelected =
     displayedProducts.length > 0 &&
@@ -243,6 +308,11 @@ export default function AddProductsToPlacement() {
         }
         actions={
           <>
+            {isCategorySourced && (
+              <Button variant="outline" onClick={handleResetToCategory}>
+                Reset to category
+              </Button>
+            )}
             <Button variant="outline" onClick={() => navigate("/placements")}>
               Cancel
             </Button>
@@ -250,6 +320,19 @@ export default function AddProductsToPlacement() {
           </>
         }
       />
+
+      {isCategorySourced && (
+        <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50/60 p-3 text-xs text-sky-900 flex items-start gap-2">
+          <span className="material-symbols-outlined text-base text-sky-600">category</span>
+          <p className="leading-relaxed">
+            This list is built from its category automatically — products added to that category
+            later appear here on their own. Unticking an <strong>Auto</strong> product hides it from
+            this placement only; ticking one from elsewhere pins it as <strong>Added</strong> so it
+            stays even if it is recategorised. Open the <strong>Added</strong> tab to drag the
+            running order.
+          </p>
+        </div>
+      )}
 
       <div className="flex items-center justify-between gap-4 mb-4 mt-6">
         <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -342,15 +425,31 @@ export default function AddProductsToPlacement() {
                   </td>
                 </tr>
               ) : (
-                displayedProducts.map((p) => (
-                  <tr key={p.id} className="hover:bg-slate-50/30 transition-all duration-200 group">
+                displayedProducts.map((p, index) => (
+                  <tr
+                    key={p.id}
+                    {...(isOrderable ? dragProps(index) : {})}
+                    className={`hover:bg-slate-50/30 transition-all duration-200 group ${
+                      isOrderable ? `cursor-grab active:cursor-grabbing ${dropIndicatorClass(index)}` : ""
+                    }`}
+                  >
                     <td className="px-6 py-4">
-                      <input
-                        type="checkbox"
-                        className="size-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer"
-                        checked={selectedProductsMap.has(p.id)}
-                        onChange={() => toggleProduct(p)}
-                      />
+                      <div className="flex items-center gap-2">
+                        {isOrderable && (
+                          <span
+                            className="material-symbols-outlined text-[16px] text-slate-300 group-hover:text-slate-500"
+                            title="Drag to reorder"
+                          >
+                            drag_indicator
+                          </span>
+                        )}
+                        <input
+                          type="checkbox"
+                          className="size-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer"
+                          checked={selectedProductsMap.has(p.id)}
+                          onChange={() => toggleProduct(p)}
+                        />
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
@@ -362,7 +461,27 @@ export default function AddProductsToPlacement() {
                           )}
                         </div>
                         <div className="flex flex-col gap-0.5">
-                          <p className="text-sm font-bold text-slate-900">{p.name}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-bold text-slate-900">{p.name}</p>
+                            {/* Why this product is here, and so what removing
+                                it will actually do. */}
+                            {isCategorySourced && selectedProductsMap.has(p.id) && (
+                              <span
+                                className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                                  originById.get(p.id) === "added"
+                                    ? "bg-violet-100 text-violet-700"
+                                    : "bg-slate-100 text-slate-500"
+                                }`}
+                                title={
+                                  originById.get(p.id) === "added"
+                                    ? "Pinned by hand — stays even if it leaves the category"
+                                    : "Comes from the category — unticking hides it here only"
+                                }
+                              >
+                                {originById.get(p.id) === "added" ? "Added" : "Auto"}
+                              </span>
+                            )}
+                          </div>
                           {p.sku && <p className="text-[11px] text-slate-400 font-medium">SKU: {p.sku}</p>}
                         </div>
                       </div>

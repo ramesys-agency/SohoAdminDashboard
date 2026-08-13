@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
+import ConfirmModal from "../components/ui/ConfirmModal";
 import { useAuthStore } from "../store/authStore";
 import { getManualOrdersCount } from "../api/orders";
 
@@ -14,7 +15,6 @@ const navItems = [
   { to: "/customers", icon: "group", label: "Customers" },
   { to: "/notifications", icon: "notifications", label: "Notifications" },
   { to: "/offers", icon: "sell", label: "Offers" },
-  { to: "/shipping", icon: "local_shipping", label: "Shipping" },
   // { to: "/analytics", icon: "monitoring", label: "Analytics" },
 ];
 
@@ -25,6 +25,7 @@ export default function Sidebar() {
   // Orders that fell back to manual shipping need a human today, so the count
   // follows the admin around instead of hiding on the Orders page.
   const [manualCount, setManualCount] = useState(0);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,6 +48,7 @@ export default function Sidebar() {
   }, []);
 
   const handleLogout = () => {
+    setShowLogoutConfirm(false);
     logout();
     navigate("/login");
   };
@@ -97,7 +99,7 @@ export default function Sidebar() {
         <Button
           fullWidth
           className="mt-2"
-          onClick={handleLogout}
+          onClick={() => setShowLogoutConfirm(true)}
           leftIcon={
             <span className="material-symbols-outlined text-[18px]">
               logout
@@ -107,6 +109,18 @@ export default function Sidebar() {
           Logout
         </Button>
       </div>
+
+      <ConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        title="Log out?"
+        message="You'll be signed out of the admin dashboard and returned to the login page."
+        confirmText="Log out"
+        cancelText="Stay signed in"
+        variant="warning"
+        icon="logout"
+      />
     </aside>
   );
 }

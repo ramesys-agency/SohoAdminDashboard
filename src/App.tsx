@@ -20,7 +20,6 @@ import Settings from "./pages/settings";
 import LoginPage from "./pages/auth/LoginPage";
 import EditPlacement from "./pages/placements/create";
 import Placements from "./pages/placements";
-import ShippingPage from "./pages/shipping";
 import Notifications from "./pages/notifications";
 import NotFoundPage from "./pages/not-found";
 
@@ -39,7 +38,6 @@ export default function App() {
             <Route path="categories" element={<Categories />} />
             <Route path="categories/create" element={<CreateCategory />} />
             <Route path="categories/edit/:id" element={<CreateCategory />} />
-            <Route path="shipping" element={<ShippingPage />} />
             <Route path="placements" element={<Placements />} />
             <Route path="home-promo" element={<Navigate to="/placements" replace />} />
             <Route path="home-promo/*" element={<Navigate to="/placements" replace />} />

@@ -266,21 +266,15 @@ export default function InteractiveCanvas({
 
         {/* RIGHT COLUMN: Live Mobile Screen Preview */}
         <div className="xl:col-span-6 sticky top-6 self-start flex flex-col items-center justify-start z-10">
-          <div className="w-full max-w-[435px] bg-slate-900 text-white rounded-t-2xl p-3 border-b border-slate-800 shadow-sm flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-bold tracking-wider uppercase text-slate-200">
-                Static App Preview
-              </span>
-            </div>
-            <span className="text-[10px] font-semibold text-slate-400 bg-slate-800 px-2 py-0.5 rounded-md border border-slate-700">
-              {PAGE_DISPLAY_LABEL[activePage]}
-            </span>
-          </div>
-
-          <div className="bg-slate-100 border-x border-b border-slate-300 rounded-b-3xl p-4 shadow-xl flex justify-center items-center w-full max-w-[435px]">
+          <div className="flex justify-center items-start w-full max-w-[400px]">
             {deviceMode === "mobile" ? (
-              <div className="relative w-[415px] h-[770px] border-[10px] border-slate-900 rounded-[44px] bg-white overflow-hidden shadow-2xl ring-1 ring-slate-300 flex flex-col transition-all duration-300">
+              /*
+               * 9:19.5 phone. Height shrinks to whatever the dashboard scrollport leaves
+               * (100vh minus the 64px Topbar, the sticky top-6 offset and bottom breathing
+               * room) so the black bezel is never clipped; aspect-ratio keeps the width in
+               * step so the frame never goes wide and squat.
+               */
+              <div className="relative h-[min(770px,calc(100vh_-_10rem))] w-auto shrink-0 aspect-[366/770] border-[10px] border-slate-900 rounded-[44px] bg-white overflow-hidden shadow-2xl ring-1 ring-slate-300 flex flex-col transition-all duration-300">
                 <div className="absolute top-0 inset-x-0 h-5 bg-slate-900 rounded-b-xl mx-auto w-36 z-30 flex justify-center items-center">
                   <div className="w-12 h-1 bg-slate-800 rounded-full mt-0.5" />
                 </div>

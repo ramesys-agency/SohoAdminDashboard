@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import {
   getUserById,
@@ -9,6 +10,7 @@ import {
 import type { AuthResponse } from "../auth/auth.interface";
 import { toast } from "sonner";
 import PasswordModal from "./components/PasswordModal";
+import { AVATAR_IMAGE_SPEC, imageHint } from "../../lib/imageGuidelines";
 
 type User = AuthResponse["data"]["user"];
 
@@ -35,6 +37,15 @@ function ProfileSettings({
       setPhone(user.phone || "");
     }
   }, [user]);
+
+  // Cancel remounts this component, so the pending preview URL would otherwise
+  // be abandoned without ever being revoked.
+  useEffect(
+    () => () => {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    },
+    [avatarPreview],
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -98,6 +109,9 @@ function ProfileSettings({
             >
               Change Avatar
             </button>
+            <p className="text-[10px] text-slate-400 mt-1.5">
+              {imageHint(AVATAR_IMAGE_SPEC)}
+            </p>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -185,6 +199,7 @@ function ProfileSettings({
 export default function Settings() {
   const authUser = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<any>({});
   const [saving, setSaving] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -194,6 +209,14 @@ export default function Settings() {
     queryFn: () => getUserById(authUser?.id as string),
     enabled: !!authUser?.id,
   });
+
+  // Cancel discards the edit and leaves the page. Settings is reachable from
+  // anywhere in the sidebar, so fall back to the dashboard when this was the
+  // entry point and there is nothing to go back to.
+  const handleCancel = () => {
+    if (window.history.state?.idx > 0) navigate(-1);
+    else navigate("/", { replace: true });
+  };
 
   const handleSave = async () => {
     try {
@@ -248,11 +271,19 @@ export default function Settings() {
               }
               onPasswordClick={() => setIsPasswordModalOpen(true)}
             />
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
-              <button className="px-5 py-2.5 text-sm font-bold border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700">
+            {/* Sticky so both actions stay reachable without scrolling to the
+                very bottom of the page. The container's pb-20 is its runway. */}
+            <div className="sticky bottom-0 z-10 flex justify-end gap-3 py-4 bg-white border-t border-slate-200">
+              <button
+                type="button"
+                onClick={handleCancel}
+                disabled={saving}
+                className="px-5 py-2.5 text-sm font-bold bg-white border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700 disabled:opacity-50"
+              >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleSave}
                 disabled={saving}
                 className="px-5 py-2.5 text-sm font-bold bg-primary text-white rounded-lg shadow-lg shadow-primary/20 hover:opacity-90 transition-all disabled:opacity-50"

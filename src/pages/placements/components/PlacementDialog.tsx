@@ -6,17 +6,28 @@ import {
   updatePlacement,
   type Placement,
 } from "../../../api/placements";
-import { getProducts, type ApiProduct } from "../../../api/products";
+import { getCategories } from "../../../api/categories";
 import { getFullImageUrl } from "../../../lib/imageUrl";
+import ProductPicker from "./ProductPicker";
 import {
   AppPage,
   PAGE_DISPLAY_LABEL,
-  PAGE_SECTION_MAP,
   PageSection,
   SECTION_DISPLAY_LABEL,
   SECTION_GUIDANCE_MAP,
+  SECTION_IMAGE_SPEC,
   isBannerSection,
+  isCategorySourced,
 } from "../types";
+import { MAX_IMAGE_UPLOAD_MB, imageHint } from "../../../lib/imageGuidelines";
+
+/** The four layouts a home promo can land in, in the order they cycle. */
+const HOME_PROMO_SECTIONS = [
+  PageSection.FEATURED_ROW,
+  PageSection.GRID_SECTION,
+  PageSection.MID_BANNER,
+  PageSection.SEE_ALL,
+];
 
 /**
  * Mount this only while it is open, with a `key` that changes per target, so
@@ -45,30 +56,72 @@ export default function PlacementDialog({
 
   const [name, setName] = useState(placement?.name ?? "");
   const [description, setDescription] = useState(placement?.description ?? "");
-  const [sectionValue, setSectionValue] = useState<PageSection>(
-    (placement?.section as PageSection) ?? section,
-  );
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState(placement?.imageUrl ?? "");
   const [isActive, setIsActive] = useState(placement?.isActive ?? true);
   const [sourcePlacementId, setSourcePlacementId] = useState("");
-  const [linksToProduct, setLinksToProduct] = useState(Boolean(placement?.productId));
+  const [linksToProduct, setLinksToProduct] = useState(
+    Boolean(placement?.productId),
+  );
   const [productId, setProductId] = useState(placement?.productId ?? "");
+  const [sourceCategoryId, setSourceCategoryId] = useState(
+    placement?.sourceCategoryId ?? "",
+  );
 
-  const { data: productsData } = useQuery({
-    queryKey: ["products-deeplink-dropdown"],
-    queryFn: () => getProducts({ limit: 100 }),
-    enabled: linksToProduct,
+  /// The layout is settled by the add button the admin clicked, or by the
+  /// placement already being edited — it is never re-chosen in here.
+  const sectionValue = (placement?.section as PageSection) ?? section;
+
+  /// Circles offer a source category but do not require one — a circle with no
+  /// category is simply a hand-picked list, filled in on the products screen.
+  const isCircle = isCategorySourced(sectionValue);
+
+  /// Home draws its promos in the four layouts by position, not by section, so
+  /// naming one layout here would be wrong the moment the card is dragged.
+  const isHomePromo =
+    page === AppPage.HOME && sectionValue !== PageSection.HERO;
+
+  const { data: categoriesData } = useQuery({
+    queryKey: ["categories-placement-source"],
+    queryFn: () => getCategories({ isActive: true, limit: 200 }),
+    enabled: isCircle,
   });
 
-  const raw = productsData as unknown as { products?: ApiProduct[]; data?: ApiProduct[] };
-  const products: ApiProduct[] = Array.isArray(raw?.products)
-    ? raw.products
-    : Array.isArray(raw?.data)
-      ? raw.data
-      : [];
+  const categoryRaw = categoriesData as unknown as {
+    data?: {
+      id: string;
+      name: string;
+      parentId?: string | null;
+      parent?: { id: string; name: string } | null;
+    }[];
+  };
+  const categories = Array.isArray(categoryRaw?.data) ? categoryRaw.data : [];
 
-  const allowedSections = PAGE_SECTION_MAP[page] ?? [];
+  /// "Shirts" alone is ambiguous once two parents each have one, so a
+  /// subcategory is labelled with its parent. The parent name comes from the
+  /// row itself when the API supplies it, and from the fetched list otherwise.
+  const categoryNameById = new Map(categories.map((c) => [c.id, c.name]));
+  const categoryOptions = categories
+    .map((category) => {
+      const parentName =
+        category.parent?.name ||
+        (category.parentId ? categoryNameById.get(category.parentId) : null);
+      return {
+        id: category.id,
+        name: category.name,
+        // Sorting on the parent first keeps a parent's subcategories together in
+        // the list instead of scattering them alphabetically among other roots.
+        groupKey: parentName || category.name,
+        isChild: Boolean(parentName),
+        label: parentName ? `${parentName} → ${category.name}` : category.name,
+      };
+    })
+    .sort(
+      (a, b) =>
+        a.groupKey.localeCompare(b.groupKey) ||
+        Number(a.isChild) - Number(b.isChild) ||
+        a.name.localeCompare(b.name),
+    );
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -77,13 +130,18 @@ export default function PlacementDialog({
 
       const payload = {
         name: trimmed,
-        description: description.trim(),
+        // Circles show a name and an image only, so there is nowhere for a
+        // description to appear.
+        description: isCircle ? "" : description.trim(),
         page,
         section: sectionValue,
         isBanner: isBannerSection(sectionValue),
         isActive,
         image: imageFile,
         productId: linksToProduct ? productId || null : null,
+        // Empty string unlinks the category — either because this is not a
+        // circle, or because the admin chose to hand-pick it.
+        sourceCategoryId: isCircle ? sourceCategoryId : "",
       };
 
       if (placement) {
@@ -108,8 +166,13 @@ export default function PlacementDialog({
       onClose();
     },
     onError: (err: unknown) => {
-      const e = err as { response?: { data?: { message?: string } }; message?: string };
-      toast.error(e?.response?.data?.message || e?.message || "Failed to save section.");
+      const e = err as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+      toast.error(
+        e?.response?.data?.message || e?.message || "Failed to save section.",
+      );
     },
   });
 
@@ -119,15 +182,23 @@ export default function PlacementDialog({
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <div>
             <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">view_quilt</span>
+              <span className="material-symbols-outlined text-primary">
+                view_quilt
+              </span>
               {isEdit ? "Edit Section" : "Add Section"}
             </h3>
             {/* Page + section are context, not fields the admin has to think about */}
             <p className="text-[11px] font-semibold text-slate-500 mt-0.5 ml-7">
-              {PAGE_DISPLAY_LABEL[page]} › {SECTION_DISPLAY_LABEL[sectionValue] ?? sectionValue}
+              {PAGE_DISPLAY_LABEL[page]} ›{" "}
+              {isHomePromo
+                ? "Promo Section"
+                : (SECTION_DISPLAY_LABEL[sectionValue] ?? sectionValue)}
             </p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1">
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 p-1"
+          >
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
@@ -145,46 +216,114 @@ export default function PlacementDialog({
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
             />
             <p className="mt-1.5 text-[11px] text-slate-500">
-              Shown as the section heading in the app. Its link handle is generated from this name.
+              Shown as the section heading in the app. Its link handle is
+              generated from this name.
             </p>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Description
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Short subtitle shown under the section title..."
-              rows={2}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-            />
-          </div>
+          {/* A circle renders as a name under an image — no description shows. */}
+          {!isCircle && (
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                Description
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Short subtitle shown under the section title..."
+                rows={2}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+              />
+            </div>
+          )}
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Layout
-            </label>
-            <select
-              value={sectionValue}
-              onChange={(e) => setSectionValue(e.target.value as PageSection)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-            >
-              {allowedSections.map((sec) => (
-                <option key={sec} value={sec}>
-                  {SECTION_DISPLAY_LABEL[sec]}
+          {/* The add button already decided the layout, so this only says what
+              that layout looks like — a picker here could only contradict the
+              slot the card was added to. */}
+          {!isCircle && (
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                Layout
+              </label>
+              {isHomePromo ? (
+                <p className="text-xs text-indigo-700 bg-indigo-50 p-2.5 rounded-lg border border-indigo-100 leading-snug">
+                  <span className="font-bold">Decided by position</span> — home
+                  promos cycle through Large → Collage → Side Image → Horizontal
+                  in order. Drag this card on the canvas to change which layout
+                  it gets.
+                </p>
+              ) : (
+                SECTION_GUIDANCE_MAP[sectionValue] && (
+                  <p className="text-xs text-indigo-700 bg-indigo-50 p-2.5 rounded-lg border border-indigo-100 leading-snug">
+                    <span className="font-bold">
+                      {SECTION_DISPLAY_LABEL[sectionValue]}
+                    </span>{" "}
+                    — {SECTION_GUIDANCE_MAP[sectionValue]}
+                  </p>
+                )
+              )}
+            </div>
+          )}
+
+          {isCircle && (
+            <div className="rounded-xl border border-sky-200 bg-sky-50/50 p-3 space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-sky-800">
+                Products Come From
+              </label>
+              <select
+                value={sourceCategoryId}
+                onChange={(e) => {
+                  const nextId = e.target.value;
+                  setSourceCategoryId(nextId);
+                  // Naming the circle after the category is almost always what
+                  // is wanted, but it stays editable.
+                  const picked = categories.find((c) => c.id === nextId);
+                  if (picked && !name.trim()) setName(picked.name);
+                }}
+                className="w-full rounded-lg border border-sky-300 bg-white px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none"
+              >
+                <option value="">
+                  Hand-picked — I'll choose the products myself
                 </option>
-              ))}
-            </select>
-            {SECTION_GUIDANCE_MAP[sectionValue] && (
-              <p className="mt-1.5 text-xs text-indigo-600 bg-indigo-50 p-2 rounded border border-indigo-100">
-                💡 {SECTION_GUIDANCE_MAP[sectionValue]}
-              </p>
-            )}
-          </div>
+                {categoryOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
 
-          {!isEdit && (
+              {/* The trade-off is stated where the choice is made, rather than
+                  discovered months later when the circle has gone stale. */}
+              {sourceCategoryId ? (
+                <p className="text-[11px] text-sky-800/80 leading-snug">
+                  Products come from this category and everything under it,
+                  filtered to this tab's gender. New products added to the
+                  category show up here on their own — you can still add or
+                  remove individual ones afterwards without breaking that.
+                </p>
+              ) : (
+                <p className="text-[11px] text-sky-800/80 leading-snug">
+                  You pick every product by hand on the next screen. Nothing
+                  arrives automatically, so new stock has to be added here
+                  yourself. Save this first, then use the products button on the
+                  circle to fill it.
+                </p>
+              )}
+
+              {isEdit &&
+                (placement?.sourceCategoryId ?? "") !== sourceCategoryId && (
+                  <p className="text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
+                    Changing this empties the list: every product added, removed
+                    or reordered by hand here is discarded, and you start again
+                    on the products screen.
+                  </p>
+                )}
+            </div>
+          )}
+
+          {/* Copying a product list only makes sense when the placement keeps
+              one — a category-sourced circle derives its own. */}
+          {!isEdit && (!isCircle || !sourceCategoryId) && (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 space-y-2">
               <label className="block text-xs font-bold uppercase tracking-wider text-emerald-800">
                 Start From
@@ -197,14 +336,15 @@ export default function PlacementDialog({
                 <option value="">Empty — pick products after saving</option>
                 {duplicateOptions.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {PAGE_DISPLAY_LABEL[p.page as AppPage] ?? p.page} › {p.name} (
-                    {p.productCount} products)
+                    {PAGE_DISPLAY_LABEL[p.page as AppPage] ?? p.page} › {p.name}{" "}
+                    ({p.productCount} products)
                   </option>
                 ))}
               </select>
               <p className="text-[11px] text-emerald-700 leading-relaxed">
-                Duplicating copies that section&rsquo;s products into a brand-new collection. The
-                two lists are independent afterwards — editing one never changes the other.
+                Duplicating copies that section&rsquo;s products into a
+                brand-new collection. The two lists are independent afterwards —
+                editing one never changes the other.
               </p>
             </div>
           )}
@@ -222,7 +362,9 @@ export default function PlacementDialog({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="material-symbols-outlined text-slate-400">image</span>
+                  <span className="material-symbols-outlined text-slate-400">
+                    image
+                  </span>
                 )}
               </div>
               <input
@@ -238,6 +380,22 @@ export default function PlacementDialog({
                 className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
               />
             </div>
+            {/* Every layout crops to a different shape, so the number quoted
+                here follows the slot this card will actually render in. */}
+            {isHomePromo ? (
+              <p className="mt-1.5 text-[11px] text-slate-500 leading-snug">
+                Size depends on the layout this card lands in —{" "}
+                {HOME_PROMO_SECTIONS.map(
+                  (s) =>
+                    `${SECTION_DISPLAY_LABEL[s]} ${SECTION_IMAGE_SPEC[s].size}`,
+                ).join(" · ")}
+                . JPG, PNG or WebP up to {MAX_IMAGE_UPLOAD_MB} MB.
+              </p>
+            ) : (
+              <p className="mt-1.5 text-[11px] text-slate-500">
+                {imageHint(SECTION_IMAGE_SPEC[sectionValue])}
+              </p>
+            )}
           </div>
 
           <div className="rounded-xl border border-slate-200 p-3 space-y-2">
@@ -252,27 +410,19 @@ export default function PlacementDialog({
                 }}
                 className="w-4 h-4 text-primary rounded border-slate-300 focus:ring-primary"
               />
-              <label htmlFor="linksToProduct" className="text-xs font-bold text-slate-700 cursor-pointer">
+              <label
+                htmlFor="linksToProduct"
+                className="text-xs font-bold text-slate-700 cursor-pointer"
+              >
                 Link straight to one product
               </label>
             </div>
             <p className="text-[11px] text-slate-500 leading-relaxed">
-              Off by default: tapping the section opens its product list. Turn on to send shoppers
-              to a single product page instead.
+              Off by default: tapping the section opens its product list. Turn
+              on to send shoppers to a single product page instead.
             </p>
             {linksToProduct && (
-              <select
-                value={productId}
-                onChange={(e) => setProductId(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-              >
-                <option value="">-- Choose Product --</option>
-                {products.map((prod) => (
-                  <option key={prod.id} value={prod.id}>
-                    {prod.name}
-                  </option>
-                ))}
-              </select>
+              <ProductPicker value={productId} onChange={setProductId} />
             )}
           </div>
 
@@ -284,7 +434,10 @@ export default function PlacementDialog({
               onChange={(e) => setIsActive(e.target.checked)}
               className="w-4 h-4 text-primary rounded border-slate-300 focus:ring-primary"
             />
-            <label htmlFor="placementIsActive" className="text-xs font-bold text-slate-700 cursor-pointer">
+            <label
+              htmlFor="placementIsActive"
+              className="text-xs font-bold text-slate-700 cursor-pointer"
+            >
               Active (visible on app and web)
             </label>
           </div>
@@ -305,7 +458,11 @@ export default function PlacementDialog({
             className="px-5 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary/90 transition-all flex items-center gap-1.5 disabled:opacity-50"
           >
             <span className="material-symbols-outlined text-[16px]">save</span>
-            {saveMutation.isPending ? "Saving..." : isEdit ? "Save Section" : "Create Section"}
+            {saveMutation.isPending
+              ? "Saving..."
+              : isEdit
+                ? "Save Section"
+                : "Create Section"}
           </button>
         </div>
       </div>

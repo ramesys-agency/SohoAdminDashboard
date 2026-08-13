@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { type ProductVariantImageData } from "../../view/components/ProductGallery";
 import { generateUUID } from "../../../../utils/uuid";
 import ConfirmModal from "../../../../components/ui/ConfirmModal";
+import { PRODUCT_IMAGE_SPEC, imageHint } from "../../../../lib/imageGuidelines";
 
 export interface SizeVariantData {
   id: string;
@@ -298,7 +299,8 @@ function ColorGroupCard({
             Variant Images <span className="text-red-500">*</span>
           </label>
           <p className="text-[10px] text-slate-400 -mt-1 mb-1">
-            These images apply to all sizes in this color.
+            These images apply to all sizes in this color.{" "}
+            {imageHint(PRODUCT_IMAGE_SPEC)}
           </p>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {group.images.map((img) => (

@@ -1,4 +1,5 @@
 import type { Placement } from "../../api/placements";
+import { CATEGORY_IMAGE_SPEC, type ImageSpec } from "../../lib/imageGuidelines";
 
 /** Every page canvas is driven by the same handful of callbacks. */
 export interface CanvasProps {
@@ -35,6 +36,7 @@ export const PageSection = {
   GRID_SECTION: "GRID_SECTION",
   MID_BANNER: "MID_BANNER",
   SEE_ALL: "SEE_ALL",
+  CATEGORY_CIRCLE: "CATEGORY_CIRCLE",
 } as const;
 
 export type PageSection = (typeof PageSection)[keyof typeof PageSection];
@@ -49,11 +51,33 @@ export const PAGE_SECTION_MAP: Record<AppPage, PageSection[]> = {
     PageSection.MID_BANNER,
     PageSection.SEE_ALL,
   ],
-  [AppPage.CATALOG_MEN]: [PageSection.HERO, PageSection.FEATURED_ROW, PageSection.GRID_SECTION],
-  [AppPage.CATALOG_WOMEN]: [PageSection.HERO, PageSection.FEATURED_ROW, PageSection.GRID_SECTION],
-  [AppPage.CATALOG_KIDS]: [PageSection.HERO, PageSection.FEATURED_ROW, PageSection.GRID_SECTION],
+  [AppPage.CATALOG_MEN]: [
+    PageSection.CATEGORY_CIRCLE,
+    PageSection.HERO,
+    PageSection.FEATURED_ROW,
+    PageSection.GRID_SECTION,
+  ],
+  [AppPage.CATALOG_WOMEN]: [
+    PageSection.CATEGORY_CIRCLE,
+    PageSection.HERO,
+    PageSection.FEATURED_ROW,
+    PageSection.GRID_SECTION,
+  ],
+  [AppPage.CATALOG_KIDS]: [
+    PageSection.CATEGORY_CIRCLE,
+    PageSection.HERO,
+    PageSection.FEATURED_ROW,
+    PageSection.GRID_SECTION,
+  ],
   [AppPage.OFFERS]: [PageSection.GRID_SECTION],
 };
+
+/// Sections whose product list is derived from a category rather than picked
+/// by hand. These require a source category and show the auto/added badges.
+export const CATEGORY_SOURCED_SECTIONS = new Set<PageSection>([PageSection.CATEGORY_CIRCLE]);
+
+export const isCategorySourced = (section: string): boolean =>
+  CATEGORY_SOURCED_SECTIONS.has(section as PageSection);
 
 // Short label for chips and dropdowns
 export const SECTION_DISPLAY_LABEL: Record<PageSection, string> = {
@@ -62,6 +86,7 @@ export const SECTION_DISPLAY_LABEL: Record<PageSection, string> = {
   [PageSection.GRID_SECTION]: "Grid Card (Collage)",
   [PageSection.MID_BANNER]: "Side Image",
   [PageSection.SEE_ALL]: "Horizontal Banner",
+  [PageSection.CATEGORY_CIRCLE]: "Category Circle",
 };
 
 // Human-readable labels/guidance for each Section to help the Admin
@@ -76,6 +101,22 @@ export const SECTION_GUIDANCE_MAP: Record<PageSection, string> = {
     "Side Image Section: Renders with the text/title on the left and a portrait image on the right.",
   [PageSection.SEE_ALL]:
     "Horizontal Section: Renders a wide landscape image on top, followed by title and description below it.",
+  [PageSection.CATEGORY_CIRCLE]:
+    "Category Shortcut: A round icon in the row along the top of the tab. Point it at a category and its products keep themselves up to date, or leave it hand-picked and choose every product yourself. Either way you can add, remove and reorder individual products.",
+};
+
+/**
+ * What to upload for each layout. Every section crops its cover image to a
+ * different shape, so a single "recommended size" would be wrong five times
+ * out of six — these follow the slots in the app's FeaturedSection.
+ */
+export const SECTION_IMAGE_SPEC: Record<PageSection, ImageSpec> = {
+  [PageSection.HERO]: { size: "1200 × 720 px", ratio: "5:3 landscape" },
+  [PageSection.FEATURED_ROW]: { size: "1080 × 1350 px", ratio: "4:5 portrait" },
+  [PageSection.GRID_SECTION]: { size: "800 × 1300 px", ratio: "8:13 tall portrait" },
+  [PageSection.MID_BANNER]: { size: "800 × 1500 px", ratio: "8:15 tall portrait" },
+  [PageSection.SEE_ALL]: { size: "1200 × 860 px", ratio: "7:5 landscape" },
+  [PageSection.CATEGORY_CIRCLE]: CATEGORY_IMAGE_SPEC,
 };
 
 // Sections that are always displayed as banners
@@ -93,13 +134,14 @@ export const isBannerSection = (section: string): boolean =>
 /** The mobile layout each section maps to — mirrors FeaturedSection's variants. */
 export const SECTION_VARIANT_MAP: Record<
   PageSection,
-  "hero" | "large" | "collage" | "side" | "horizontal"
+  "hero" | "large" | "collage" | "side" | "horizontal" | "circle"
 > = {
   [PageSection.HERO]: "hero",
   [PageSection.FEATURED_ROW]: "large",
   [PageSection.GRID_SECTION]: "collage",
   [PageSection.MID_BANNER]: "side",
   [PageSection.SEE_ALL]: "horizontal",
+  [PageSection.CATEGORY_CIRCLE]: "circle",
 };
 
 // Section Preview Images
@@ -111,4 +153,6 @@ export const SECTION_PREVIEW_MAP: Record<PageSection, string> = {
     "https://placehold.co/600x400/FFF/EEE?text=Grid+Section+Collage+Mobile+Preview",
   [PageSection.MID_BANNER]: "https://placehold.co/600x400/FFF/EEE?text=Side+Image+Mobile+Preview",
   [PageSection.SEE_ALL]: "https://placehold.co/600x400/FFF/EEE?text=Horizontal+Mobile+Preview",
+  [PageSection.CATEGORY_CIRCLE]:
+    "https://placehold.co/600x400/FFF/EEE?text=Category+Circle+Mobile+Preview",
 };

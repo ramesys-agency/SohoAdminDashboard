@@ -9,6 +9,7 @@ import {
   getCategoryById,
 } from "../../../../api/categories";
 import { uploadFile } from "../../../../api/upload";
+import { CATEGORY_IMAGE_SPEC, imageHint } from "../../../../lib/imageGuidelines";
 import Button from "../../../../components/ui/Button";
 import ConfirmModal from "../../../../components/ui/ConfirmModal";
 import type { Category } from "../../category.interface";
@@ -24,38 +25,11 @@ export interface AttributeData {
 
 type GenderKey = "MEN" | "WOMEN" | "KIDS";
 
-/**
- * Per-gender catalog placement. `isActive` controls whether the category shows
- * up in that tab of the mobile catalog at all — the backend treats a missing or
- * inactive placement as "hidden", regardless of what products the category has.
- */
-interface PlacementState {
-  file: File | null;
-  preview: string | null;
-  url: string | null;
-  isActive: boolean;
-  displayOrder: number;
-}
-
-const GENDERS: { key: GenderKey; label: string; icon: string }[] = [
-  { key: "MEN", label: "Men", icon: "man" },
-  { key: "WOMEN", label: "Women", icon: "woman" },
-  { key: "KIDS", label: "Kids", icon: "child_care" },
+const GENDERS: { key: GenderKey; label: string }[] = [
+  { key: "MEN", label: "Men" },
+  { key: "WOMEN", label: "Women" },
+  { key: "KIDS", label: "Kids" },
 ];
-
-const emptyPlacement: PlacementState = {
-  file: null,
-  preview: null,
-  url: null,
-  isActive: false,
-  displayOrder: 0,
-};
-
-const emptyPlacements: Record<GenderKey, PlacementState> = {
-  MEN: { ...emptyPlacement },
-  WOMEN: { ...emptyPlacement },
-  KIDS: { ...emptyPlacement },
-};
 
 export default function CategoryForm() {
   const navigate = useNavigate();
@@ -73,20 +47,6 @@ export default function CategoryForm() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [, setLoading] = useState(false);
-
-  // Per-gender catalog placements (image + visibility + ordering)
-  const [placements, setPlacements] =
-    useState<Record<GenderKey, PlacementState>>(emptyPlacements);
-
-  const updatePlacement = (
-    gender: GenderKey,
-    changes: Partial<PlacementState>,
-  ) => {
-    setPlacements((current) => ({
-      ...current,
-      [gender]: { ...current[gender], ...changes },
-    }));
-  };
 
   // Fetch category data if in edit mode (handles page refreshes)
   const categoryId = id || editCategory?.id;
@@ -114,32 +74,6 @@ export default function CategoryForm() {
       setImageUrl(categoryData.imageUrl);
       if (categoryData.imageUrl) {
         setImagePreview(categoryData.imageUrl);
-      }
-
-      // Pre-populate gender placements. An existing row means the category is
-      // already configured for that tab, so default isActive to true when the
-      // backend has not sent an explicit value.
-      if (categoryData.genderImages) {
-        const next: Record<GenderKey, PlacementState> = {
-          MEN: { ...emptyPlacement },
-          WOMEN: { ...emptyPlacement },
-          KIDS: { ...emptyPlacement },
-        };
-
-        categoryData.genderImages.forEach((placement: any) => {
-          const gender = placement.gender as GenderKey;
-          if (!next[gender]) return;
-
-          next[gender] = {
-            file: null,
-            preview: placement.imageUrl ?? null,
-            url: placement.imageUrl ?? null,
-            isActive: placement.isActive ?? true,
-            displayOrder: placement.displayOrder ?? 0,
-          };
-        });
-
-        setPlacements(next);
       }
     }
   }, [categoryData]);
@@ -219,44 +153,15 @@ export default function CategoryForm() {
 
     const categoryFolder = `category/${name.toLowerCase().replace(/\s+/g, "-")}`;
 
-    const uploadImages = async () => {
-      let mainUrl = imageUrl;
+    const uploadMainImage = async () => {
+      if (!imageFile) return imageUrl;
 
-      if (imageFile) {
-        const res = await uploadFile(imageFile, categoryFolder, "main");
-        mainUrl = res.data.url;
-      }
-
-      const placementUrls = {} as Record<GenderKey, string | null>;
-      for (const { key } of GENDERS) {
-        const placement = placements[key];
-        if (placement.file) {
-          const res = await uploadFile(
-            placement.file,
-            categoryFolder,
-            key.toLowerCase(),
-          );
-          placementUrls[key] = res.data.url;
-        } else {
-          placementUrls[key] = placement.url;
-        }
-      }
-
-      return { mainUrl, placementUrls };
+      const res = await uploadFile(imageFile, categoryFolder, "main");
+      return res.data.url;
     };
 
     try {
-      const { mainUrl, placementUrls } = await uploadImages();
-
-      // Send every gender, including disabled ones: the backend upserts by
-      // (category, gender), so an explicit isActive false is what hides a
-      // category from a tab while keeping its image and ordering on file.
-      const genderImages = GENDERS.map(({ key }) => ({
-        gender: key,
-        imageUrl: placementUrls[key],
-        isActive: placements[key].isActive,
-        displayOrder: placements[key].displayOrder,
-      }));
+      const mainUrl = await uploadMainImage();
 
       const payload = {
         name,
@@ -264,7 +169,6 @@ export default function CategoryForm() {
         parentId: parentId || (isEditMode ? null : undefined),
         isActive,
         imageUrl: mainUrl === null ? null : (mainUrl || undefined),
-        genderImages,
       };
 
       if (isEditMode) {
@@ -274,7 +178,7 @@ export default function CategoryForm() {
       }
     } catch (error) {
       console.error("Upload failed", error);
-      toast.error("Failed to upload images");
+      toast.error("Failed to upload image");
     } finally {
       setLoading(false);
     }
@@ -352,10 +256,13 @@ export default function CategoryForm() {
                     {imageFile ? imageFile.name : "Upload Default Cover"}
                   </p>
                   <p className="text-[10px] text-slate-400 font-medium">
-                    Recommended size: 800x800px. Max 2MB.
+                    {imageHint(CATEGORY_IMAGE_SPEC)}
                   </p>
                   <p className="text-[10px] text-slate-400">
-                    Used if gender-specific image is not provided.
+                    Shown inside a circle — keep the subject centred.
+                  </p>
+                  <p className="text-[10px] text-slate-400">
+                    Used wherever the category is listed on its own.
                   </p>
                   {imagePreview && (
                     <button
@@ -374,123 +281,61 @@ export default function CategoryForm() {
               </div>
             </div>
 
-            {/* Catalog Placement — controls the mobile app's gender tabs */}
+            {/* Catalog Visibility — read-only. Gender tabs are driven by
+                CATEGORY_CIRCLE placements, which own their own image, order and
+                visibility, so there is nothing to configure here any more. */}
             <div className="pt-6 border-t border-slate-100">
               <h4 className="text-xs font-bold text-slate-500 uppercase">
-                Catalog Placement
+                Catalog Visibility
               </h4>
-              <p className="text-[11px] text-slate-500 mt-1 mb-4">
-                Choose which gender tabs this category appears in. A tab that is
-                off hides the category from the app, even if it has products.
-                Leave the image empty to use the main image above. Counts are
-                published products, including sub-categories.
+              <p className="text-[11px] text-slate-500 mt-1">
+                Where this category shows up in the app is set on the catalog
+                pages of{" "}
+                <Link
+                  to="/placements"
+                  className="font-bold text-primary hover:underline"
+                >
+                  App Placements
+                </Link>
+                . The circle you add there carries its own image, order and
+                visibility.
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {GENDERS.map(({ key, label, icon }) => {
-                  const placement = placements[key];
-                  const inputId = `${key.toLowerCase()}-image`;
 
-                  return (
-                    <div
-                      key={key}
-                      className={`space-y-3 flex flex-col items-center rounded-lg border p-4 transition-colors ${
-                        placement.isActive
-                          ? "border-slate-200 bg-white"
-                          : "border-slate-100 bg-slate-50"
-                      }`}
-                    >
-                      <label className="text-[10px] font-bold text-slate-500 flex items-center gap-1 uppercase tracking-wider">
+              {isEditMode && (
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  {GENDERS.map(({ key, label }) => {
+                    const count = genderProductCounts[key] ?? 0;
+                    const chipClass =
+                      "flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold";
+                    const body = (
+                      <>
                         {label}
-                      </label>
+                        <span className="font-bold">{count}</span>
+                      </>
+                    );
 
-                      <div
-                        onClick={() =>
-                          document.getElementById(inputId)?.click()
-                        }
-                        className={`size-20 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary bg-slate-50 overflow-hidden relative group shadow-sm ${
-                          placement.isActive ? "" : "opacity-40"
-                        }`}
+                    return count > 0 ? (
+                      <Link
+                        key={key}
+                        to={`/products?categoryId=${categoryId}&gender=${key}&isPublished=true`}
+                        className={`${chipClass} border-slate-200 bg-white text-slate-600 hover:border-primary hover:text-primary`}
                       >
-                        {placement.preview ? (
-                          <img
-                            src={placement.preview}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="material-symbols-outlined text-slate-300 text-lg">
-                            {icon}
-                          </span>
-                        )}
-                        <input
-                          id={inputId}
-                          type="file"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              updatePlacement(key, {
-                                file,
-                                preview: URL.createObjectURL(file),
-                              });
-                            }
-                          }}
-                        />
-                      </div>
-
-                      {placement.preview && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updatePlacement(key, {
-                              file: null,
-                              preview: null,
-                              url: null,
-                            })
-                          }
-                          className="text-[10px] text-red-500 font-bold hover:underline"
-                        >
-                          Remove Image
-                        </button>
-                      )}
-
-                      <label className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={placement.isActive}
-                          onChange={(e) =>
-                            updatePlacement(key, {
-                              isActive: e.target.checked,
-                            })
-                          }
-                          className="size-3.5 rounded border-slate-300 accent-primary cursor-pointer"
-                        />
-                        Show in {label}
-                      </label>
-
-                      {isEditMode && (
-                        <div className="w-full pt-2 border-t border-slate-100 text-center">
-                          <p className="text-[11px] text-slate-500">
-                            <span className="font-bold text-slate-700">
-                              {genderProductCounts[key] ?? 0}
-                            </span>{" "}
-                            {genderProductCounts[key] === 1
-                              ? "product"
-                              : "products"}
-                          </p>
-                          {(genderProductCounts[key] ?? 0) > 0 && (
-                            <Link
-                              to={`/products?categoryId=${categoryId}&gender=${key}&isPublished=true`}
-                              className="text-[10px] font-bold text-primary hover:underline"
-                            >
-                              View products
-                            </Link>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                        {body}
+                      </Link>
+                    ) : (
+                      <span
+                        key={key}
+                        className={`${chipClass} border-slate-100 bg-slate-50 text-slate-400`}
+                      >
+                        {body}
+                      </span>
+                    );
+                  })}
+                  <span className="text-[10px] text-slate-400">
+                    Published products, including sub-categories.
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-3 pt-4 border-t border-slate-200 mt-4">

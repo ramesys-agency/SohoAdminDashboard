@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { type ProductVariantImageData } from "../../view/components/ProductGallery";
 import { generateUUID } from "../../../../utils/uuid";
 import ConfirmModal from "../../../../components/ui/ConfirmModal";
+import { PRODUCT_IMAGE_SPEC, imageHint } from "../../../../lib/imageGuidelines";
 
 interface MediaUploadProps {
   images: ProductVariantImageData[];
@@ -48,6 +49,9 @@ export default function MediaUpload({
           Add Item
         </button>
       </div>
+      <p className="text-[10px] text-slate-400 -mt-2 mb-4">
+        {imageHint(PRODUCT_IMAGE_SPEC)}
+      </p>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {images.map((img) => (
           <div

@@ -16,6 +16,8 @@ export interface Placement {
   productId: string | null;
   imageUrl: string | null;
   isBanner: boolean;
+  /** Set when the product list is derived from a category instead of picked. */
+  sourceCategoryId: string | null;
   page: string;
   section: string;
   displayOrder: number;
@@ -27,10 +29,15 @@ export interface Placement {
   createdAt: string;
 }
 
+/** Why a product is in a placement's list. */
+export type ProductOrigin = "auto" | "added";
+
 export interface PlacementProduct {
   placementId: string;
   productId: string;
   displayOrder: number;
+  /** "auto" came from the source category; "added" was pinned by hand. */
+  origin: ProductOrigin;
   product: {
     id: string;
     name: string;
@@ -52,6 +59,8 @@ export interface PlacementPayload {
   isBanner?: boolean;
   isActive?: boolean;
   image?: File | null;
+  /** Derive the product list from this category. Empty string unlinks it. */
+  sourceCategoryId?: string | null;
   /** Copy this placement's curated product list into the new one. */
   sourcePlacementId?: string;
 }
@@ -141,5 +150,19 @@ export const removeProductsFromPlacement = async (id: string, productIds: string
   const { data } = await api.delete(`${apiEndpoint.placements.byId(id)}/products`, {
     data: { productIds },
   });
+  return data;
+};
+
+/** Persists the running order of a placement's products after a drag. */
+export const reorderPlacementProducts = async (id: string, productIds: string[]) => {
+  const { data } = await api.patch(`${apiEndpoint.placements.byId(id)}/products/reorder`, {
+    productIds,
+  });
+  return data;
+};
+
+/** Drops every override so the list goes back to the raw category contents. */
+export const resetPlacementProducts = async (id: string) => {
+  const { data } = await api.post(`${apiEndpoint.placements.byId(id)}/products/reset`);
   return data;
 };

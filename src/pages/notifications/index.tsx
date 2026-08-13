@@ -10,9 +10,29 @@ import {
 } from "../../api/notifications";
 import { getAllUsers, type AdminUser } from "../../api/users";
 import { getCollections, type Collection } from "../../api/collections";
+import {
+  PAGE_DISPLAY_LABEL,
+  SECTION_DISPLAY_LABEL,
+  type AppPage,
+  type PageSection,
+} from "../placements/types";
 
 type RedirectType = "none" | "collection";
-type RedirectTarget = { id: string; name: string; slug: string } | null;
+type RedirectTarget = {
+  id: string;
+  name: string;
+  slug: string;
+  context?: string;
+} | null;
+
+// Collection names repeat across pages ("T-Shirts" exists on MEN, WOMEN and
+// KIDS), so the dropdown has to say which placement each one belongs to.
+const placementContext = (c: Collection): string | undefined => {
+  if (!c.placement) return undefined;
+  const page = PAGE_DISPLAY_LABEL[c.placement.page as AppPage];
+  const section = SECTION_DISPLAY_LABEL[c.placement.section as PageSection];
+  return [page, section].filter(Boolean).join(" · ") || undefined;
+};
 
 const REGIONS = [
   "Dhaka",
@@ -88,10 +108,17 @@ export default function Notifications() {
 
   const searchedUsers = userResults?.data ?? [];
 
+  // A high limit, not a page of 10: every collection an admin can create is a
+  // valid redirect target, and the newest ones (category circles, fresh promo
+  // placements) used to fall outside the first page and look missing.
   const { data: collectionResults, isFetching: collectionsLoading } = useQuery({
     queryKey: ["notif-collection-search", redirectSearch],
-    queryFn: () => getCollections(1, 10, redirectSearch || undefined),
+    queryFn: () => getCollections(1, 200, redirectSearch || undefined),
     enabled: redirectType === "collection",
+    // Collections get created on the placements page mid-session — always
+    // re-read so a just-made collection shows up here.
+    refetchOnMount: "always",
+    staleTime: 0,
   });
 
   const redirectItems: RedirectTarget[] =
@@ -100,6 +127,7 @@ export default function Notifications() {
           id: c.id,
           name: c.name,
           slug: c.slug,
+          context: placementContext(c),
         }))
       : [];
 
@@ -395,7 +423,9 @@ export default function Notifications() {
                         {redirectTarget.name}
                       </span>
                       <span className="text-xs text-slate-400 truncate hidden sm:block">
-                        /{redirectTarget.slug}
+                        {redirectTarget.context
+                          ? `${redirectTarget.context} · /${redirectTarget.slug}`
+                          : `/${redirectTarget.slug}`}
                       </span>
                     </div>
                     <button
@@ -425,7 +455,13 @@ export default function Notifications() {
                         className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                       />
                     </div>
-                    <div className="border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-52 overflow-y-auto">
+                    {!redirectLoading && redirectItems.length > 0 && (
+                      <p className="text-xs text-slate-400">
+                        {redirectItems.length} collection
+                        {redirectItems.length === 1 ? "" : "s"} · newest first
+                      </p>
+                    )}
+                    <div className="border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-72 overflow-y-auto">
                       {redirectLoading && (
                         <p className="p-4 text-sm text-slate-400">Searching…</p>
                       )}
@@ -448,6 +484,11 @@ export default function Notifications() {
                             <div className="min-w-0">
                               <p className="text-sm font-semibold text-slate-900 truncate">
                                 {item!.name}
+                                {item!.context && (
+                                  <span className="ml-2 text-xs font-medium text-slate-500">
+                                    {item!.context}
+                                  </span>
+                                )}
                               </p>
                               <p className="text-xs text-slate-400 truncate">
                                 /{item!.slug}
