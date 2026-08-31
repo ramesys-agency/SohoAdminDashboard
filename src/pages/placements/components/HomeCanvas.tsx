@@ -3,7 +3,7 @@ import type { Placement } from "../../../api/placements";
 import { getProducts, type ApiProduct } from "../../../api/products";
 import { getFullImageUrl } from "../../../lib/imageUrl";
 import { PageSection, type CanvasProps } from "../types";
-import { useDragReorder } from "./useDragReorder";
+import { useDragReorder } from "../../../hooks/useDragReorder";
 import { SlideArrows, useSlideRow } from "./useSlideRow";
 
 /**

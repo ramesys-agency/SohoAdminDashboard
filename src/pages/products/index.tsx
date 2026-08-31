@@ -63,10 +63,19 @@ export default function Products() {
   const handleSearchChange = useCallback((value: string) => {
     setSearch(value);
     if (searchTimer.current) clearTimeout(searchTimer.current);
+
+    // Clearing the box is a decision, not typing — do not make the admin wait
+    // out the debounce to get the full list back.
+    if (value === "") {
+      setDebouncedSearch("");
+      setPage(1);
+      return;
+    }
+
     searchTimer.current = setTimeout(() => {
       setDebouncedSearch(value);
       setPage(1);
-    }, 400);
+    }, 300);
   }, []);
 
   // Reset page when filters change
@@ -141,7 +150,9 @@ export default function Products() {
       };
       if (debouncedSearch) params.search = debouncedSearch;
       if (gender) params.gender = gender;
-      if (isPublished !== "") params.isPublished = isPublished === "true";
+      // "Any Status" means every product, drafts included — without this the
+      // server falls back to published-only and drafts are unsearchable.
+      params.isPublished = isPublished === "" ? "all" : isPublished === "true";
       if (categoryId) params.categoryId = categoryId;
       if (collectionId) params.collectionId = collectionId;
       if (sortBy) params.sortBy = sortBy;
@@ -262,6 +273,7 @@ export default function Products() {
       <ProductFilters
         search={search}
         onSearchChange={handleSearchChange}
+        isSearching={loading || search !== debouncedSearch}
         gender={gender}
         onGenderChange={handleGenderChange}
         isPublished={isPublished}
@@ -336,10 +348,25 @@ export default function Products() {
                       <span className="material-symbols-outlined text-4xl">
                         inventory_2
                       </span>
-                      <p className="text-sm font-medium">No products found</p>
-                      <p className="text-xs">
-                        Try adjusting your filters or add a new product.
+                      <p className="text-sm font-medium">
+                        {debouncedSearch
+                          ? `No products match “${debouncedSearch}”`
+                          : "No products found"}
                       </p>
+                      <p className="text-xs">
+                        {debouncedSearch
+                          ? "Search covers product name, SKU, colour and category."
+                          : "Try adjusting your filters or add a new product."}
+                      </p>
+                      {debouncedSearch && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSearchChange("")}
+                        >
+                          Clear search
+                        </Button>
+                      )}
                     </div>
                   </td>
                 </tr>

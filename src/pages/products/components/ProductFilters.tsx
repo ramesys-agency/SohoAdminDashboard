@@ -5,6 +5,8 @@ import CategorySelectOptions from "../../../components/ui/CategorySelectOptions"
 interface ProductFiltersProps {
   search: string;
   onSearchChange: (v: string) => void;
+  /** Shows a spinner while the typed query is still settling or in flight. */
+  isSearching?: boolean;
   gender: string;
   onGenderChange: (v: string) => void;
   isPublished: string;
@@ -22,6 +24,7 @@ interface ProductFiltersProps {
 export default function ProductFilters({
   search,
   onSearchChange,
+  isSearching = false,
   gender,
   onGenderChange,
   isPublished,
@@ -44,12 +47,32 @@ export default function ProductFilters({
             search
           </span>
           <input
-            type="text"
+            type="search"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search products..."
-            className="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 bg-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-slate-900"
+            onKeyDown={(e) => {
+              if (e.key === "Escape" && search) onSearchChange("");
+            }}
+            placeholder="Search by name, SKU, colour or category..."
+            aria-label="Search products"
+            className="w-full pl-10 pr-16 py-2 text-sm border border-slate-200 bg-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-slate-900 [&::-webkit-search-cancel-button]:hidden"
           />
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            {isSearching && (
+              <span className="size-4 rounded-full border-2 border-slate-200 border-t-primary animate-spin" />
+            )}
+            {search && (
+              <button
+                type="button"
+                onClick={() => onSearchChange("")}
+                className="text-slate-400 hover:text-slate-700 flex items-center"
+                title="Clear search"
+                aria-label="Clear search"
+              >
+                <span className="material-symbols-outlined text-lg">close</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -107,13 +130,17 @@ export default function ProductFilters({
           onChange={(e) => onSortByChange(e.target.value)}
           className="text-sm border border-slate-200 bg-white rounded-lg focus:outline-none py-2 px-3 text-slate-700"
         >
-          <option value="">Sort By</option>
+          {/* Empty = the server's default: best match when searching,
+              newest first otherwise. */}
+          <option value="">{search ? "Best Match" : "Sort By"}</option>
           <option value="createdAt_desc">Newest First</option>
           <option value="createdAt_asc">Oldest First</option>
           <option value="price_asc">Price: Low to High</option>
           <option value="price_desc">Price: High to Low</option>
           <option value="name_asc">Name: A–Z</option>
           <option value="name_desc">Name: Z–A</option>
+          <option value="rating">Top Rated</option>
+          <option value="popularity">Most Reviewed</option>
         </select>
       </div>
     </div>

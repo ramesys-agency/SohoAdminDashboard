@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import type { Placement } from "../../../api/placements";
 import { getFullImageUrl } from "../../../lib/imageUrl";
 import { AppPage, PageSection, type CanvasProps } from "../types";
-import { useDragReorder } from "./useDragReorder";
+import { useDragReorder } from "../../../hooks/useDragReorder";
 import { SlideArrows, useSlideRow } from "./useSlideRow";
 
 interface CatalogCanvasProps extends CanvasProps {

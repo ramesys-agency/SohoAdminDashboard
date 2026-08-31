@@ -1,6 +1,6 @@
 import { getFullImageUrl } from "../../../lib/imageUrl";
 import { PageSection, type CanvasProps } from "../types";
-import { useDragReorder } from "./useDragReorder";
+import { useDragReorder } from "../../../hooks/useDragReorder";
 
 export default function OffersCanvas({
   placements,

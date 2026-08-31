@@ -18,7 +18,7 @@ import {
   type ProductOrigin,
 } from "../../../api/placements";
 import { getParentCategories } from "../../../api/categories";
-import { useDragReorder } from "../components/useDragReorder";
+import { useDragReorder } from "../../../hooks/useDragReorder";
 
 interface ParentCategory {
   id: string;

@@ -18,9 +18,15 @@ export function useDragReorder<T>(items: T[], onReorder: (ordered: T[]) => void)
 
   const dragProps = (index: number) => ({
     draggable: true,
-    onDragStart: () => setDragIndex(index),
+    onDragStart: (e: React.DragEvent) => {
+      // Firefox refuses to start a drag until the event carries data.
+      e.dataTransfer.setData("text/plain", String(index));
+      e.dataTransfer.effectAllowed = "move";
+      setDragIndex(index);
+    },
     onDragOver: (e: React.DragEvent) => {
       e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
       if (dragIndex !== null && index !== overIndex) setOverIndex(index);
     },
     onDragEnd: () => {
@@ -37,6 +43,15 @@ export function useDragReorder<T>(items: T[], onReorder: (ordered: T[]) => void)
     },
   });
 
+  /**
+   * Reorder without a mouse — for nudge buttons and keyboard shortcuts, which
+   * are the only way to reach this on a trackpad-hostile setup.
+   */
+  const moveTo = (from: number, to: number) => {
+    if (from === to || to < 0 || to >= items.length) return;
+    onReorder(move(from, to));
+  };
+
   const dropIndicatorClass = (index: number) =>
     overIndex === index && dragIndex !== null && dragIndex !== index
       ? "ring-2 ring-primary ring-offset-2 rounded-xl"
@@ -44,5 +59,5 @@ export function useDragReorder<T>(items: T[], onReorder: (ordered: T[]) => void)
         ? "opacity-40"
         : "";
 
-  return { dragProps, dropIndicatorClass, isDragging: dragIndex !== null };
+  return { dragProps, dropIndicatorClass, moveTo, isDragging: dragIndex !== null };
 }

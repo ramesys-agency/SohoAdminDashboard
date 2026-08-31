@@ -82,15 +82,22 @@ export default function ProductEditor() {
                   colorName: colorNm,
                   colorValue: colorVal,
                   isDefault: false,
+                  // Load them in the order the admin arranged, so a save does
+                  // not silently shuffle the gallery back.
                   images:
-                    (v.images as Array<Record<string, unknown>>)?.map(
-                      (img) => ({
+                    ((v.images as Array<Record<string, unknown>>) ?? [])
+                      .slice()
+                      .sort(
+                        (a, b) =>
+                          ((a.displayOrder as number) ?? 0) -
+                          ((b.displayOrder as number) ?? 0),
+                      )
+                      .map((img) => ({
                         id: (img.id as string) || generateUUID(),
                         imageUrl: (img.imageUrl as string) || "",
                         isPrimary: (img.isPrimary as boolean) || false,
                         colorRef: (img.colorRef as string) || "#f8fafc",
-                      }),
-                    ) || [],
+                      })) || [],
                   sizes: [],
                 });
               }

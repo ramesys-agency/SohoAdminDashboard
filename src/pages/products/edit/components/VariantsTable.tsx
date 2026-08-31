@@ -3,6 +3,7 @@ import { type ProductVariantImageData } from "../../view/components/ProductGalle
 import { generateUUID } from "../../../../utils/uuid";
 import ConfirmModal from "../../../../components/ui/ConfirmModal";
 import { PRODUCT_IMAGE_SPEC, imageHint } from "../../../../lib/imageGuidelines";
+import { useDragReorder } from "../../../../hooks/useDragReorder";
 
 export interface SizeVariantData {
   id: string;
@@ -73,6 +74,13 @@ function ColorGroupCard({
       group.images.map((img) => ({ ...img, isPrimary: img.id === id })),
     );
   };
+
+  // The order of these tiles is the order the app shows the images in — it is
+  // saved as each image's displayOrder when the product is saved.
+  const { dragProps, dropIndicatorClass, moveTo } = useDragReorder(
+    group.images,
+    (ordered) => onUpdate("images", ordered),
+  );
 
   const addSize = () => {
     onUpdate("sizes", [
@@ -299,28 +307,64 @@ function ColorGroupCard({
             Variant Images <span className="text-red-500">*</span>
           </label>
           <p className="text-[10px] text-slate-400 -mt-1 mb-1">
-            These images apply to all sizes in this color.{" "}
-            {imageHint(PRODUCT_IMAGE_SPEC)}
+            These images apply to all sizes in this color. Drag to reorder — the
+            app shows them in this order; the starred one is used on product
+            cards. {imageHint(PRODUCT_IMAGE_SPEC)}
           </p>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-            {group.images.map((img) => (
+            {group.images.map((img, index) => (
               <div
                 key={img.id}
-                className="relative aspect-square rounded-lg border border-slate-200 overflow-hidden group"
+                {...dragProps(index)}
+                onKeyDown={(e) => {
+                  // Arrow keys move a focused tile, for anyone not dragging.
+                  if (e.key === "ArrowLeft") {
+                    e.preventDefault();
+                    moveTo(index, index - 1);
+                  } else if (e.key === "ArrowRight") {
+                    e.preventDefault();
+                    moveTo(index, index + 1);
+                  }
+                }}
+                tabIndex={0}
+                aria-label={`Image ${index + 1} of ${group.images.length}${
+                  img.isPrimary ? ", primary" : ""
+                }. Use the arrow keys to reorder.`}
+                className={`relative aspect-square rounded-lg border border-slate-200 overflow-hidden group cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-primary transition-all ${dropIndicatorClass(
+                  index,
+                )}`}
               >
                 <img
                   src={img.imageUrl}
                   alt="Variant"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover pointer-events-none"
                 />
+
+                {/* Position in the gallery, so the saved order is never a guess. */}
+                <div className="absolute top-1 left-1 bg-slate-900/70 text-white text-[9px] font-bold w-4 h-4 rounded flex items-center justify-center backdrop-blur-sm">
+                  {index + 1}
+                </div>
+
                 {img.isPrimary && (
                   <div className="absolute bottom-0 left-0 right-0 bg-slate-900/60 text-white text-[9px] font-bold text-center py-0.5">
                     Primary
                   </div>
                 )}
                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => moveTo(index, index - 1)}
+                    disabled={index === 0}
+                    className="bg-white rounded-full p-1 text-slate-600 shadow-md hover:scale-110 transition-transform disabled:opacity-30 disabled:hover:scale-100"
+                    title="Move earlier"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">
+                      chevron_left
+                    </span>
+                  </button>
                   {!img.isPrimary && (
                     <button
+                      type="button"
                       onClick={() => setPrimary(img.id)}
                       className="bg-white rounded-full p-1 text-primary shadow-md hover:scale-110 transition-transform"
                       title="Set as primary"
@@ -331,6 +375,7 @@ function ColorGroupCard({
                     </button>
                   )}
                   <button
+                    type="button"
                     onClick={() =>
                       setConfirmAction({
                         title: "Remove Variant Image",
@@ -343,6 +388,17 @@ function ColorGroupCard({
                   >
                     <span className="material-symbols-outlined text-[14px]">
                       delete
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveTo(index, index + 1)}
+                    disabled={index === group.images.length - 1}
+                    className="bg-white rounded-full p-1 text-slate-600 shadow-md hover:scale-110 transition-transform disabled:opacity-30 disabled:hover:scale-100"
+                    title="Move later"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">
+                      chevron_right
                     </span>
                   </button>
                 </div>

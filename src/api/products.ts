@@ -61,7 +61,8 @@ export interface GetProductsParams {
   categorySlug?: string;
   collectionId?: string;
   collectionSlug?: string;
-  isPublished?: boolean;
+  /** `"all"` includes drafts; omitting it returns published products only. */
+  isPublished?: boolean | "all";
   gender?: string | string[];
   minPrice?: number;
   maxPrice?: number;
